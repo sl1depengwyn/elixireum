@@ -1,5 +1,7 @@
 defmodule Test do
   def hello do
-    :world
+    unquote (quote do
+      1 + 1
+    end)
   end
 end

@@ -17,12 +17,18 @@ defmodule Elixireum do
     :erlang.put(:elixir_token_metadata, true)
     :erlang.put(:elixir_literal_encoder, false)
 
-    "./lib/test.ex"
+    code = "./lib/test.ex"
     |> File.read!()
+
+    quote do
+      1 + 1
+    end
+
+    code
     |> String.to_charlist()
     |> :elixir_tokenizer.tokenize(0, 0, [])
     |> elem(4)
     |> :elixir_parser.parse()
-    |> dbg()
+    |> elem(1)
   end
 end
