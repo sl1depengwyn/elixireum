@@ -21,28 +21,37 @@ Among the available languages for EVM, Solidity stands out as the most widely ad
 
 \section{Market Research}
 
-\section{Elixir}
-
 \section{Compiler construction}
 
-Compilation process can be divided in 3 or 4 stages. A general overview of these stages:
-Tokenization
-bla bla
+The process of compiler construction, in the context of the Ethereum Virtual Machine (EVM), is a crucial bridge between high-level programming languages and the machine code that EVM understands. This process can be divided into three or four main stages, each playing a pivotal role in transforming human-readable code into executable instructions that can be processed by the EVM. Here is a general overview of these stages:
 
+1. Tokenization
 
-Parsing
-bla bla
+   Tokenization is the initial step in the compilation process. During this stage, the source code is broken down into smaller units called tokens. These tokens are fundamental building blocks, including keywords, identifiers, operators, and constants. Tokenization simplifies the process of analyzing and parsing the code by providing a structured representation of the code's elements.
 
+   Tokenization facilitates syntactical and lexical analysis, ensuring that the code adheres to the language's grammar and can be properly understood.
 
-Intermediate representation (optional)
-Yul Yul+ used for optimizing Simplicity used for formal proofs bla bla
+2. Parsing
 
+   Parsing follows tokenization and focuses on the syntax of the source code. During parsing, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of a syntax tree or abstract syntax tree (AST). This representation helps ensure that the code conforms to the language's grammar rules and can be further processed.
 
-Code generation
+3. Intermediate Representation (Optional)
 
-Since EVM is a relatively new virtual machine, some cases are known when other existed earlier languages gets compiled to EVM (Vyper), this approach has obvious pros: already existing lexer and parser can be utilized, there are people who are already familiar with the language and are adble to use it in development, so new people can be attracted to ethereum (maybe unrelated to this section) 
+   While not always a mandatory stage, the use of an intermediate representation can greatly enhance the efficiency and capabilities of a compiler. In the context of EVM, various intermediate representations like Yul and Yul+ are used for optimizing code. These representations help in enhancing code quality, optimizing performance, and preparing the code for final code generation.
 
-bla bla
+   Additionally, a language like Simplicity is employed for formal proofs. This stage is particularly important in scenarios where verification, security, and performance optimizations are key concerns.
+
+4. Code Generation
+
+   The final stage of the compilation process involves code generation. During this stage, the compiler generates the actual machine code that the EVM can execute. The generated code is specific to the EVM's hardware architecture and represents a translation of the original high-level code into instructions that the EVM can understand and execute.
+
+   The code generation stage is crucial in ensuring that the compiled code is efficient and correctly reflects the intended behavior of the high-level source code.
+
+In conclusion, compiler construction is fundamental to the Ethereum ecosystem, enabling the translation of high-level languages into machine code that can be executed on the EVM. The stages of tokenization, parsing, optional intermediate representation, and code generation are essential components of this process. The flexibility to compile existing languages like Vyper further enriches the Ethereum development landscape, making it accessible to a wider range of developers and promoting the platform's growth and adoption.
+
+\section{Elixir}
+
+The Ethereum ecosystem has seen the emergence of various high-level programming languages, including Vyper. This approach of compiling existing languages to the EVM offers several advantages. It allows for the utilization of already existing lexer and parser tools, which can expedite the development process. Moreover, individuals who are already familiar with these languages can easily transition to Ethereum development. This inclusivity can attract new developers to the Ethereum ecosystem, fostering growth and innovation.
 
 \section{Conclusion}
 
