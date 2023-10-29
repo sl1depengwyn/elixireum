@@ -17,41 +17,43 @@ Among the available languages for EVM, Solidity stands out as the most widely ad
 
 \subsection{Solidity}
 
+Solidity is a high-level, object oriented programming, statically typed language designed specifically for the EVM. It has syntax similar to C++, Python and Javascript \cite{SolidityInspirasion}. It supports multiple inheritance, complex user-defined types, and libraries as well as number of other features \cite{SolidityFeatures}.
+
 \subsection{Vyper}
 
-\section{Market Research}
+Vyper contrasts significantly to Solidity, it is based on Python and extends it to suite smart contract development. Vyper aims security and simplicity in terms of compiler implementation itself and code readability to be auditable more easily. For instance, it lacks a list of features that considered harmful for code readability and that makes the language more error prone \cite{VyperDescription}.
 
 \section{Compiler construction}
 
 The process of compiler construction, is a crucial bridge between high-level programming languages and the machine code that EVM understands. This process can be divided into three or four main stages, each playing a pivotal role in transforming human-readable code into executable instructions that can be processed by the EVM. Here is a general overview of these stages:
 
 \subsection{Tokenization}
-  Tokenization is the initial step in the compilation process. During this stage, the source code is broken down into smaller units called tokens. These tokens are fundamental building blocks, including keywords, identifiers, operators, and constants. Tokenization simplifies the process of analyzing and parsing the code by providing a structured representation of the code's elements.
+Tokenization is the initial step in the compilation process. During this stage, the source code is broken down into smaller units called tokens. These tokens are fundamental building blocks, including keywords, identifiers, operators, and constants. Tokenization simplifies the process of analyzing and parsing the code by providing a structured representation of the code's elements.
 
-  Tokenization facilitates syntactical and lexical analysis, ensuring that the code adheres to the language's grammar and can be properly understood.
+Tokenization facilitates syntactical and lexical analysis, ensuring that the code adheres to the language's grammar and can be properly understood.
 
 \subsection{Parsing}
 
-  Parsing follows tokenization and focuses on the syntax of the source code. During parsing, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of a syntax tree or abstract syntax tree (AST). This representation helps ensure that the code conforms to the language's grammar rules and can be further processed.
+Parsing follows tokenization and focuses on the syntax of the source code. During parsing, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of a syntax tree or abstract syntax tree (AST). This representation helps ensure that the code conforms to the language's grammar rules and can be further processed.
 
 \subsection{Intermediate Representation (Optional)}
 
-  While not always a mandatory stage, the use of an intermediate representation can greatly enhance the efficiency and capabilities of a compiler. In the context of EVM, various intermediate representations like Yul and Yul+ are used for optimizing code. These representations help in enhancing code quality, optimizing performance, and preparing the code for final code generation.
+While not always a mandatory stage, the use of an intermediate representation can greatly enhance the efficiency and capabilities of a compiler. In the context of EVM, various intermediate representations like Yul and Yul+ are used for optimizing code. These representations help in enhancing code quality, optimizing performance, and preparing the code for final code generation.
 
-  Additionally, a language like Simplicity is employed for formal proofs. This stage is particularly important in scenarios where verification, security, and performance optimizations are key concerns.
+Additionally, a language like Simplicity is employed for formal proofs. This stage is particularly important in scenarios where verification, security, and performance optimizations are key concerns.
 
 \subsection{Code Generation}
 
-  The final stage of the compilation process involves code generation. During this stage, the compiler generates the actual machine code that the EVM can execute. The generated code is specific to the EVM's hardware architecture and represents a translation of the original high-level code into instructions that the EVM can understand and execute.
+The final stage of the compilation process involves code generation. During this stage, the compiler generates the actual machine code that the EVM can execute. The generated code is specific to the EVM's hardware architecture and represents a translation of the original high-level code into instructions that the EVM can understand and execute.
 
-  The code generation stage is crucial in ensuring that the compiled code is efficient and correctly reflects the intended behavior of the high-level source code.
+The code generation stage is crucial in ensuring that the compiled code is efficient and correctly reflects the intended behavior of the high-level source code.
 
 
 In conclusion, compiler construction is fundamental to the Ethereum ecosystem, enabling the translation of high-level languages into machine code that can be executed on the EVM. The stages of tokenization, parsing, optional intermediate representation, and code generation are essential components of this process. The flexibility to compile existing languages like Vyper further enriches the Ethereum development landscape, making it accessible to a wider range of developers and promoting the platform's growth and adoption.
 
 \section{The Elixir language}
 
-Elixir is a modern programming language, which is working on the top of Erlang VM. 
+Elixir is a modern programming language, which is working on the top of Erlang VM.
 
 it's not popular as python or Javascript but it has own community, and it is in top 100 languages by TIOBE \cite{TIOBE}
 
@@ -62,6 +64,8 @@ To proceed with design of new language for smart contracts, we decided to choose
 
 Such approach we can met in Vyper language which is built on the top of Python languag
 \section{Conclusion}
+
+
 
 % \newpage
 
