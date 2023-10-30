@@ -2,8 +2,8 @@
 \label{chap:lr}
 \chaptermark{Second Chapter Heading}
 
-This chapter introduces the reader to the Ethereum ecosystem and provide related literature.
-Section \ref{sec:evm} describes Ethereum Virtual Machine (EVM) and its gas consumption mechanism. Section \ref{sec:langs} describes existing EVM languages. Section \ref{sec:cc} gives a brief overview of compiler construction. In section \ref{sec:ex} the Elixir language is introduced. To finalize, section \ref{sec:conc} concludes this chapter,  .
+This chapter introduces the reader to the Ethereum ecosystem and provides related literature.
+Section \ref{sec:evm} describes the Ethereum Virtual Machine (EVM) and its gas consumption mechanism. Section \ref{sec:langs} describes existing EVM languages. Section \ref{sec:cc} gives a brief overview of compiler construction. In section \ref{sec:ex} the Elixir language is introduced. To finalize, section \ref{sec:conc} concludes this chapter.
 
 \section{Ethereum Virtual Machine}
 \label{sec:evm}
@@ -15,22 +15,22 @@ Gas limit, the EVM's stack-based architecture, and the wide set of available ope
 
 \section{Existing EVM languages}
 \label{sec:langs}
-Official Ethereum documentation \cite{OfficialEthereumLanguages} enumerates only four languages that compiles to EVM: Solidity, Vyper, Yul and Fe. However, other attempts to create language for EVM are known \cite{CommunityEthereumLanguages}.
+Official Ethereum documentation \cite{OfficialEthereumLanguages} enumerates only four languages that compile to EVM: Solidity, Vyper, Yul, and Fe. However, other attempts to create a language for EVM are known \cite{CommunityEthereumLanguages}.
 
-Among the available languages for EVM, Solidity stands out as the most widely adopted and utilized one \cite{SolidityWidelyUsed, SolidityDevsChallenges}. This dominance is further emphasized by data presented in \cite{SolidityVyperGithubUsage}, which reveals that there are approximately 800 times more Solidity files on Github compared to Vyper files. Consequently, it is evident that the majority of existing smart contracts on the Ethereum blockchain are written in Solidity. On one hand, the concentration of development and resources around a single language like Solidity can be viewed positively. It fosters a strong sense of community cohesion and ensures that the majority of developers are focused on refining and improving a single language, potentially enhancing its robustness and feature set. However, this dominance also brings significant challenges. The high prevalence of Solidity in the EVM ecosystem means that if a vulnerability or security flaw arises in the Solidity language, it affects a substantial portion of the smart contracts on the network. This centralized risk can be a double-edged sword, as a single point of failure in Solidity could have far-reaching consequences for the entire Ethereum blockchain. Furthermore, the Ethereum community is not without its criticisms of Solidity. Community members have voiced their concerns and challenges related to the language \cite{SolidityDevsChallenges}. These concerns range from the language's complexity to its lack of certain features, which may hinder the development of robust and secure smart contracts. So, decentralization and availability of choice is important, especially for such decentralized ecosystem as blockchain.
+Among the available languages for EVM, Solidity stands out as the most widely adopted and utilized one \cite{SolidityWidelyUsed, SolidityDevsChallenges}. This dominance is further emphasized by data presented in \cite{SolidityVyperGithubUsage}, which reveals that there are approximately 800 times more Solidity files on Github compared to Vyper files. Consequently, the majority of existing smart contracts on the Ethereum blockchain are written in Solidity. On one hand, the concentration of development and resources around a single language like Solidity can be viewed positively. It fosters a strong sense of community cohesion and ensures that the majority of developers are focused on refining and improving a single language, potentially enhancing its robustness and feature set. However, this dominance also brings significant challenges. The high prevalence of Solidity in the EVM ecosystem means that if a vulnerability or security flaw arises in the Solidity language, it affects a substantial portion of the smart contracts on the network. This centralized risk can be a double-edged sword, as a single point of failure in Solidity could have far-reaching consequences for the entire Ethereum blockchain. Furthermore, the Ethereum community is not without its criticisms of Solidity. Community members have voiced their concerns and challenges related to the language \cite{SolidityDevsChallenges}. These concerns range from the language's complexity to its lack of certain features, which may hinder the development of robust and secure smart contracts. So, decentralization and availability of choice are important, especially for such a decentralized ecosystem as blockchain.
 
 \subsection{Solidity}
 
-Solidity is a high-level, object oriented programming, statically typed language designed specifically for the EVM. It has syntax similar to C++, Python and Javascript \cite{SolidityInspirasion}. It supports multiple inheritance, complex user-defined types, and libraries as well as number of other features \cite{SolidityFeatures}.
+Solidity is a high-level, object-oriented programming, statically typed language designed specifically for the EVM. It has syntax similar to C++, Python, and Javascript \cite{SolidityInspirasion}. It supports multiple inheritance, complex user-defined types, and libraries as well as the number of other features \cite{SolidityFeatures}.
 
 \subsection{Vyper}
 
-Vyper contrasts significantly to Solidity, it is based on Python and extends it to suite smart contract development. Vyper aims security and simplicity in terms of compiler implementation itself and code readability to be auditable more easily. For instance, it lacks a list of features that considered harmful for code readability and that makes the language more error prone \cite{VyperDescription}.
+Vyper contrasts significantly with Solidity, it is based on Python and extends it to suit smart contract development. Vyper aims for security and simplicity in terms of compiler implementation itself and code readability to be auditable more easily. For instance, it lacks a list of features that are considered harmful for code readability, and that makes the language more error-prone \cite{VyperDescription}.
 
 \section{Compiler construction}
 \label{sec:cc}
 
-The process of compiler construction, is a crucial bridge between high-level programming languages and the machine code that EVM understands. This process can be divided into three or four main stages, each playing a pivotal role in transforming human-readable code into executable instructions that can be processed by the EVM. Here is a general overview of these stages:
+The process of compiler construction is a crucial bridge between high-level programming languages and the machine code that EVM understands. This process can be divided into three or four main stages, each playing a pivotal role in transforming human-readable code into executable instructions that can be processed by the EVM. Here is a general overview of these stages:
 
 \subsection{Tokenization}
 Tokenization is the initial step in the compilation process. During this stage, the source code is broken down into smaller units called tokens. These tokens are fundamental building blocks, including keywords, identifiers, operators, and constants. Tokenization simplifies the process of analyzing and parsing the code by providing a structured representation of the code's elements.
@@ -59,11 +59,11 @@ In conclusion, compiler construction is fundamental to the Ethereum ecosystem, e
 \section{The Elixir language}
 \label{sec:ex}
 
-Elixir is a modern programming language, which is working on the top of Erlang VM. It has immutable variables that will make smart contracts' code more clear and straightforward. Elixir's metaprogramming capabilities enable the creation of domain-specific languages (DSLs). This is valuable for writing smart contracts, as it allows developers to express contract logic in a way that is highly readable and aligned with the problem domain. Metaprogramming can simplify contract development and make it more accessible to a wider range of developers. According to O'Grady \cite{RedMonk} Elixir is top 50 language. And moreover it's more popular than Solidity. Therefore using of Elixir will bring expand Ethereum community.
+Elixir is a modern programming language, which is working on the top of Erlang VM. It has immutable variables that will make smart contracts' code more clear and straightforward. Elixir's metaprogramming capabilities enable the creation of domain-specific languages (DSLs). This is valuable for writing smart contracts, as it allows developers to express contract logic in a way that is highly readable and aligned with the problem domain. Metaprogramming can simplify contract development and make it more accessible to a wider range of developers. According to O'Grady \cite{RedMonk} Elixir is a top 50 language. Moreover, it's more popular than Solidity. Therefore using Elixir will expand Ethereum community.
 
 To sum up, we chose Elixir as a language for writing compiler, and also as a base for Elixireum language.
 
 \section{Conclusion}
 \label{sec:conc}
 
-In conclusion, two problems were highlighted in this chapter. Firstly, the dominance of Solidity brings serious downsides to Ethereum ecosystem. Secondly, the absence of functional paradigm for smart contract development does not allow the usage of functional paradigm strong pros for smart contract development. So, we decide to develop the Elixirium - a functional programming language based on Elixir for smart contract development.
+In conclusion, two problems were highlighted in this chapter. Firstly, the dominance of Solidity brings serious downsides to the Ethereum ecosystem. Secondly, the absence of a functional paradigm for smart contract development does not allow the usage of a functional paradigm strong pros for smart contract development. So, we decided to develop the Elixirium - a functional programming language based on Elixir for smart contract development.
