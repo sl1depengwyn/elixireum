@@ -2,8 +2,9 @@
 \label{chap:lr}
 \chaptermark{Second Chapter Heading}
 
-This chapter introduces the reader to the Ethereum ecosystem and provides related literature.
-Section \ref{sec:evm} describes the Ethereum Virtual Machine (EVM) and its gas consumption mechanism. Section \ref{sec:langs} describes existing EVM languages. Section \ref{sec:cc} gives a brief overview of compiler construction. In section \ref{sec:ex} the Elixir language is introduced. To finalize, section \ref{sec:conc} concludes this chapter.
+This chapter serves as an introduction to the Ethereum ecosystem and offers an overview of the relevant literature.
+
+In Section \ref{sec:evm}, we delve into the Ethereum Virtual Machine (EVM) and explore its gas consumption mechanism. Following that, in Section \ref{sec:langs}, we examine the existing languages compatible with the EVM. Section \ref{sec:cc} provides a concise overview of compiler construction, and in Section \ref{sec:ex}, we introduce the Elixir programming language. To wrap up, Section \ref{sec:conc} provides the concluding remarks for this chapter.
 
 \section{Ethereum Virtual Machine}
 \label{sec:evm}
@@ -59,11 +60,15 @@ In conclusion, compiler construction is fundamental to the Ethereum ecosystem, e
 \section{The Elixir language}
 \label{sec:ex}
 
-Elixir is a modern programming language, which is working on the top of Erlang VM. It has immutable variables that will make smart contracts' code more clear and straightforward. Elixir's metaprogramming capabilities enable the creation of domain-specific languages (DSLs). This is valuable for writing smart contracts, as it allows developers to express contract logic in a way that is highly readable and aligned with the problem domain. Metaprogramming can simplify contract development and make it more accessible to a wider range of developers. According to O'Grady \cite{RedMonk} Elixir is a top 50 language. Moreover, it's more popular than Solidity. Therefore using Elixir will expand Ethereum community.
+Elixir is a contemporary programming language that operates on top of the Erlang Virtual Machine. With its robust support for immutable variables, Elixir greatly enhances the clarity and simplicity of smart contract code. This immutability ensures that once data is defined, it cannot be altered, promoting predictability and security in the context of smart contract development.
 
-To sum up, we chose Elixir as a language for writing compiler, and also as a base for Elixireum language.
+One of Elixir's standout features is its robust metaprogramming capabilities. This functionality empowers developers to create domain-specific languages that are tailor-made for the intricacies of smart contract logic. This capability is invaluable as it allows developers to express contract logic in a manner that is both highly readable and closely aligned with the specific problem domain. By employing metaprogramming, smart contract development becomes more straightforward, and it becomes more accessible to a broader spectrum of developers.
+
+As attested by O'Grady \cite{RedMonk}, Elixir stands strong among the top 50 programming languages. Remarkably, it surpasses even the popularity of Solidity, making it an attractive choice for Ethereum developers and thereby contributing to the expansion of the Ethereum community.
+
+In summation, our decision to adopt Elixir as the language for our compiler and as the foundational framework for the Elixireum language is bolstered by its immutability, metaprogramming capabilities, and its rising prominence in the software development landscape. This choice ensures not only the simplicity and security of smart contract development but also the growth and diversification of the Ethereum ecosystem.
 
 \section{Conclusion}
 \label{sec:conc}
 
-In conclusion, two problems were highlighted in this chapter. Firstly, the dominance of Solidity brings serious downsides to the Ethereum ecosystem. Secondly, the absence of a functional paradigm for smart contract development does not allow the usage of a functional paradigm strong pros for smart contract development. So, we decided to develop the Elixirium - a functional programming language based on Elixir for smart contract development.
+In conclusion, this chapter has emphasized two significant issues. Firstly, the overwhelming dominance of Solidity has brought substantial challenges to the Ethereum ecosystem. Secondly, the absence of a functional paradigm for smart contract development has limited the utilization of its inherent advantages. Consequently, our decision has been to develop Elixirium, a functional programming language built on Elixir, tailored specifically for smart contract development.
