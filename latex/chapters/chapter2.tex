@@ -8,11 +8,11 @@ This chapter serves as an introduction to the Ethereum ecosystem and offers an o
 
 \section{Ethereum Virtual Machine}
 \label{sec:evm}
-Ethereum is a decentralized system, and at its core, the EVM is an essential component of the Ethereum blockchain. The EVM serves as the computational heart of the Ethereum network, enabling the execution of smart contracts and providing the foundation for a wide array of decentralized applications.
+According to \cite{EthereumWhitepaper} Ethereum is a decentralized system, and at its core, the EVM is an essential component of the Ethereum blockchain. The EVM serves as the computational heart of the Ethereum network, enabling the execution of smart contracts and providing the foundation for a wide array of decentralized applications.
 
-In the context of smart contract execution, it's important to mention the concept of gas limit. Gas limit is a critical aspect of Ethereum's execution model. Each operation and computation on the Ethereum Virtual Machine consumes a certain amount of gas, which is a measure of computational work. The gas limit is a cap set by the user or the entity initiating a contract execution, and it represents the maximum amount of gas they are willing to spend for that operation.
+EVM has a significant security mechanism - gas limit. Each operation and computation on the EVM consumes a certain amount of gas, which is a measure of computational work. The gas limit is a cap set by the user or the entity initiating a contract execution, and it represents the maximum amount of gas they are willing to spend for that operation.
 
-Gas limit, the EVM's stack-based architecture, and the wide set of available operations allow it to efficiently and securely for miners execute these smart contracts, granting it the status of a Turing-complete machine \cite{EthereumWhitepaper}. This level of computational flexibility empowers developers to create sophisticated programs.
+The gas limit, the stack-based architecture of the EVM, and the wide set of available operations allow it to efficiently and securely for miners execute these smart contracts. Also, Buterin \cite{EthereumWhitepaper} defines EVM as a Turing-complete machine. This level of computational flexibility empowers developers to create sophisticated programs.
 
 \section{Existing EVM languages}
 \label{sec:langs} 
@@ -31,38 +31,38 @@ Vyper contrasts significantly with Solidity, it is based on Python and extends i
 \section{Compiler construction}
 \label{sec:cc}
 
-The process of compiler construction is a crucial bridge between high-level programming languages and the machine code that EVM understands. This process can be divided into three or four main stages, each playing a pivotal role in transforming human-readable code into executable instructions that can be processed by the EVM. Here is a general overview of these stages:
+The process of compiler construction is a crucial bridge between high-level programming languages and the machine code that EVM understands. This process can be divided into three or four main stages: tokenization, parsing, intermediate representation, and code generation. Each playing a pivotal role in transforming human-readable code into executable instructions that can be processed by the EVM. Here is a general overview of these stages:
 
 \subsection{Tokenization}
-Tokenization is the initial step in the compilation process. During this stage, the source code is broken down into smaller units called tokens. These tokens are fundamental building blocks, including keywords, identifiers, operators, and constants. Tokenization simplifies the process of analyzing and parsing the code by providing a structured representation of the code's elements.
+According to Waite and Goose \cite[135-148]{CompilerConstruction} tokenization is the initial step in the compilation process. During this stage, the source code is broken down into smaller units called tokens. These tokens are fundamental building blocks, including keywords, identifiers, operators, and constants. Tokenization simplifies the process of analyzing and parsing the code by providing a structured representation of the code.
 
-Tokenization facilitates syntactical and lexical analysis, ensuring that the code adheres to the language's grammar and can be properly understood.
+Tokenization facilitates syntactical and lexical analysis, ensuring that the code adheres to the grammar of the language and can be properly understood.
 
 \subsection{Parsing}
 
-Parsing follows tokenization and focuses on the syntax of the source code. During parsing, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of a syntax tree or abstract syntax tree (AST). This representation helps ensure that the code conforms to the language's grammar rules and can be further processed.
+Parsing follows tokenization and focuses on the syntax of the source code. During parsing, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of a syntax tree or abstract syntax tree (AST). This representation helps ensure that the code conforms to the grammar of the language rules and can be further processed \cite[149-182]{CompilerConstruction}.
 
 \subsection{Intermediate Representation (Optional)}
 
-While not always a mandatory stage, the use of an intermediate representation can greatly enhance the efficiency and capabilities of a compiler. In the context of EVM, intermediate representations like Yul and Yul+ are used for optimizing code. These representations help in enhancing code quality, optimizing performance, and preparing the code for final code generation.
+While not always a mandatory stage, the use of an intermediate representation can significantly enhance the efficiency and capabilities of a compiler. In the context of EVM, intermediate representations like Yul and Yul+ are used for optimizing code. These representations help in enhancing code quality, optimizing performance, and preparing the code for final code generation.
 
 This stage is particularly important in scenarios where verification, security, and performance optimizations are key concerns.
 
 \subsection{Code Generation}
 
-The final stage of the compilation process involves code generation. During this stage, the compiler generates the actual machine code that the EVM can execute. The generated code is specific to the EVM's hardware architecture and represents a translation of the original high-level code into instructions that the EVM can understand and execute.
+The final stage of the compilation process involves code generation \cite[253-281]{CompilerConstruction}. During this stage, the compiler generates the actual machine code that the EVM can execute. The generated code is specific to the hardware architecture of the EVM and represents a translation of the original high-level code into instructions that the EVM can understand and execute.
 
 The code generation stage is crucial in ensuring that the compiled code is efficient and correctly reflects the intended behavior of the high-level source code.
 
 
 In conclusion, compiler construction is fundamental to the implementation of the new language, enabling the translation of high-level languages into machine code. The stages of tokenization, parsing, optional intermediate representation, and code generation are essential components of this process.
 
-\section{The Elixir language}
+\section{The Elixir language \cite{ElixirOfficialWebSite}}
 \label{sec:ex}
 
-Elixir is a modern programming language that operates on top of the Erlang Virtual Machine. With its support for immutable variables, Elixir greatly enhances the clarity and simplicity of smart contract code. This immutability ensures that once data is defined, it cannot be altered, promoting predictability and security in the context of smart contract development.
+Elixir is a modern programming language that operates on top of the Erlang Virtual Machine. With its support for immutable variables, Elixir greatly enhances the clarity and simplicity of smart contract code. This immutability ensures that once data are defined, they cannot be altered, promoting predictability and security in the context of smart contract development.
 
-One of Elixir's standout features is its metaprogramming capabilities. This functionality empowers developers to create domain-specific languages that are tailor-made for the intricacies of smart contract logic. This capability is invaluable as it allows developers to express contract logic in a manner that is both highly readable and closely aligned with the specific problem domain. By employing metaprogramming, smart contract development becomes more straightforward, and it becomes more accessible to a broader spectrum of developers.
+A standout feature of Elixir is its metaprogramming capabilities. This functionality empowers developers to create domain-specific languages that are tailor-made for the intricacies of smart contract logic. This capability is invaluable as it allows developers to express contract logic in both highly readable and closely aligned with the specific problem domain way. By employing metaprogramming, smart contract development becomes more straightforward, and it becomes more accessible to a broader spectrum of developers.
 
 As attested by O'Grady \cite{RedMonk}, Elixir stands strong among the top 50 programming languages. Remarkably, it surpasses even the popularity of Solidity, making it an attractive choice for Ethereum developers and thereby contributing to the expansion of the Ethereum community.
 
