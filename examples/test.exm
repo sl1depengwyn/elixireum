@@ -4,6 +4,10 @@ defmodule HaHaHa.Test do
       1 + 1
     end)
   end
+
+  def pattern_matching do
+    
+  end
 end
 
 defmodule Hello do

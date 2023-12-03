@@ -1,0 +1,21 @@
+defmodule ETH.StorageA do
+  alias Blockchain.Storage
+  alias Enum
+
+  @var_name :number
+
+  @spec store(u256()) :: :ok
+  def store(-1) do
+    :ok
+  end
+
+  def store(num) do
+    Storage.store(@var_name, num)
+  end
+
+
+  @spec retrieve() :: u256()
+  def retrieve() do
+    Storage.get(@var_name)
+  end
+end
