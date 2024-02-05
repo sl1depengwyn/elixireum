@@ -63,12 +63,12 @@
                    line: 8,
                    column: 10
                  ], [{:test, [line: 8, column: 5], nil}, 123]},
-                {{:., [line: 9, column: 12], [Storage, :store]},
-                 [closing: [line: 9, column: 33], line: 9, column: 13],
+                {{:., [line: 9, column: 23], [Blockchain.Storage, :store]},
+                 [closing: [line: 9, column: 44], line: 9, column: 24],
                  [
-                   {:@, [line: 9, column: 19],
-                    [{:var_name, [line: 9, column: 20], nil}]},
-                   {:num, [line: 9, column: 30], nil}
+                   {:@, [line: 9, column: 30],
+                    [{:var_name, [line: 9, column: 31], nil}]},
+                   {:num, [line: 9, column: 41], nil}
                  ]}
               ]}
            ]

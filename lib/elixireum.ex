@@ -55,6 +55,7 @@ defmodule Elixireum do
 
     {:ok, pid} = Kernel.LexicalTracker.start_link()
 
+    # TODO replace with `with`
     {ast, acc} =
       code
       |> String.to_charlist()
@@ -166,6 +167,14 @@ defmodule Elixireum do
   defp generate_function(function) do
     """
         function #{function.typespec.function_name}() {
+          #{Macro.to_string(function.body)}
+        }
+    """
+  end
+
+  defp generate_function(function) do
+    """
+        function #{function.typespec.function_name}() -> #{"TODO add returns"} {
           #{Macro.to_string(function.body)}
         }
     """

@@ -7,7 +7,7 @@ defmodule ETH.StorageA do
   @spec store(u256()) :: :ok
   def store(num) do
     test = 123
-    Storage.store(@var_name, num)
+    Blockchain.Storage.store(@var_name, num)
   end
 
   @spec retrieve() :: u256()
