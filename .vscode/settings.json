@@ -1,4 +1,10 @@
 {
     "latex-workshop.latex.recipe.default": "latexmk (xelatex)",
-    "editor.wordWrap": "on"
+    "editor.wordWrap": "on",
+    "files.watcherExclude": {
+        "**/target": true
+    },
+    "cSpell.words": [
+        "Elixireum"
+    ]
 }
