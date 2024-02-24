@@ -259,5 +259,9 @@ defmodule Elixireum do
     "#{var_name} := #{Macro.to_string(value)}"
   end
 
+  defp expand_body_inner() do
+
+  end
+
   defp integer_to_hex_string(integer), do: "0x" <> Integer.to_string(integer, 16)
 end
