@@ -64,7 +64,8 @@ defmodule Elixireum do
       |> :elixir_parser.parse()
       |> elem(1)
       # |> :elixir_expand.expand(exEnv, env)
-      |> Macro.prewalk(%{functions: [], specs: []}, &expand/2)
+      |> Macro.prewalk(%{functions: [], specs: [], private_functions: []}, &expand/2)
+      |> dbg()
 
     # |> Macro.to_string()
 
@@ -87,6 +88,8 @@ defmodule Elixireum do
       #{generate_selector(acc)}
 
       #{generate_functions(acc)}
+
+      #{generate_private_functions(acc)}
         }
       }
       """
@@ -94,7 +97,7 @@ defmodule Elixireum do
 
     File.open!("./out.yul", [:write], fn file ->
       IO.write(file, yul)
-      IO.inspect(file, ast, limit: :infinity, printable_limit: :infinity)
+      # IO.inspect(file, ast, limit: :infinity, printable_limit: :infinity)
     end)
   end
 
@@ -114,21 +117,40 @@ defmodule Elixireum do
   end
 
   def expand({:def, _meta, children} = node, acc) do
-    [{function_name, _, _args} | body] = children
+    [{function_name, _, args} | body] = children
     # TODO add also check suitability of typespec by it's args
 
     function = %YulFunction{
       typespec: fetch_spec(acc[:specs], function_name),
-      body: Macro.expand(body, __ENV__)
+      body: Macro.expand(body, __ENV__),
+      args: extract_args(args)
     }
 
     {node, Map.put(acc, :functions, [function | acc[:functions]])}
+  end
+
+  def expand({:defp, _meta, children} = node, acc) do
+    [{function_name, _, args} = qwe | body] = children
+    dbg(qwe)
+    # TODO add also check suitability of typespec by it's args
+
+    function = %YulFunction{
+      function_name: function_name,
+      body: Macro.expand(body, __ENV__),
+      args: extract_args(args)
+    }
+
+    {node, Map.put(acc, :private_functions, [function | acc[:private_functions]])}
   end
 
   def expand({ignored, _meta, _children} = node, acc) when ignored in @ignored_nodes,
     do: {node, acc}
 
   def expand(other, acc), do: {Macro.expand(other, __ENV__), acc}
+
+  defp extract_args(args) do
+    Enum.map(args, &elem(&1, 0))
+  end
 
   defp process_spec_body([{:"::", _meta, [{function_name, _meta_args, args} = _left, right]}]) do
     %Typespec{function_name: function_name, args: process_args_types(args), return: right}
@@ -198,11 +220,15 @@ defmodule Elixireum do
     function |> dbg()
 
     """
-        function #{function.typespec.function_name}() {
-          #{Macro.to_string(function.body)}
+        function #{function.typespec.function_name}(#{Enum.join(function.args, ", ")}) {
+
+          #{Macro.prewalk(function.body, "", &expand_body/2)}
+
         }
     """
   end
+
+  # {Macro.to_string(function.body)}
 
   defp generate_function(function) do
     """
@@ -210,6 +236,24 @@ defmodule Elixireum do
           #{Macro.to_string(function.body)}
         }
     """
+  end
+
+  defp generate_private_functions(%{private_functions: functions}) do
+    Enum.map(functions, &generate_function/1)
+  end
+
+  @disallowed_actions_inside_function ~w(defmodule @ def defp)a
+
+  defp expand_body(node, acc) do
+    acc <> expand_body_inner(node)
+  end
+
+  defp expand_body_inner({action, _, _}, _) when action in @disallowed_actions_inside_function do
+    raise "`#{action}` inside functions is not allowed!"
+  end
+
+  defp expand_body_inner({:=, _, [{var_name, _, _children}, value]}) do
+    "#{var_name} := #{Macro.to_string(value)}"
   end
 
   defp integer_to_hex_string(integer), do: "0x" <> Integer.to_string(integer, 16)
