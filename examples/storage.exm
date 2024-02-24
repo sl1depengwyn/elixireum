@@ -1,5 +1,4 @@
 defmodule ETH.StorageA do
-  alias Blockchain.Storage
   alias Enum
 
   @var_name :number
@@ -7,12 +6,13 @@ defmodule ETH.StorageA do
   @spec store(uint256(), uint256()) :: tuple(int(), binary())
   def store(num, fake_num) do
     test = 123
-    Blockchain.Storage.store(@var_name, num)
+    BlockchainStorage.store(@var_name, 12332322)
+    BlockchainStorage.store(@var_name, num)
   end
 
   @spec retrieve() :: u256()
   def retrieve() do
-    Storage.get(@var_name)
+    BlockchainStorage.get(@var_name)
   end
 
   defp abc(qwe) do

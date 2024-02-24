@@ -85,12 +85,14 @@ defmodule Elixireum do
       object "contract" {
         code { }
         object "runtime" {
+          code {
       #{generate_selector(acc)}
 
       #{generate_functions(acc)}
 
       #{generate_private_functions(acc)}
         }
+      }
       }
       """
       |> dbg()
@@ -132,7 +134,6 @@ defmodule Elixireum do
 
   def expand({:defp, _meta, children} = node, acc) do
     [{function_name, _, args} = qwe | body] = children
-    dbg(qwe)
     # TODO add also check suitability of typespec by it's args
 
     function = %YulFunction{
@@ -196,7 +197,7 @@ defmodule Elixireum do
   end
 
   defp function_to_keccak_bytes(function) do
-    function.function_name |> to_string() |> dbg() |> ExKeccak.hash_256()
+    function.function_name |> to_string() |> ExKeccak.hash_256()
   end
 
   defp typed_function_to_arguments(function) do
@@ -206,7 +207,7 @@ defmodule Elixireum do
       |> Enum.reduce({"", 0}, fn {arg, type}, {yul, offset} ->
         {yul <>
            """
-           #{arg} = calldataload(add(0x4, #{integer_to_hex_string(offset)}))
+           let #{arg} := calldataload(add(0x4, #{integer_to_hex_string(offset)}))
            """, offset + type.size}
       end)
 
@@ -217,23 +218,25 @@ defmodule Elixireum do
     Enum.map(functions, &generate_function/1)
   end
 
-  # defp generate_function(function) do
-  #   function |> dbg()
+  defp generate_function(function) do
+    {ast, yul} = Macro.prewalk(function.body, "", &expand_body/2)
 
-  #   """
-  #       function #{function.typespec.function_name}(#{Enum.join(function.args, ", ")}) {
+    {ast, yul_} = Macro.prewalk(prepare_children(function.body), "", &prepare_last_statement/2)
 
-  #         #{Macro.prewalk(function.body, "", &expand_body/2)}
+    """
+        function #{function.function_name}(#{Enum.join(function.args, ", ")}) -> return_value {
 
-  #       }
-  #   """
-  # end
+          #{yul}
+
+
+          #{yul_}
+        }
+    """
+  end
 
   # {Macro.to_string(function.body)}
 
   defp generate_function(function) do
-    dbg(function)
-
     """
         function #{function.function_name}() -> #{"TODO add returns"} {
           #{Macro.to_string(function.body)}
@@ -245,23 +248,120 @@ defmodule Elixireum do
     Enum.map(functions, &generate_function/1)
   end
 
-  @disallowed_actions_inside_function ~w(defmodule @ def defp)a
+  @disallowed_actions_inside_function ~w(defmodule def defp)a
 
-  defp expand_body(node, acc) do
-    acc <> expand_body_inner(node)
-  end
-
-  defp expand_body_inner({action, _, _}, _) when action in @disallowed_actions_inside_function do
+  defp expand_body({action, _, _}, _acc) when action in @disallowed_actions_inside_function do
     raise "`#{action}` inside functions is not allowed!"
   end
 
-  defp expand_body_inner({:=, _, [{var_name, _, _children}, value]}) do
-    "#{var_name} := #{Macro.to_string(value)}"
+  defp expand_body({:=, _, [{var_name, _, _children}, value]} = node, acc) do
+    {node, acc <> "let #{var_name} := #{Macro.to_string(value)}" <> "\n"}
   end
 
-  defp expand_body_inner() do
+  alias Blockchain.Storage
 
+  defp expand_body(
+         {{:., _, [{:__aliases__, _, [:BlockchainStorage]}, function_name]}, _, args} = node,
+         acc
+       ) do
+    args =
+      Enum.map(args, fn arg ->
+        {ast, _acc} = Macro.prewalk(arg, "", &prepare_arg/2)
+        ast
+      end)
+
+    {node, acc <> apply(Storage, function_name, args) <> "\n"}
+  end
+
+  defp expand_body(other, acc) do
+    {other, acc}
+  end
+
+  defp prepare_arg({:@, _, [{var_name, _, _}]}, acc) do
+    hash = var_name |> to_string() |> ExKeccak.hash_256() |> Base.encode16(case: :lower)
+    {"0x" <> hash, acc}
+  end
+
+  defp prepare_arg({arg, _, _}, acc) do
+    {arg, acc}
+  end
+
+  defp prepare_arg(literal, acc) do
+    {literal, acc}
+  end
+
+  defp prepare_last_statement({:=, _, [{var_name, _, _}, _]} = node, _acc) do
+    {nil, "return_value := #{var_name}"} |> dbg()
+  end
+
+  defp prepare_last_statement(node, acc) do
+    {_ast, yul} = Macro.prewalk(node, "", &expand_body/2)
+    {nil, "return_value := " <> yul} |> dbg()
   end
 
   defp integer_to_hex_string(integer), do: "0x" <> Integer.to_string(integer, 16)
+
+  defp prepare_children([[do: {:__block__, _, children}]]) do
+    List.last(children)
+  end
+
+  defp prepare_children([[do: child]]) do
+    child
+  end
 end
+
+# {{:., [line: 8, column: 22],
+# [
+#   {:__aliases__,
+#    [last: [line: 8, column: 5], line: 8, column: 5],
+#    [:BlockchainStorage]},
+#   :store
+# ]}, [closing: [line: 8, column: 43], line: 8, column: 23],
+# [
+#  {:@, [line: 8, column: 29],
+#   [{:var_name, [line: 8, column: 30], nil}]},
+#  {:num, [line: 8, column: 40], nil}
+# ]}
+# ]}
+
+# [
+#   [
+#     do: {:__block__, [],
+#      [
+#        {:=,
+#         [
+#           end_of_expression: [newlines: 1, line: 7, column: 15],
+#           line: 7,
+#           column: 10
+#         ], [{:test, [line: 7, column: 5], nil}, 123]},
+#        {{:., [line: 8, column: 22],
+#          [
+#            {:__aliases__, [last: [line: 8, column: 5], line: 8, column: 5],
+#             [:BlockchainStorage]},
+#            :store
+#          ]},
+#         [
+#           end_of_expression: [newlines: 1, line: 8, column: 49],
+#           closing: [line: 8, column: 48],
+#           line: 8,
+#           column: 23
+#         ],
+#         [
+#           {:@, [line: 8, column: 29],
+#            [{:var_name, [line: 8, column: 30], nil}]},
+#           12332322
+#         ]},
+#        {{:., [line: 9, column: 22],
+#          [
+#            {:__aliases__, [last: [line: 9, column: 5], line: 9, column: 5],
+#             [:BlockchainStorage]},
+#            :store
+#          ]}, [closing: [line: 9, column: 43], line: 9, column: 23],
+#         [
+#           {:@, [line: 9, column: 29],
+#            [{:var_name, [line: 9, column: 30], nil}]},
+#           {:num, [line: 9, column: 40], nil}
+#         ]}
+#      ]}
+#   ]
+# ],
