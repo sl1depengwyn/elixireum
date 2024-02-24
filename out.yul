@@ -1,3 +1,34 @@
+object "contract" {
+  code { }
+  object "runtime" {
+    let method_id := shr(0xe0, calldataload(0x0))
+    switch method_id
+      case 0x3e738e11 {
+        retrieve()
+      }
+      case 0xe41d8871 {
+        store()
+      }
+
+
+
+    function retrieve() {
+      [[do: Storage.get(@var_name)]]
+    }
+    function store() {
+      [
+  [
+    do:
+      (
+        test = 123
+        Blockchain.Storage.store(@var_name, num)
+      )
+  ]
+]
+    }
+
+  }
+}
 {:defmodule,
  [do: [line: 0, column: 23], end: [line: 16, column: 1], line: 0, column: 0],
  [

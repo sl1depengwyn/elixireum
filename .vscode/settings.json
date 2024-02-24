@@ -5,6 +5,7 @@
         "**/target": true
     },
     "cSpell.words": [
-        "Elixireum"
+        "Elixireum",
+        "Keccak"
     ]
 }
