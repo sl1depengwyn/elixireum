@@ -121,6 +121,7 @@ defmodule Elixireum do
     # TODO add also check suitability of typespec by it's args
 
     function = %YulFunction{
+      function_name: function_name,
       typespec: fetch_spec(acc[:specs], function_name),
       body: Macro.expand(body, __ENV__),
       args: extract_args(args)
@@ -187,7 +188,7 @@ defmodule Elixireum do
       """
             case 0x#{method_id} {
               #{extraction}
-              #{function.typespec.function_name}#{usage}
+              #{function.function_name}(#{usage})
             }
       """
     end}
@@ -195,7 +196,7 @@ defmodule Elixireum do
   end
 
   defp function_to_keccak_bytes(function) do
-    function.typespec.function_name |> to_string() |> dbg() |> ExKeccak.hash_256()
+    function.function_name |> to_string() |> dbg() |> ExKeccak.hash_256()
   end
 
   defp typed_function_to_arguments(function) do
@@ -216,23 +217,25 @@ defmodule Elixireum do
     Enum.map(functions, &generate_function/1)
   end
 
-  defp generate_function(function) do
-    function |> dbg()
+  # defp generate_function(function) do
+  #   function |> dbg()
 
-    """
-        function #{function.typespec.function_name}(#{Enum.join(function.args, ", ")}) {
+  #   """
+  #       function #{function.typespec.function_name}(#{Enum.join(function.args, ", ")}) {
 
-          #{Macro.prewalk(function.body, "", &expand_body/2)}
+  #         #{Macro.prewalk(function.body, "", &expand_body/2)}
 
-        }
-    """
-  end
+  #       }
+  #   """
+  # end
 
   # {Macro.to_string(function.body)}
 
   defp generate_function(function) do
+    dbg(function)
+
     """
-        function #{function.typespec.function_name}() -> #{"TODO add returns"} {
+        function #{function.function_name}() -> #{"TODO add returns"} {
           #{Macro.to_string(function.body)}
         }
     """

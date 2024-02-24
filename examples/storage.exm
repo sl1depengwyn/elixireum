@@ -4,8 +4,8 @@ defmodule ETH.StorageA do
 
   @var_name :number
 
-  @spec store(u256()) :: tuple(int(), binary())
-  def store(num) do
+  @spec store(uint256(), uint256()) :: tuple(int(), binary())
+  def store(num, fake_num) do
     test = 123
     Blockchain.Storage.store(@var_name, num)
   end
