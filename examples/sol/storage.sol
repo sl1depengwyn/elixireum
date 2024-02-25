@@ -9,7 +9,14 @@ pragma solidity >=0.8.2 <0.9.0;
  */
 contract Storage {
 
-    uint16 number = 100;
+    uint256 number;
+    bool asd;
+
+    constructor(uint256 num, bool fake) public {
+        asd = fake;
+        number = num;
+    }
+    
 
     /**
      * @dev Store value in variable
@@ -28,8 +35,16 @@ contract Storage {
      * @dev Return value 
      * @return value of 'number'
      */
-    function retrieveBlaBla() public view returns (uint16){
-        return number;
+    function retrieve(uint256 a) public returns (uint256) {
+        if (asd) {
+            return 234;
+        } else {
+            return number;
+        }
+    }
+
+    function qwe() public returns (bool) {
+        return true;
     }
 }
 

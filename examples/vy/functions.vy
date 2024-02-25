@@ -31,4 +31,10 @@ def multiOut() -> (uint256, bool):
 @external
 @pure
 def addAndSub(x: uint256, y: uint256) -> (uint256, uint256):
-    return (x + y, x - y)
+    return (self._add(x, y), x - y)
+
+# Internal functions can only be called inside this contract
+@internal
+@pure
+def _add(x: uint256, y: uint256) -> uint256:
+    return x + y

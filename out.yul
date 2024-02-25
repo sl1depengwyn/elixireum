@@ -13,6 +13,7 @@ object "contract" {
         mstore(0, return_value)
 return(0, 32)
 
+       let a := retrieve()
       }
       case 0xe41d8871 {
         let num := calldataload(add(4, 0))
@@ -51,6 +52,7 @@ sstore(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849, 12332
 
 
       return_value := a
+      return_value := qwe
     }
 
   }
