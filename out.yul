@@ -1,26 +1,33 @@
 object "contract" {
-  code { }
+  code {
+    datacopy(0, dataoffset("runtime"), datasize("runtime"))
+    return(0, datasize("runtime"))
+  }
   object "runtime" {
     code {
     let method_id := shr(0xe0, calldataload(0x0))
     switch method_id
       case 0x3e738e11 {
         
-        retrieve()
+        let return_value := retrieve()
+        mstore(0, return_value)
+return(0, 32)
+
       }
       case 0xe41d8871 {
-        let num := calldataload(add(0x4, 0x0))
-let fake_num := calldataload(add(0x4, 0x20))
+        let num := calldataload(add(4, 0))
+let fake_num := calldataload(add(4, 32))
 
-        store(num,fake_num)
+        let return_value := store(num,fake_num)
+        return(0, 0)
+
       }
 
 
 
     function retrieve() -> return_value {
 
-      sload(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849)
-
+      
 
 
       return_value := sload(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849)
@@ -30,11 +37,10 @@ let fake_num := calldataload(add(0x4, 0x20))
 
       let test := 123
 sstore(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849, 12332322)
-sstore(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849, num)
 
 
 
-      return_value := sstore(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849, num)
+      sstore(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849, num)
 
     }
 
@@ -44,7 +50,7 @@ sstore(0x0db4ef449fd88e4ee42eed3709a81b61fe6183b9a5319f4b852e9231d9406849, num)
       
 
 
-      return_value := 
+      return_value := a
     }
 
   }

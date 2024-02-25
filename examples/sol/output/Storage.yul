@@ -1,18 +1,17 @@
 
 /// @use-src 0:"sources/storage.sol"
-object "Storage_40" {
+object "Storage_39" {
     code {
-        /// @src 0:224:649  "contract Storage {..."
+        /// @src 0:199:680  "contract Storage {..."
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
-        let _1 := copy_arguments_for_constructor_15_object_Storage_40()
-        constructor_Storage_40(_1)
+        constructor_Storage_39()
 
-        let _2 := allocate_unbounded()
-        codecopy(_2, dataoffset("Storage_40_deployed"), datasize("Storage_40_deployed"))
+        let _1 := allocate_unbounded()
+        codecopy(_1, dataoffset("Storage_39_deployed"), datasize("Storage_39_deployed"))
 
-        return(_2, datasize("Storage_40_deployed"))
+        return(_1, datasize("Storage_39_deployed"))
 
         function allocate_unbounded() -> memPtr {
             memPtr := mload(64)
@@ -22,71 +21,6 @@ object "Storage_40" {
             revert(0, 0)
         }
 
-        function round_up_to_mul_of_32(value) -> result {
-            result := and(add(value, 31), not(31))
-        }
-
-        function panic_error_0x41() {
-            mstore(0, 35408467139433450592217433187231851964531694900788300625387963629091585785856)
-            mstore(4, 0x41)
-            revert(0, 0x24)
-        }
-
-        function finalize_allocation(memPtr, size) {
-            let newFreePtr := add(memPtr, round_up_to_mul_of_32(size))
-            // protect against overflow
-            if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, memPtr)) { panic_error_0x41() }
-            mstore(64, newFreePtr)
-        }
-
-        function allocate_memory(size) -> memPtr {
-            memPtr := allocate_unbounded()
-            finalize_allocation(memPtr, size)
-        }
-
-        function revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() {
-            revert(0, 0)
-        }
-
-        function revert_error_c1322bf8034eace5e0b5c7295db60986aa89aae5e0ea0873e4689e076861a5db() {
-            revert(0, 0)
-        }
-
-        function cleanup_t_uint256(value) -> cleaned {
-            cleaned := value
-        }
-
-        function validator_revert_t_uint256(value) {
-            if iszero(eq(value, cleanup_t_uint256(value))) { revert(0, 0) }
-        }
-
-        function abi_decode_t_uint256_fromMemory(offset, end) -> value {
-            value := mload(offset)
-            validator_revert_t_uint256(value)
-        }
-
-        function abi_decode_tuple_t_uint256_fromMemory(headStart, dataEnd) -> value0 {
-            if slt(sub(dataEnd, headStart), 32) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }
-
-            {
-
-                let offset := 0
-
-                value0 := abi_decode_t_uint256_fromMemory(add(headStart, offset), dataEnd)
-            }
-
-        }
-
-        function copy_arguments_for_constructor_15_object_Storage_40() -> ret_param_0 {
-            let programSize := datasize("Storage_40")
-            let argSize := sub(codesize(), programSize)
-
-            let memoryDataOffset := allocate_memory(argSize)
-            codecopy(memoryDataOffset, programSize, argSize)
-
-            ret_param_0 := abi_decode_tuple_t_uint256_fromMemory(memoryDataOffset, add(memoryDataOffset, argSize))
-        }
-
         function shift_left_0(value) -> newValue {
             newValue :=
 
@@ -94,51 +28,55 @@ object "Storage_40" {
 
         }
 
-        function update_byte_slice_32_shift_0(value, toInsert) -> result {
-            let mask := 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        function update_byte_slice_2_shift_0(value, toInsert) -> result {
+            let mask := 65535
             toInsert := shift_left_0(toInsert)
             value := and(value, not(mask))
             result := or(value, and(toInsert, mask))
+        }
+
+        function cleanup_t_rational_100_by_1(value) -> cleaned {
+            cleaned := value
+        }
+
+        function cleanup_t_uint16(value) -> cleaned {
+            cleaned := and(value, 0xffff)
         }
 
         function identity(value) -> ret {
             ret := value
         }
 
-        function convert_t_uint256_to_t_uint256(value) -> converted {
-            converted := cleanup_t_uint256(identity(cleanup_t_uint256(value)))
+        function convert_t_rational_100_by_1_to_t_uint16(value) -> converted {
+            converted := cleanup_t_uint16(identity(cleanup_t_rational_100_by_1(value)))
         }
 
-        function prepare_store_t_uint256(value) -> ret {
+        function prepare_store_t_uint16(value) -> ret {
             ret := value
         }
 
-        function update_storage_value_offset_0t_uint256_to_t_uint256(slot, value_0) {
-            let convertedValue_0 := convert_t_uint256_to_t_uint256(value_0)
-            sstore(slot, update_byte_slice_32_shift_0(sload(slot), prepare_store_t_uint256(convertedValue_0)))
+        function update_storage_value_offset_0t_rational_100_by_1_to_t_uint16(slot, value_0) {
+            let convertedValue_0 := convert_t_rational_100_by_1_to_t_uint16(value_0)
+            sstore(slot, update_byte_slice_2_shift_0(sload(slot), prepare_store_t_uint16(convertedValue_0)))
         }
 
-        /// @ast-id 15
-        /// @src 0:269:323  "constructor(uint256 num) {..."
-        function constructor_Storage_40(var_num_7) {
+        /// @src 0:199:680  "contract Storage {..."
+        function constructor_Storage_39() {
 
-            /// @src 0:269:323  "constructor(uint256 num) {..."
+            /// @src 0:199:680  "contract Storage {..."
 
-            /// @src 0:313:316  "num"
-            let _3 := var_num_7
-            let expr_11 := _3
-            /// @src 0:304:316  "number = num"
-            update_storage_value_offset_0t_uint256_to_t_uint256(0x00, expr_11)
-            let expr_12 := expr_11
+            /// @src 0:239:242  "100"
+            let expr_4 := 0x64
+            update_storage_value_offset_0t_rational_100_by_1_to_t_uint16(0x00, expr_4)
 
         }
-        /// @src 0:224:649  "contract Storage {..."
+        /// @src 0:199:680  "contract Storage {..."
 
     }
     /// @use-src 0:"sources/storage.sol"
-    object "Storage_40_deployed" {
+    object "Storage_39_deployed" {
         code {
-            /// @src 0:224:649  "contract Storage {..."
+            /// @src 0:199:680  "contract Storage {..."
             mstore(64, memoryguard(128))
 
             if iszero(lt(calldatasize(), 4))
@@ -146,18 +84,25 @@ object "Storage_40" {
                 let selector := shift_right_224_unsigned(calldataload(0))
                 switch selector
 
-                case 0x6057361d
+                case 0x4315a5eb
                 {
-                    // store(uint256)
+                    // qwe()
 
-                    external_fun_store_26()
+                    external_fun_qwe_29()
                 }
 
-                case 0x8f88708b
+                case 0xa9bda418
                 {
-                    // retrieve(uint256)
+                    // storeblabla(uint16)
 
-                    external_fun_retrieve_39()
+                    external_fun_storeblabla_16()
+                }
+
+                case 0xfdd8901d
+                {
+                    // retrieveBlaBla()
+
+                    external_fun_retrieveBlaBla_38()
                 }
 
                 default {}
@@ -184,31 +129,62 @@ object "Storage_40" {
                 revert(0, 0)
             }
 
+            function abi_decode_tuple_(headStart, dataEnd)   {
+                if slt(sub(dataEnd, headStart), 0) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }
+
+            }
+
+            function cleanup_t_bool(value) -> cleaned {
+                cleaned := iszero(iszero(value))
+            }
+
+            function abi_encode_t_bool_to_t_bool_fromStack(value, pos) {
+                mstore(pos, cleanup_t_bool(value))
+            }
+
+            function abi_encode_tuple_t_bool__to_t_bool__fromStack(headStart , value0) -> tail {
+                tail := add(headStart, 32)
+
+                abi_encode_t_bool_to_t_bool_fromStack(value0,  add(headStart, 0))
+
+            }
+
+            function external_fun_qwe_29() {
+
+                if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
+                abi_decode_tuple_(4, calldatasize())
+                let ret_0 :=  fun_qwe_29()
+                let memPos := allocate_unbounded()
+                let memEnd := abi_encode_tuple_t_bool__to_t_bool__fromStack(memPos , ret_0)
+                return(memPos, sub(memEnd, memPos))
+
+            }
+
             function revert_error_c1322bf8034eace5e0b5c7295db60986aa89aae5e0ea0873e4689e076861a5db() {
                 revert(0, 0)
             }
 
-            function cleanup_t_uint256(value) -> cleaned {
-                cleaned := value
+            function cleanup_t_uint16(value) -> cleaned {
+                cleaned := and(value, 0xffff)
             }
 
-            function validator_revert_t_uint256(value) {
-                if iszero(eq(value, cleanup_t_uint256(value))) { revert(0, 0) }
+            function validator_revert_t_uint16(value) {
+                if iszero(eq(value, cleanup_t_uint16(value))) { revert(0, 0) }
             }
 
-            function abi_decode_t_uint256(offset, end) -> value {
+            function abi_decode_t_uint16(offset, end) -> value {
                 value := calldataload(offset)
-                validator_revert_t_uint256(value)
+                validator_revert_t_uint16(value)
             }
 
-            function abi_decode_tuple_t_uint256(headStart, dataEnd) -> value0 {
+            function abi_decode_tuple_t_uint16(headStart, dataEnd) -> value0 {
                 if slt(sub(dataEnd, headStart), 32) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }
 
                 {
 
                     let offset := 0
 
-                    value0 := abi_decode_t_uint256(add(headStart, offset), dataEnd)
+                    value0 := abi_decode_t_uint16(add(headStart, offset), dataEnd)
                 }
 
             }
@@ -218,35 +194,35 @@ object "Storage_40" {
 
             }
 
-            function external_fun_store_26() {
+            function external_fun_storeblabla_16() {
 
                 if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
-                let param_0 :=  abi_decode_tuple_t_uint256(4, calldatasize())
-                fun_store_26(param_0)
+                let param_0 :=  abi_decode_tuple_t_uint16(4, calldatasize())
+                fun_storeblabla_16(param_0)
                 let memPos := allocate_unbounded()
                 let memEnd := abi_encode_tuple__to__fromStack(memPos  )
                 return(memPos, sub(memEnd, memPos))
 
             }
 
-            function abi_encode_t_uint256_to_t_uint256_fromStack(value, pos) {
-                mstore(pos, cleanup_t_uint256(value))
+            function abi_encode_t_uint16_to_t_uint16_fromStack(value, pos) {
+                mstore(pos, cleanup_t_uint16(value))
             }
 
-            function abi_encode_tuple_t_uint256__to_t_uint256__fromStack(headStart , value0) -> tail {
+            function abi_encode_tuple_t_uint16__to_t_uint16__fromStack(headStart , value0) -> tail {
                 tail := add(headStart, 32)
 
-                abi_encode_t_uint256_to_t_uint256_fromStack(value0,  add(headStart, 0))
+                abi_encode_t_uint16_to_t_uint16_fromStack(value0,  add(headStart, 0))
 
             }
 
-            function external_fun_retrieve_39() {
+            function external_fun_retrieveBlaBla_38() {
 
                 if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
-                let param_0 :=  abi_decode_tuple_t_uint256(4, calldatasize())
-                let ret_0 :=  fun_retrieve_39(param_0)
+                abi_decode_tuple_(4, calldatasize())
+                let ret_0 :=  fun_retrieveBlaBla_38()
                 let memPos := allocate_unbounded()
-                let memEnd := abi_encode_tuple_t_uint256__to_t_uint256__fromStack(memPos , ret_0)
+                let memEnd := abi_encode_tuple_t_uint16__to_t_uint16__fromStack(memPos , ret_0)
                 return(memPos, sub(memEnd, memPos))
 
             }
@@ -255,6 +231,29 @@ object "Storage_40" {
                 revert(0, 0)
             }
 
+            function zero_value_for_split_t_bool() -> ret {
+                ret := 0
+            }
+
+            /// @ast-id 29
+            /// @src 0:409:513  "function qwe() public returns (bool) {..."
+            function fun_qwe_29() -> var__19 {
+                /// @src 0:440:444  "bool"
+                let zero_t_bool_1 := zero_value_for_split_t_bool()
+                var__19 := zero_t_bool_1
+
+                /// @src 0:468:484  "retrieveBlaBla()"
+                let expr_23 := fun_retrieveBlaBla_38()
+                fun_storeblabla_16(expr_23)
+                /// @src 0:502:506  "true"
+                let expr_26 := 0x01
+                /// @src 0:495:506  "return true"
+                var__19 := expr_26
+                leave
+
+            }
+            /// @src 0:199:680  "contract Storage {..."
+
             function shift_left_0(value) -> newValue {
                 newValue :=
 
@@ -262,8 +261,8 @@ object "Storage_40" {
 
             }
 
-            function update_byte_slice_32_shift_0(value, toInsert) -> result {
-                let mask := 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+            function update_byte_slice_2_shift_0(value, toInsert) -> result {
+                let mask := 65535
                 toInsert := shift_left_0(toInsert)
                 value := and(value, not(mask))
                 result := or(value, and(toInsert, mask))
@@ -273,59 +272,77 @@ object "Storage_40" {
                 ret := value
             }
 
-            function convert_t_uint256_to_t_uint256(value) -> converted {
-                converted := cleanup_t_uint256(identity(cleanup_t_uint256(value)))
+            function convert_t_uint16_to_t_uint16(value) -> converted {
+                converted := cleanup_t_uint16(identity(cleanup_t_uint16(value)))
             }
 
-            function prepare_store_t_uint256(value) -> ret {
+            function prepare_store_t_uint16(value) -> ret {
                 ret := value
             }
 
-            function update_storage_value_offset_0t_uint256_to_t_uint256(slot, value_0) {
-                let convertedValue_0 := convert_t_uint256_to_t_uint256(value_0)
-                sstore(slot, update_byte_slice_32_shift_0(sload(slot), prepare_store_t_uint256(convertedValue_0)))
+            function update_storage_value_offset_0t_uint16_to_t_uint16(slot, value_0) {
+                let convertedValue_0 := convert_t_uint16_to_t_uint16(value_0)
+                sstore(slot, update_byte_slice_2_shift_0(sload(slot), prepare_store_t_uint16(convertedValue_0)))
             }
 
-            /// @ast-id 26
-            /// @src 0:414:478  "function store(uint256 num) public {..."
-            function fun_store_26(var_num_18) {
+            /// @ast-id 16
+            /// @src 0:334:403  "function storeblabla(uint16 num) public {..."
+            function fun_storeblabla_16(var_num_8) {
 
-                /// @src 0:468:471  "num"
-                let _1 := var_num_18
-                let expr_22 := _1
-                /// @src 0:459:471  "number = num"
-                update_storage_value_offset_0t_uint256_to_t_uint256(0x00, expr_22)
-                let expr_23 := expr_22
+                /// @src 0:393:396  "num"
+                let _2 := var_num_8
+                let expr_12 := _2
+                /// @src 0:384:396  "number = num"
+                update_storage_value_offset_0t_uint16_to_t_uint16(0x00, expr_12)
+                let expr_13 := expr_12
 
             }
-            /// @src 0:224:649  "contract Storage {..."
+            /// @src 0:199:680  "contract Storage {..."
 
-            function zero_value_for_split_t_uint256() -> ret {
+            function zero_value_for_split_t_uint16() -> ret {
                 ret := 0
             }
 
-            /// @ast-id 39
-            /// @src 0:559:647  "function retrieve(uint256 a) public returns (uint256){..."
-            function fun_retrieve_39(var_a_29) -> var__32 {
-                /// @src 0:604:611  "uint256"
-                let zero_t_uint256_2 := zero_value_for_split_t_uint256()
-                var__32 := zero_t_uint256_2
+            function shift_right_0_unsigned(value) -> newValue {
+                newValue :=
 
-                /// @src 0:638:639  "a"
-                let _3 := var_a_29
-                let expr_35 := _3
-                /// @src 0:629:640  "retrieve(a)"
-                let expr_36 := fun_retrieve_39(expr_35)
-                /// @src 0:622:640  "return retrieve(a)"
-                var__32 := expr_36
+                shr(0, value)
+
+            }
+
+            function cleanup_from_storage_t_uint16(value) -> cleaned {
+                cleaned := and(value, 0xffff)
+            }
+
+            function extract_from_storage_value_offset_0t_uint16(slot_value) -> value {
+                value := cleanup_from_storage_t_uint16(shift_right_0_unsigned(slot_value))
+            }
+
+            function read_from_storage_split_offset_0_t_uint16(slot) -> value {
+                value := extract_from_storage_value_offset_0t_uint16(sload(slot))
+
+            }
+
+            /// @ast-id 38
+            /// @src 0:594:678  "function retrieveBlaBla() public view returns (uint16){..."
+            function fun_retrieveBlaBla_38() -> var__33 {
+                /// @src 0:641:647  "uint16"
+                let zero_t_uint16_3 := zero_value_for_split_t_uint16()
+                var__33 := zero_t_uint16_3
+
+                /// @src 0:665:671  "number"
+                let _4 := read_from_storage_split_offset_0_t_uint16(0x00)
+                let expr_35 := _4
+                /// @src 0:658:671  "return number"
+                var__33 := expr_35
                 leave
 
             }
-            /// @src 0:224:649  "contract Storage {..."
+            /// @src 0:199:680  "contract Storage {..."
 
         }
 
-        data ".metadata" hex"a2646970667358221220b89cfd2138428e45f6c366ae2e53ff7f14b6648b29e1d15f10a0e04e2484e50364736f6c63430008170033"
+        data ".metadata" hex"a2646970667358221220a9867f963a85e5bcbd539e97e4b5d4cc64243fc54166fd6516c3aeaacae1f17264736f6c63430008180033"
     }
 
 }

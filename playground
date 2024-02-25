@@ -1,0 +1,130 @@
+function func_0x9447b3b3() {
+                    let _34 := iszero(iszero(lt(calldatasize(), 0x44)))                    
+                    require(_34)
+                    let _35 := add(0x4, calldataload(add(0x4, 0x0)))                    
+                    let _36 := iszero(iszero(gt(calldataload(_35), 0x5)))                    
+                    require(_36)
+                    let _37 := calldataload(_35)                    
+                    let _38 := 0x0                    
+                    let _39 := 0x0                    
+                    let _40 := 0x0                    
+                    let _41 := gt(_37, 0x5)                    
+                    require(_41)
+                    let _42 := iszero(_37)                    
+                    if not(_42){
+                        for {
+                            let _45 := 0xa0                            
+                            let _46 := 0x20                            
+                            let _47 := add(_35, _46)                            
+                            let _48 := 0x20                            
+                            let _49 := mul(_38, _48)                            
+                            let _50 := add(_47, _49)                            
+                            let _51 := calldataload(_50)                            
+                            let _52 := shr(_45, _51)                            
+                            let _43 := iszero(_52)                            
+                            let _53 := 0x1                            
+                            let _44 := add(_53, _40)                            
+                        }
+                        not(iszero(_43))                        xor(_44, _37)                        
+                        { }
+                        {
+                            _38 := _44                            
+                            _48 := 0x20                            
+                            _49 := mul(_38, _48)                            
+                            _46 := 0x20                            
+                            _47 := add(_35, _46)                            
+                            _50 := add(_47, _49)                            
+                            _51 := calldataload(_50)                            
+                            _45 := 0xa0                            
+                            _52 := shr(_45, _51)                            
+                            _43 := iszero(_52)                            
+                            let _54 := not(iszero(_43))                            
+                            _39 := _44                            
+                            mstore(add(add(0x40, 0x20), mul(_39, 0x20)), _51)
+                            _40 := _44                            
+                            _53 := 0x1                            
+                            _44 := add(_53, _40)                            
+                            _38 := _44                            
+                            _39 := _44                            
+                            _40 := _44                            
+                            let _55 := xor(_44, _37)                            
+                        }
+                        revert(0x0, 0x0)
+                    }
+                    mstore(0x40, _37)
+                    mstore(0x100, 0x0)
+                    let _56 := 0x0                    
+                    let _57 := 0x0                    
+                    let _58 := mload(0x40)                    
+                    let _59 := gt(_58, 0x5)                    
+                    require(_59)
+                    let _60 := iszero(_58)                    
+                    if not(_60){
+                        for {
+                            let _63 := 0x100                            
+                            let _64 := mload(_63)                            
+                            let _65 := 0x5                            
+                            let _61 := lt(_64, _65)                            
+                            let _66 := 0x1                            
+                            let _62 := add(_66, _57)                            
+                        }
+                        not(iszero(_61))                        xor(_62, _58)                        
+                        { }
+                        {
+                            _56 := _62                            
+                            let _67 := mload(add(add(0x40, 0x20), mul(_56, 0x20)))                            
+                            mstore(0x1c0, _67)
+                            let _68 := mload(0x1c0)                            
+                            let _69 := iszero(iszero(eq(_68, 0x0)))                            
+                            _63 := 0x100                            
+                            _64 := mload(_63)                            
+                            _65 := 0x5                            
+                            _61 := lt(_64, _65)                            
+                            let _70 := not(iszero(_61))                            
+                            if _70{
+                                revert(0x0, 0x0)
+                                break
+                            }
+                            if not(_70){
+                                let _71 := mload(0x1c0)                                
+                                mstore(add(add(0x100, 0x20), mul(_64, 0x20)), _71)
+                                mstore(0x100, add(_64, 0x1))
+                            }
+                            _57 := _62                            
+                            _66 := 0x1                            
+                            _62 := add(_66, _57)                            
+                            _56 := _62                            
+                            _57 := _62                            
+                            let _72 := xor(_62, _58)                            
+                        }
+                    }
+                    mstore(add(0x1c0, 0x0), 0x20)
+                    let _73 := add(0x1c0, 0x20)                    
+                    let _74 := mload(0x100)                    
+                    mstore(_73, _74)
+                    let _75 := 0x0                    
+                    let _76 := 0x0                    
+                    let _77 := gt(_74, 0x5)                    
+                    require(_77)
+                    let _78 := iszero(_74)                    
+                    if not(_78){
+                        for {
+                            let _80 := 0x1                            
+                            let _79 := add(_80, _76)                            
+                        }
+                        xor(_79, _74)                        
+                        { }
+                        {
+                            _75 := _79                            
+                            let _81 := mload(add(add(0x100, 0x20), mul(_75, 0x20)))                            
+                            mstore(add(add(_73, 0x20), mul(_75, 0x20)), _81)
+                            _76 := _79                            
+                            _80 := 0x1                            
+                            _79 := add(_80, _76)                            
+                            _75 := _79                            
+                            _76 := _79                            
+                            let _82 := xor(_79, _74)                            
+                        }
+                    }
+                    return(0x1c0, add(0x20, add(0x20, add(0x0, mul(_74, 0x20)))))
+                }

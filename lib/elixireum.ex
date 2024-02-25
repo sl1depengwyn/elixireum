@@ -83,7 +83,10 @@ defmodule Elixireum do
     yul =
       """
       object "contract" {
-        code { }
+        code {
+          datacopy(0, dataoffset("runtime"), datasize("runtime"))
+          return(0, datasize("runtime"))
+        }
         object "runtime" {
           code {
       #{generate_selector(acc)}
@@ -125,7 +128,7 @@ defmodule Elixireum do
     function = %YulFunction{
       function_name: function_name,
       typespec: fetch_spec(acc[:specs], function_name),
-      body: Macro.expand(body, __ENV__),
+      body: body,
       args: extract_args(args)
     }
 
@@ -138,7 +141,7 @@ defmodule Elixireum do
 
     function = %YulFunction{
       function_name: function_name,
-      body: Macro.expand(body, __ENV__),
+      body: body,
       args: extract_args(args)
     }
 
@@ -148,7 +151,7 @@ defmodule Elixireum do
   def expand({ignored, _meta, _children} = node, acc) when ignored in @ignored_nodes,
     do: {node, acc}
 
-  def expand(other, acc), do: {Macro.expand(other, __ENV__), acc}
+  def expand(other, acc), do: {other, acc}
 
   defp extract_args(args) do
     Enum.map(args, &elem(&1, 0))
@@ -189,7 +192,17 @@ defmodule Elixireum do
       """
             case 0x#{method_id} {
               #{extraction}
-              #{function.function_name}(#{usage})
+              let return_value := #{function.function_name}(#{usage})
+              #{if function.typespec.return do
+        """
+        mstore(0, return_value)
+        return(0, 32)
+        """
+      else
+        """
+        return(0, 0)
+        """
+      end}
             }
       """
     end}
@@ -207,7 +220,7 @@ defmodule Elixireum do
       |> Enum.reduce({"", 0}, fn {arg, type}, {yul, offset} ->
         {yul <>
            """
-           let #{arg} := calldataload(add(0x4, #{integer_to_hex_string(offset)}))
+           let #{arg} := calldataload(add(4, #{offset}))
            """, offset + type.size}
       end)
 
@@ -219,9 +232,10 @@ defmodule Elixireum do
   end
 
   defp generate_function(function) do
-    {ast, yul} = Macro.prewalk(function.body, "", &expand_body/2)
+    {last, other} = prepare_children(function.body)
+    {ast, yul} = Macro.prewalk(other, "", &expand_body/2)
 
-    {ast, yul_} = Macro.prewalk(prepare_children(function.body), "", &prepare_last_statement/2)
+    {ast, yul_} = Macro.prewalk(last, "", &prepare_last_statement/2)
 
     """
         function #{function.function_name}(#{Enum.join(function.args, ", ")}) -> return_value {
@@ -250,11 +264,14 @@ defmodule Elixireum do
 
   @disallowed_actions_inside_function ~w(defmodule def defp)a
 
-  defp expand_body({action, _, _}, _acc) when action in @disallowed_actions_inside_function do
+  defp expand_body(_node, _acc, is_last \\ false)
+
+  defp expand_body({action, _, _}, _acc, _is_last)
+       when action in @disallowed_actions_inside_function do
     raise "`#{action}` inside functions is not allowed!"
   end
 
-  defp expand_body({:=, _, [{var_name, _, _children}, value]} = node, acc) do
+  defp expand_body({:=, _, [{var_name, _, _children}, value]} = node, acc, _is_last) do
     {node, acc <> "let #{var_name} := #{Macro.to_string(value)}" <> "\n"}
   end
 
@@ -262,7 +279,8 @@ defmodule Elixireum do
 
   defp expand_body(
          {{:., _, [{:__aliases__, _, [:BlockchainStorage]}, function_name]}, _, args} = node,
-         acc
+         acc,
+         is_last
        ) do
     args =
       Enum.map(args, fn arg ->
@@ -270,10 +288,18 @@ defmodule Elixireum do
         ast
       end)
 
-    {node, acc <> apply(Storage, function_name, args) <> "\n"}
+    %{yul_snippet: yul_snippet, returns_count: returns_count} =
+      apply(Storage, function_name, args)
+
+    if returns_count == 0 || is_last do
+      {node, acc <> yul_snippet <> "\n"}
+    else
+      {node,
+       "#{1..returns_count |> Enum.map(&"expr_#{&1}") |> Enum.join(", ")} := #{yul_snippet}\n}"}
+    end
   end
 
-  defp expand_body(other, acc) do
+  defp expand_body(other, acc, _is_last) do
     {other, acc}
   end
 
@@ -295,18 +321,23 @@ defmodule Elixireum do
   end
 
   defp prepare_last_statement(node, acc) do
-    {_ast, yul} = Macro.prewalk(node, "", &expand_body/2)
-    {nil, "return_value := " <> yul} |> dbg()
+    {_ast, yul} = Macro.prewalk(node, "", &expand_body(&1, &2, true))
+
+    if String.contains?(yul, "sstore") do
+      {nil, yul} |> dbg()
+    else
+      {nil, "return_value := " <> yul} |> dbg()
+    end
   end
 
   defp integer_to_hex_string(integer), do: "0x" <> Integer.to_string(integer, 16)
 
   defp prepare_children([[do: {:__block__, _, children}]]) do
-    List.last(children)
+    List.pop_at(children, -1)
   end
 
   defp prepare_children([[do: child]]) do
-    child
+    {child, []}
   end
 end
 
