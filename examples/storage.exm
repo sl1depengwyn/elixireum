@@ -1,30 +1,24 @@
 defmodule ETH.StorageA do
   alias Enum
+  alias Blockchain.Storage
+  alias Blockchain.{Storage, EVM, Storage.A}
+  alias Blockchain.EVM, as: BlockchainEVM
 
-  @var_name :number
+  @var_name [type:  :uint256]
 
   @spec store(uint256(), uint256()) :: nil
   def store(num, fake_num) do
     test = 123
-    BlockchainStorage.store(@var_name, 12332322)
-    BlockchainStorage.store(@var_name, num)
+    Blockchain.Storage.store(@var_name, 12332322)
+    Storage.store(@var_name, num)
   end
 
-  @spec retrieve() :: u256()
+  @spec retrieve() :: Blockchain.Type.Uint256.t()
   def retrieve() do
-    BlockchainStorage.get(@var_name)
+    Storage.get(@var_name)
   end
 
   defp abc(qwe) do
     store(qwe)
-    &retrieve/2
-&(&1+ &2)
-    a = fn a,b -> 
-    a+b 
-    a-b
-    123
-    a
-    :a
-    end
   end
 end

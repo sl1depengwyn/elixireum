@@ -32,7 +32,7 @@ defmodule Blockchain.Type do
     }
 
     with ["Elixir", "Blockchain", "Types", type_with_size] <- String.split(module_name, "."),
-         [type_name | type_size] <- String.split(type_with_size, simple_types) do
+         [type_name | type_size] <- String.split(type_with_size, type_names) do
       cond do
         not is_nil(simple_type_sizes[type_name]) and type_size == [] ->
           {:ok, simple_type_sizes[type_name]}
@@ -47,7 +47,7 @@ defmodule Blockchain.Type do
           bytes_size(List.first(type_size))
 
         type_name == "Tuple" and type_size == [] ->
-          tuple_size(args)
+          size_of_tuple(args)
 
         type_name == "Array" and type_size == [] ->
           array_size(args)
@@ -61,17 +61,39 @@ defmodule Blockchain.Type do
   end
 
   defp int_size(size) do
+    case Integer.parse(size) do
+      {int_size, ""} when int_size > 0 and int_size <= 256 and int_size |> rem(8) == 0 ->
+        {:ok, int_size |> div(8)}
+
+      _ ->
+        {:error, "invalid size for integer type: #{size}"}
+    end
   end
 
   defp fixed_size(size) do
+    with [m, n] <- String.split(size, "x"),
+         {int_m, ""} when int_m >= 8 and int_m <= 256 and int_m |> rem(8) == 0 <-
+           Integer.parse(m),
+         {int_n, ""} when int_n > 0 and int_n <= 80 <- Integer.parse(n) do
+      {:ok, int_m |> div(8)}
+    else
+      _ ->
+        {:error, "invalid size for fixed type: #{size}"}
+    end
   end
 
   defp bytes_size(size) do
+    case Integer.parse(size) do
+      {int_size, ""} when int_size > 0 and int_size <= 32 ->
+        {:ok, int_size}
+    end
   end
 
   defp array_size(args) do
+    # TODO
   end
 
-  defp tuple_size(args) do
+  defp size_of_tuple(args) do
+    # TODO
   end
 end
