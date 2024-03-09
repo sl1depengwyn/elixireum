@@ -6,5 +6,6 @@ defmodule Elixireum.YulNode do
           elixir_initial: Macro.t()
         }
 
+  @enforce_keys [:yul_snippet, :return_values_count, :elixir_initial]
   defstruct [:yul_snippet, :meta, :return_values_count, :elixir_initial]
 end

@@ -5,7 +5,7 @@ defmodule Elixireum.Contract do
           functions: Functions.t(),
           name: String.t(),
           private_functions: Functions.t(),
-          variables: [Variable.t()],
+          variables: %{atom() => Variable.t()},
           aliases: %{atom() => list()}
         }
 

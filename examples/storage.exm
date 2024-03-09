@@ -3,14 +3,14 @@ defmodule ETH.StorageA do
   alias Blockchain.Storage
   alias Blockchain.{Storage, EVM, Storage.A}
   alias Blockchain.EVM, as: BlockchainEVM
+  alias Elixir.Blockchain.Types
 
-  @var_name [type:  :uint256]
+  @var_name [type:  Types.UInt.t()]
 
-  @spec store(uint256(), uint256()) :: nil
+  @spec store(Types.UInt256.t(), Types.UInt256.t()) :: nil
   def store(num, fake_num) do
-    test = 123
-    Blockchain.Storage.store(@var_name, 12332322)
-    Storage.store(@var_name, num)
+    test = abc(1)
+    Blockchain.Storage.store(@var_name, test)
   end
 
   @spec retrieve() :: Blockchain.Type.Uint256.t()
@@ -19,6 +19,11 @@ defmodule ETH.StorageA do
   end
 
   defp abc(qwe) do
-    store(qwe)
+    get_0()
+    get_0()
+  end
+
+  defp get_0() do
+    100
   end
 end

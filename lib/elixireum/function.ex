@@ -3,9 +3,10 @@ defmodule Elixireum.Function do
           name: atom(),
           typespec: Typespec.t(),
           body: Macro.t(),
-          args: [Macro.t()]
+          args: [Macro.t()],
+          private?: boolean()
         }
 
-  defstruct [:name, :body, :args, :typespec]
-  @enforce_keys [:name, :body, :args]
+  defstruct [:name, :body, :args, :typespec, :private?]
+  @enforce_keys [:name, :body, :args, :private?]
 end
