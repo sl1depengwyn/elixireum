@@ -35,7 +35,7 @@ defmodule Blockchain.Type do
 
     splitter = Regex.compile!(Enum.join(type_names, "|"))
 
-    with ["Elixir", "Blockchain", "Types", type_with_size] <- modules_name,
+    with ["Blockchain", "Types", type_with_size] <- modules_name,
          [type_name | type_size] <-
            String.split(type_with_size, splitter, include_captures: true, trim: true) |> dbg() do
       cond do

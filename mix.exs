@@ -23,7 +23,9 @@ defmodule Elixireum.MixProject do
     [
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
-      {:ex_keccak, "~> 0.7.3"}
+      {:ex_keccak, "~> 0.7.3"},
+      {:jason, "~> 1.4"},
+      {:httpoison, "~> 2.2"}
     ]
   end
 end

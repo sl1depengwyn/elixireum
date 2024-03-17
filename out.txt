@@ -1,0 +1,187 @@
+
+======= out.yul (EVM) =======
+
+Pretty printed source:
+object "contract" {
+    code {
+        {
+            datacopy(0, dataoffset("runtime"), datasize("runtime"))
+            return(0, datasize("runtime"))
+        }
+    }
+    object "runtime" {
+        code {
+            {
+                let method_id := shr(0xe0, calldataload(0x0))
+                switch method_id
+                case 0x6ed28ed0 {
+                    let num := calldataload(add(4, 0))
+                    let fake_num := calldataload(add(4, 32))
+                    pop(store(num, fake_num))
+                    return(0, 0)
+                }
+                case 0x2e64cec1 {
+                    let return_value := retrieve()
+                    mstore(0, return_value)
+                    return(0, 32)
+                }
+            }
+            function store(num, fake_num) -> return_value
+            {
+                let test := abc(1)
+                sstore(1, test)
+            }
+            function retrieve() -> return_value
+            { return_value := sload(1) }
+            function abc(qwe) -> return_value
+            { return_value := get() }
+            function get() -> return_value
+            { return_value := 100 }
+        }
+    }
+}
+
+
+Binary representation:
+6062600b5f3960625ff3fe5f3560e01c80636ed28ed014602657632e64cec114601957005b601f604d565b5f5260205ff35b60385f6004013560206004013590603c565b5f80f35b50505f90604860016053565b600155565b60015490565b50605a605d565b90565b60649056
+
+Text representation:
+    /* "out.yul":68:87   */
+  dataSize(sub_0)
+    /* "out.yul":45:66   */
+  dataOffset(sub_0)
+    /* "out.yul":42:43   */
+  0x00
+    /* "out.yul":33:88   */
+  codecopy
+    /* "out.yul":103:122   */
+  dataSize(sub_0)
+    /* "out.yul":100:101   */
+  0x00
+    /* "out.yul":93:123   */
+  return
+stop
+
+sub_0: assembly {
+        /* "out.yul":206:209   */
+      0x00
+        /* "out.yul":193:210   */
+      calldataload
+        /* "out.yul":187:191   */
+      0xe0
+        /* "out.yul":183:211   */
+      shr
+        /* "out.yul":229:383   */
+      dup1
+        /* "out.yul":234:244   */
+      0x6ed28ed0
+        /* "out.yul":229:383   */
+      eq
+      tag_5
+      jumpi
+        /* "out.yul":389:399   */
+      0x2e64cec1
+        /* "out.yul":384:478   */
+      eq
+      tag_7
+      jumpi
+        /* "out.yul":212:478   */
+      stop
+        /* "out.yul":400:478   */
+    tag_7:
+        /* "out.yul":427:437   */
+      tag_9
+      tag_2
+      jump	// in
+    tag_9:
+        /* "out.yul":445:446   */
+      0x00
+        /* "out.yul":438:461   */
+      mstore
+        /* "out.yul":472:474   */
+      0x20
+        /* "out.yul":469:470   */
+      0x00
+        /* "out.yul":462:475   */
+      return
+        /* "out.yul":245:383   */
+    tag_5:
+        /* "out.yul":348:367   */
+      tag_10
+        /* "out.yul":280:281   */
+      0x00
+        /* "out.yul":277:278   */
+      0x04
+        /* "out.yul":273:282   */
+      add
+        /* "out.yul":260:283   */
+      calldataload
+        /* "out.yul":320:322   */
+      0x20
+        /* "out.yul":317:318   */
+      0x04
+        /* "out.yul":313:323   */
+      add
+        /* "out.yul":300:324   */
+      calldataload
+        /* "out.yul":348:367   */
+      swap1
+      tag_1
+      jump	// in
+    tag_10:
+        /* "out.yul":378:379   */
+      0x00
+        /* "out.yul":368:380   */
+      dup1
+      return
+        /* "out.yul":488:577   */
+    tag_1:
+      pop
+      pop
+        /* "out.yul":521:533   */
+      0x00
+        /* "out.yul":488:577   */
+      swap1
+        /* "out.yul":550:556   */
+      tag_11
+        /* "out.yul":554:555   */
+      0x01
+        /* "out.yul":550:556   */
+      tag_3
+      jump	// in
+    tag_11:
+        /* "out.yul":567:568   */
+      0x01
+        /* "out.yul":560:575   */
+      sstore
+        /* "out.yul":488:577   */
+      jump	// out
+        /* "out.yul":578:649   */
+    tag_2:
+        /* "out.yul":645:646   */
+      0x01
+        /* "out.yul":639:647   */
+      sload
+        /* "out.yul":578:649   */
+      swap1
+      jump	// out
+        /* "out.yul":658:742   */
+    tag_3:
+      pop
+        /* "out.yul":733:740   */
+      tag_12
+      tag_4
+      jump	// in
+    tag_12:
+        /* "out.yul":658:742   */
+      swap1
+      jump	// out
+        /* "out.yul":743:806   */
+    tag_4:
+        /* "out.yul":801:804   */
+      0x64
+        /* "out.yul":743:806   */
+      swap1
+      jump	// out
+}
+

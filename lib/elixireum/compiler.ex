@@ -3,7 +3,17 @@ defmodule Elixireum.Compiler do
   Elixireum Compiler
   """
   alias Blockchain.{Storage, Type}
-  alias Elixireum.{AuxiliaryNode, CompilerState, Contract, YulNode, Function, Variable, Typespec}
+
+  alias Elixireum.{
+    ABIGenerator,
+    AuxiliaryNode,
+    CompilerState,
+    Contract,
+    YulNode,
+    Function,
+    Variable,
+    Typespec
+  }
 
   def compile(_args) do
     :erlang.put(:elixir_parser_columns, true)
@@ -29,7 +39,7 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-           {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
+           {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
@@ -71,6 +81,10 @@ defmodule Elixireum.Compiler do
     File.open!("./out.yul", [:write], fn file ->
       IO.write(file, yul)
     end)
+
+    File.open!("./abi.json", [:write], fn file ->
+      IO.write(file, ABIGenerator.generate(contract) |> Jason.encode_to_iodata!())
+    end)
   end
 
   # TODO factor out elixir to yul code mapping
@@ -106,7 +120,6 @@ defmodule Elixireum.Compiler do
   defp function_to_keccak_bytes(function) do
     "#{to_string(function.name)}(#{Enum.map_join(function.typespec.args, ",", & &1.abi_name)})"
     |> to_string()
-    |> dbg()
     |> ExKeccak.hash_256()
   end
 
@@ -233,7 +246,8 @@ defmodule Elixireum.Compiler do
          [{:"::", _meta, [{function_name, _meta_args, args} = _left, right]}],
          acc
        ) do
-    {function_name, %Typespec{args: process_args_types(args, acc), return: right}}
+    {function_name,
+     %Typespec{args: process_args_types(args, acc), return: right && process_arg_type(right, acc)}}
   end
 
   defp process_args_types(args, acc) do
@@ -263,7 +277,6 @@ defmodule Elixireum.Compiler do
   end
 
   defp generate_function(function, contract) do
-    dbg(function)
     {last, other} = prepare_children(function.body)
 
     {ast, acc} =
@@ -274,7 +287,7 @@ defmodule Elixireum.Compiler do
       )
 
     {ast_last, _} =
-      Macro.postwalk(last, acc, &expand_expression/2) |> dbg()
+      Macro.postwalk(last, acc, &expand_expression/2)
 
     cond do
       function.typespec &&
@@ -346,8 +359,6 @@ defmodule Elixireum.Compiler do
           ]} = node,
          %CompilerState{declared_variables: declared_variables} = state
        ) do
-    dbg(state)
-
     {yul_snippet_left, declared_variables} =
       if MapSet.member?(declared_variables, var_name) do
         {"#{var_name}", declared_variables}
@@ -437,8 +448,6 @@ defmodule Elixireum.Compiler do
           ]} = node,
          acc
        ) do
-    dbg(node)
-
     {%AuxiliaryNode{
        type: :function_call,
        value: {aliased_list, function_name}
@@ -459,7 +468,6 @@ defmodule Elixireum.Compiler do
 
   defp expand_expression({function_name, meta, args} = other, acc)
        when is_atom(function_name) and is_list(args) do
-    dbg(other)
     # dbg(other)
     # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
     # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
