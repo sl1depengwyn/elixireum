@@ -4,89 +4,89 @@
 
 Chapter overview
 
-% \section{Compilers and evm theory}
-% \label{}
+\section{Compilers and evm theory}
+\label{}
 
-% \subsection{Introduction to compilers}
+\subsection{Introduction to compilers}
 
-% Compiler construction is a sophisticated field in computer science, involving the creation of software that translates source code written in a high-level programming language into a lower-level language, often machine code. The process of compiler construction is typically divided into several distinct phases, each with its specialized function:
-
-
-% \begin{enumerate}
-%     \item Lexical Analysis
-%           \begin{itemize}
-%               \item Token Generation: The compiler's first phase involves breaking down the source code into tokens, which are the basic building blocks of the language (like keywords, operators, identifiers, literals).
-%               \item Regular Expressions: Lexical analyzers often use regular expressions to recognize these tokens, simplifying the source code into a stream of tokens for further processing.
-%           \end{itemize}
-
-%     \item Syntax Analysis
-%           \begin{itemize}
-%               \item Parsing: This phase involves analyzing the token sequence from lexical analysis to ensure that the expressions and statements conform to the rules of the programming language's grammar.
-%               \item Syntax Trees: The result is often a syntax tree, which represents the syntactic structure of the source code in a hierarchical tree format.
-%           \end{itemize}
-%     \item Semantic Analysis
-%           \begin{itemize}
-%               \item Type Checking: The compiler checks whether the parsed code makes logical sense, adhering to the language's semantic rules. This includes type checking, where the compiler verifies that each operation is compatible with its operands.
-%               \item Symbol Table: The compiler uses a symbol table to keep track of variable names, their types, and other relevant information to ensure correct interpretation and context.
-%           \end{itemize}
-%     \item Intermediate Code Generation
-%           \begin{itemize}
-%               \item Abstract Representation: The compiler translates the source code into an intermediate representation, which is a lower-level representation of the program that retains its logical structure.
-%               \item Platform-Independent Code: This intermediate code is typically platform-independent, serving as a bridge between the high-level source code and the machine code.
-%           \end{itemize}
-%     \item Optimization
-%           \begin{itemize}
-%               \item Performance Improvement: The optimization phase refines the intermediate code to improve efficiency and performance. This can include eliminating redundant calculations, optimizing loops, and more.
-%               \item Target-Dependent Optimizations: These optimizations often vary depending on the target machine's architecture and capabilities.
-%           \end{itemize}
-%     \item Code Generation
-%           \begin{itemize}
-%               \item Machine Code: The final phase involves translating the optimized intermediate code into machine code specific to the target machine CPU architecture or virtual machine instruction set.
-%               \item Assembly Language: Sometimes, the output is in the form of assembly language, which is then further translated into machine code by an assembler.
-%           \end{itemize}
-%     \item  Linking and Loading
-%           \begin{itemize}
-%               \item Linking: If the program consists of multiple source code files or external libraries, the linking process combines these into a single executable.
-%               \item Loading: The loader then places the executable into memory for execution by the machine.
-%           \end{itemize}
-% \end{enumerate}
-
-% In the context of Elixireum, these compiler construction principles must be adapted to suit the specific needs of the Ethereum Virtual Machine (EVM). This includes considerations for smart contract compilation, optimization for gas efficiency, and adhering to the deterministic execution model of the EVM. Understanding these compiler construction phases is essential for Elixireum development, as each stage plays a critical role in transforming high-level Elixireum code into efficient, secure, and EVM-compatible bytecode.
-
-% \subsection{Ethereum Virtual Machine - A Deeper Insight}
-
-% EVM is a core component of the Ethereum blockchain, pivotal in maintaining its decentralized and secure nature. It serves as an execution environment for smart contracts, enabling the remarkable functionality that Ethereum offers. Understanding the EVM is crucial for developing Elixireum, as it provides the foundational framework within which this new language operates.
-
-% \begin{enumerate}
-%     \item  Execution Environment
-%           \begin{itemize}
-%               \item Isolated System: The EVM operates as an isolated environment, completely sandboxed from the Ethereum network. This isolation ensures that code execution within the EVM does not directly affect the network or the filesystem of the host computer.
-%               \item Deterministic Execution: The EVM is designed to be deterministic. This means that executing the same smart contract with the same input will always produce the same output across all nodes in the Ethereum network. This characteristic is essential for maintaining consistency and agreement (consensus) across the decentralized network.
-%           \end{itemize}
-%     \item EVM's Role in Smart Contracts
-%           \begin{itemize}
-%               \item Smart Contract Lifecycle: Developers write smart contracts in high-level languages like Solidity or Vyper. These contracts are then compiled into EVM bytecode. When a contract is deployed on the Ethereum blockchain, it's executed by the EVM to ensure it behaves as expected.
-%               \item           Gas Mechanism: The EVM uses a gas mechanism to measure and limit the resources (computation and storage) a contract can use. Each operation in the EVM has a gas cost associated with it, preventing inefficient or malicious code from overloading the network.
-%           \end{itemize}
-%     \item State Machine
-%           \begin{itemize}
-%               \item           State Transitions: The EVM can be viewed as a state machine, where transactions transition the Ethereum blockchain from one state to another. Smart contracts, through their executions, modify the state stored in the Ethereum blockchain.
-%               \item           EVM Bytecode: The EVM interprets a series of bytes (bytecode) which instruct the machine on the operations to perform. This bytecode is the compiled version of high-level contract code.
-%           \end{itemize}
-%     \item Storage and Memory
-%           \begin{itemize}
-%               \item   Storage: The EVM has a long-term storage model, where data is stored persistently on the blockchain. This storage is expensive but necessary for maintaining the state across transactions.
-%               \item         Memory: The EVM also includes a volatile memory space, cleared after each transaction, used for temporary storage during contract execution.
-%           \end{itemize}
-%     \item Challenges and Considerations for Elixireum
-%           \begin{itemize}
-%               \item Gas Optimization: Given the cost implications of EVM operations, Elixireum must focus on gas optimization during the compilation process.
-%               \item Security and Determinism: Security vulnerabilities in smart contracts can be costly. Hence, Elixireum needs to ensure robust security measures. Additionally, the deterministic nature of the EVM requires that Elixireum-generated bytecode behaves consistently across all executions.
-%           \end{itemize}
+Compiler construction is a sophisticated field in computer science, involving the creation of software that translates source code written in a high-level programming language into a lower-level language, often machine code. The process of compiler construction is typically divided into several distinct phases, each with its specialized function:
 
 
+\begin{enumerate}
+    \item Lexical Analysis
+          \begin{itemize}
+              \item Token Generation: The compiler's first phase involves breaking down the source code into tokens, which are the basic building blocks of the language (like keywords, operators, identifiers, literals).
+              \item Regular Expressions: Lexical analyzers often use regular expressions to recognize these tokens, simplifying the source code into a stream of tokens for further processing.
+          \end{itemize}
 
-% \end{enumerate}
+    \item Syntax Analysis
+          \begin{itemize}
+              \item Parsing: This phase involves analyzing the token sequence from lexical analysis to ensure that the expressions and statements conform to the rules of the programming language's grammar.
+              \item Syntax Trees: The result is often a syntax tree, which represents the syntactic structure of the source code in a hierarchical tree format.
+          \end{itemize}
+    \item Semantic Analysis
+          \begin{itemize}
+              \item Type Checking: The compiler checks whether the parsed code makes logical sense, adhering to the language's semantic rules. This includes type checking, where the compiler verifies that each operation is compatible with its operands.
+              \item Symbol Table: The compiler uses a symbol table to keep track of variable names, their types, and other relevant information to ensure correct interpretation and context.
+          \end{itemize}
+    \item Intermediate Code Generation
+          \begin{itemize}
+              \item Abstract Representation: The compiler translates the source code into an intermediate representation, which is a lower-level representation of the program that retains its logical structure.
+              \item Platform-Independent Code: This intermediate code is typically platform-independent, serving as a bridge between the high-level source code and the machine code.
+          \end{itemize}
+    \item Optimization
+          \begin{itemize}
+              \item Performance Improvement: The optimization phase refines the intermediate code to improve efficiency and performance. This can include eliminating redundant calculations, optimizing loops, and more.
+              \item Target-Dependent Optimizations: These optimizations often vary depending on the target machine's architecture and capabilities.
+          \end{itemize}
+    \item Code Generation
+          \begin{itemize}
+              \item Machine Code: The final phase involves translating the optimized intermediate code into machine code specific to the target machine CPU architecture or virtual machine instruction set.
+              \item Assembly Language: Sometimes, the output is in the form of assembly language, which is then further translated into machine code by an assembler.
+          \end{itemize}
+    \item  Linking and Loading
+          \begin{itemize}
+              \item Linking: If the program consists of multiple source code files or external libraries, the linking process combines these into a single executable.
+              \item Loading: The loader then places the executable into memory for execution by the machine.
+          \end{itemize}
+\end{enumerate}
+
+In the context of Elixireum, these compiler construction principles must be adapted to suit the specific needs of the Ethereum Virtual Machine (EVM). This includes considerations for smart contract compilation, optimization for gas efficiency, and adhering to the deterministic execution model of the EVM. Understanding these compiler construction phases is essential for Elixireum development, as each stage plays a critical role in transforming high-level Elixireum code into efficient, secure, and EVM-compatible bytecode.
+
+\subsection{Ethereum Virtual Machine - A Deeper Insight}
+
+EVM is a core component of the Ethereum blockchain, pivotal in maintaining its decentralized and secure nature. It serves as an execution environment for smart contracts, enabling the remarkable functionality that Ethereum offers. Understanding the EVM is crucial for developing Elixireum, as it provides the foundational framework within which this new language operates.
+
+\begin{enumerate}
+    \item  Execution Environment
+          \begin{itemize}
+              \item Isolated System: The EVM operates as an isolated environment, completely sandboxed from the Ethereum network. This isolation ensures that code execution within the EVM does not directly affect the network or the filesystem of the host computer.
+              \item Deterministic Execution: The EVM is designed to be deterministic. This means that executing the same smart contract with the same input will always produce the same output across all nodes in the Ethereum network. This characteristic is essential for maintaining consistency and agreement (consensus) across the decentralized network.
+          \end{itemize}
+    \item EVM's Role in Smart Contracts
+          \begin{itemize}
+              \item Smart Contract Lifecycle: Developers write smart contracts in high-level languages like Solidity or Vyper. These contracts are then compiled into EVM bytecode. When a contract is deployed on the Ethereum blockchain, it's executed by the EVM to ensure it behaves as expected.
+              \item           Gas Mechanism: The EVM uses a gas mechanism to measure and limit the resources (computation and storage) a contract can use. Each operation in the EVM has a gas cost associated with it, preventing inefficient or malicious code from overloading the network.
+          \end{itemize}
+    \item State Machine
+          \begin{itemize}
+              \item           State Transitions: The EVM can be viewed as a state machine, where transactions transition the Ethereum blockchain from one state to another. Smart contracts, through their executions, modify the state stored in the Ethereum blockchain.
+              \item           EVM Bytecode: The EVM interprets a series of bytes (bytecode) which instruct the machine on the operations to perform. This bytecode is the compiled version of high-level contract code.
+          \end{itemize}
+    \item Storage and Memory
+          \begin{itemize}
+              \item   Storage: The EVM has a long-term storage model, where data is stored persistently on the blockchain. This storage is expensive but necessary for maintaining the state across transactions.
+              \item         Memory: The EVM also includes a volatile memory space, cleared after each transaction, used for temporary storage during contract execution.
+          \end{itemize}
+    \item Challenges and Considerations for Elixireum
+          \begin{itemize}
+              \item Gas Optimization: Given the cost implications of EVM operations, Elixireum must focus on gas optimization during the compilation process.
+              \item Security and Determinism: Security vulnerabilities in smart contracts can be costly. Hence, Elixireum needs to ensure robust security measures. Additionally, the deterministic nature of the EVM requires that Elixireum-generated bytecode behaves consistently across all executions.
+          \end{itemize}
+
+
+
+\end{enumerate}
 
 
 \section{Problems}

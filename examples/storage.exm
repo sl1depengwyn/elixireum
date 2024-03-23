@@ -5,7 +5,7 @@ defmodule ETH.StorageA do
   alias Blockchain.EVM, as: BlockchainEVM
   alias Blockchain.Types
 
-  @var_name [type:  Types.UInt.t()]
+  @var_name [type: Types.UInt.t()]
 
   @spec store(Types.UInt256.t(), Types.UInt256.t()) :: nil
   def store(num, fake_num) do
