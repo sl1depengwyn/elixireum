@@ -1,11 +1,18 @@
 defmodule Elixireum.YulNode do
   @type t :: %__MODULE__{
-          yul_snippet: String.t(),
+          yul_snippet_definition: String.t(),
+          yul_snippet_usage: String.t(),
           meta: any(),
           return_values_count: non_neg_integer(),
           elixir_initial: Macro.t()
         }
 
-  @enforce_keys [:yul_snippet, :return_values_count, :elixir_initial]
-  defstruct [:yul_snippet, :meta, :return_values_count, :elixir_initial]
+  @enforce_keys [:return_values_count, :elixir_initial]
+  defstruct [
+    :meta,
+    :return_values_count,
+    :elixir_initial,
+    :yul_snippet_definition,
+    :yul_snippet_usage
+  ]
 end

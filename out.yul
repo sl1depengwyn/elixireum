@@ -7,16 +7,50 @@ object "contract" {
     code {
       let method_id := shr(0xe0, calldataload(0x0))
 switch method_id
+case 0x6ed28ed0 {
+  let num := calldataload(add(4, 0))
+mload8(0, )
+let fake_num := calldataload(add(4, 32))
+mload8(32, )
+
+  let return_value := store(num,fake_num)
+return(0, 0)
+
+}
+case 0x2e64cec1 {
+  
+  let return_value := retrieve()
+return(return_value + 1, 32)
+
+}
 
 
 
-      
+      function store(num, fake_num) -> return_value {
+  
+let test := abc(0)
 
-      function a() -> return_value {
+  sstore(1, test)
+}
+function retrieve() -> return_value {
   
 
 
-  return_value := LIST TO IMPLEMENT
+  return_value := sload(1)
+}
+
+
+      function abc(qwe) -> return_value {
+  let _ := get_0()
+
+
+  return_value := get_0()
+}
+function get_0() -> return_value {
+  
+
+
+  return_value := 0
 }
 
     }

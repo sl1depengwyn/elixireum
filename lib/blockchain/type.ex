@@ -3,6 +3,45 @@ defmodule Blockchain.Type do
 
   defstruct [:size, :abi_name]
 
+  def type_to_encoded_type(%__MODULE__{} = t) do
+    if t.abi_name |> String.ends_with?("]") do
+      5
+    else
+      case t.abi_name do
+        "string" -> 1
+        "bool" -> 2
+        "fixed128x18" -> 3
+        "int256" -> 4
+        # tuple
+        "(" <> _ -> 6
+        "uint" <> size -> (6 + size) |> Integer.parse!() |> div(8)
+        "int" <> size -> (38 + size) |> Integer.parse!() |> div(8)
+        "fixed128x18" -> 55
+        "ufixed128x18" -> 56
+        "address" -> 57
+        "function" -> 58
+        "bytes" <> size -> (58 + size) |> Integer.parse!()
+        "bytes" -> 91
+      end
+    end
+  end
+
+  def elixir_to_encoded_type(t) do
+    case t do
+      t when is_binary(t) -> 1
+      t when is_boolean(t) -> 2
+      t when is_float(t) -> 3
+      t when is_integer(t) -> 4
+      t when is_list(t) -> 5
+      t when is_tuple(t) -> 6
+    end
+  end
+
+  def encoded_type_to_size(encoded_type) do
+    # TODO
+    123
+  end
+
   @spec from_module([module()], [atom() | tuple()]) :: {:ok, t()} | {:error, String.t()}
   def from_module(modules, args) do
     modules_name = modules |> Enum.map(&Atom.to_string/1) |> dbg()
@@ -22,10 +61,6 @@ defmodule Blockchain.Type do
     ]
 
     simple_type_sizes = %{
-      "UInt" => 32,
-      "Int" => 32,
-      "Fixed" => 16,
-      "UFixed" => 16,
       "Address" => 20,
       "Bool" => 1,
       "Function" => 24,
@@ -37,7 +72,7 @@ defmodule Blockchain.Type do
 
     with ["Blockchain", "Types", type_with_size] <- modules_name,
          [type_name | type_size] <-
-           String.split(type_with_size, splitter, include_captures: true, trim: true) |> dbg() do
+           String.split(type_with_size, splitter, include_captures: true, trim: true) do
       cond do
         not is_nil(simple_type_sizes[type_name]) and type_size == [] ->
           {:ok,

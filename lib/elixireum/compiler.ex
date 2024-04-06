@@ -20,7 +20,7 @@ defmodule Elixireum.Compiler do
     :erlang.put(:elixir_token_metadata, true)
     :erlang.put(:elixir_literal_encoder, false)
 
-    file_name = "./examples/test.exm"
+    file_name = "./examples/storage.exm"
 
     code =
       file_name
@@ -104,8 +104,7 @@ defmodule Elixireum.Compiler do
         #{if function.typespec.return do
         """
         let return_value := #{function.name}(#{usage})
-        mstore(0, return_value)
-        return(0, 32)
+        return(return_value + 1, 32)
         """
       else
         """
@@ -130,10 +129,15 @@ defmodule Elixireum.Compiler do
       function.args
       |> Enum.zip(function.typespec.args)
       |> Enum.reduce({"", 0}, fn {arg, type}, {yul, offset} ->
-        {yul <>
-           """
-           let #{arg} := calldataload(add(4, #{offset}))
-           """, offset + type.size}
+        {
+          # safonof peredelat
+          yul <>
+            """
+            let #{arg} := calldataload(add(4, #{offset}))
+            mload8(#{offset}, )
+            """,
+          offset + type.size
+        }
       end)
 
     {functions_extraction, function.args |> Enum.join(",")}
@@ -302,12 +306,12 @@ defmodule Elixireum.Compiler do
         """
         function #{function.name}(#{Enum.join(function.args, ", ")}) -> return_value {
           #{Enum.map_join(ast, "\n", fn yul_node -> if yul_node.return_values_count > 0 do
-            "let #{1..yul_node.return_values_count |> Enum.map_join(", ", fn _ -> "_" end)} := #{yul_node.yul_snippet}"
+            "let #{1..yul_node.return_values_count |> Enum.map_join(", ", fn _ -> "_" end)} := #{yul_node.yul_snippet_usage}"
           else
           end end)}
 
 
-          return_value := #{ast_last.yul_snippet}
+          return_value := #{ast_last.yul_snippet_usage}
         }
         """
 
@@ -316,9 +320,9 @@ defmodule Elixireum.Compiler do
           (!function.typespec && ast_last.return_values_count == 0) ->
         """
         function #{function.name}(#{Enum.join(function.args, ", ")}) -> return_value {
-          #{Enum.map_join(ast, "\n", & &1.yul_snippet)}
+          #{Enum.map_join(ast, "\n", & &1.yul_snippet_usage)}
 
-          #{ast_last.yul_snippet}
+          #{ast_last.yul_snippet_usage}
         }
         """
     end
@@ -358,9 +362,13 @@ defmodule Elixireum.Compiler do
             %Elixireum.YulNode{
               elixir_initial: {var_name, _, _}
             },
-            %YulNode{yul_snippet: yul_snippet_right}
+            %YulNode{
+              yul_snippet_definition: yul_snippet_definition,
+              yul_snippet_usage: yul_snippet_right,
+              elixir_initial: something
+            }
           ]} = node,
-         %CompilerState{declared_variables: declared_variables} = state
+         %CompilerState{declared_variables: declared_variables, variables: variables} = state
        ) do
     {yul_snippet_left, declared_variables} =
       if MapSet.member?(declared_variables, var_name) do
@@ -369,10 +377,10 @@ defmodule Elixireum.Compiler do
         {"let #{var_name}", MapSet.put(declared_variables, var_name)}
       end
 
-    yul_snippet_final = "#{yul_snippet_left} := #{yul_snippet_right}"
+    yul_snippet_final = "#{yul_snippet_definition}\n#{yul_snippet_left} := #{yul_snippet_right}"
 
     {%YulNode{
-       yul_snippet: yul_snippet_final,
+       yul_snippet_usage: yul_snippet_final,
        meta: meta,
        return_values_count: 0,
        elixir_initial: node
@@ -391,7 +399,7 @@ defmodule Elixireum.Compiler do
               }
             },
             %Elixireum.YulNode{
-              yul_snippet: yul_snippet,
+              yul_snippet_usage: yul_snippet,
               meta: _meta,
               return_values_count: _return_values_count,
               elixir_initial: elixir_initial
@@ -399,11 +407,11 @@ defmodule Elixireum.Compiler do
           ]} = node,
          acc
        ) do
-    %{yul_snippet: yul_snippet, return_values_count: return_values_count} =
+    %{yul_snippet_usage: yul_snippet, return_values_count: return_values_count} =
       Storage.store(storage_pointer, yul_snippet)
 
     {%YulNode{
-       yul_snippet: yul_snippet,
+       yul_snippet_usage: yul_snippet,
        meta: meta,
        return_values_count: return_values_count,
        elixir_initial: node
@@ -424,11 +432,11 @@ defmodule Elixireum.Compiler do
           ]} = node,
          acc
        ) do
-    %{yul_snippet: yul_snippet, return_values_count: return_values_count} =
+    %{yul_snippet_usage: yul_snippet, return_values_count: return_values_count} =
       Storage.get(storage_pointer)
 
     {%YulNode{
-       yul_snippet: yul_snippet,
+       yul_snippet_usage: yul_snippet,
        meta: meta,
        return_values_count: return_values_count,
        elixir_initial: node
@@ -480,8 +488,8 @@ defmodule Elixireum.Compiler do
     # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
     # # {other, acc}
     {%YulNode{
-       yul_snippet:
-         "#{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet end)})",
+       yul_snippet_usage:
+         "#{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})",
        meta: meta,
        elixir_initial: other,
        return_values_count: 1
@@ -491,14 +499,15 @@ defmodule Elixireum.Compiler do
   end
 
   # variable
-  defp expand_expression({var, meta, nil} = other, acc) when is_atom(var) do
+  defp expand_expression({var, meta, nil} = other, %CompilerState{variables: variables} = acc)
+       when is_atom(var) do
     dbg(other)
     # dbg(other)
     # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
     # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
     # # {other, acc}
     {%YulNode{
-       yul_snippet: to_string(var),
+       yul_snippet_usage: to_string(var),
        meta: meta,
        elixir_initial: other,
        return_values_count: 1
@@ -515,22 +524,40 @@ defmodule Elixireum.Compiler do
 
   defp expand_expression(list, acc) when is_list(list) do
     {%YulNode{
-       yul_snippet: "LIST_TO_IMPLEMENT",
+       yul_snippet_usage: "LIST_TO_IMPLEMENT",
        meta: nil,
        elixir_initial: list,
        return_values_count: 1
      }, acc}
   end
 
-  defp expand_expression(other, acc) do
+  defp expand_expression(atom, state) when is_atom(atom) do
     {%YulNode{
-       yul_snippet: to_string(other),
+       yul_snippet_usage: to_string(atom),
+       meta: nil,
+       elixir_initial: atom,
+       return_values_count: 1
+     }, state}
+  end
+
+  defp expand_expression(other, %CompilerState{offset: offset} = state) do
+    encoded_type = Type.elixir_to_encoded_type(other)
+
+    definition =
+      """
+      mstore(#{offset}, #{encoded_type})
+      mstore(#{offset + 1}, #{to_string(other)})
+      """
+
+    usage = "#{offset}"
+
+    {%YulNode{
+       yul_snippet_definition: definition,
+       yul_snippet_usage: usage,
        meta: nil,
        elixir_initial: other,
        return_values_count: 1
-     }, acc}
-
-    # {other, acc}
+     }, %CompilerState{state | offset: offset + Type.encoded_type_to_size(encoded_type) + 1}}
   end
 
   defp prepare_aliases(aliases, [head | tail]) do
