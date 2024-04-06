@@ -1,15 +1,5 @@
 defmodule HaHaHa.Test do
-  def hello do
-    unquote (quote do
-      1 + 1
-    end)
+  defp a() do
+    [1, 2, 3]
   end
-
-  def pattern_matching do
-    
-  end
-end
-
-defmodule Hello do
-  alias HaHaHa.Test
 end

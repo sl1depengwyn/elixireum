@@ -3,10 +3,13 @@ defmodule Elixireum.YulCompiler do
 
   def compile(yul_file) do
     with path <- download_compiler() |> dbg() do
-      content = System.cmd(path, [
-        "--strict-assembly",
-        yul_file
-      ]) |> elem(0)
+      content =
+        System.cmd(path, [
+          "--strict-assembly",
+          yul_file
+        ])
+        |> elem(0)
+
       File.write!("./out.txt", content)
     end
   end

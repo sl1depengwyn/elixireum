@@ -382,3 +382,18 @@ object "Storage_34" {
 
 }
 
+
+
+     
+  defp a() do
+    1
+    2               ->  [[do: {:__block__, [], [1, 2, 3]}]],
+    3
+  end
+
+
+  defp a() do
+    [1, 2, 3]       -> [[do: [1, 2, 3]]]
+  end
+
+  a_type, a := :int, 1

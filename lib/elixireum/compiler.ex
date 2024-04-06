@@ -20,7 +20,7 @@ defmodule Elixireum.Compiler do
     :erlang.put(:elixir_token_metadata, true)
     :erlang.put(:elixir_literal_encoder, false)
 
-    file_name = "./examples/storage.exm"
+    file_name = "./examples/test.exm"
 
     code =
       file_name
@@ -46,6 +46,8 @@ defmodule Elixireum.Compiler do
                %{functions: [], specs: %{}, private_functions: [], aliases: %{}, variables: %{}},
                &ast_to_contract_fields/2
              ) do
+        dbg(ast)
+
         functions_map = functions_list_to_functions_map(acc.functions)
         private_functions_map = functions_list_to_functions_map(acc.private_functions)
 
@@ -334,12 +336,13 @@ defmodule Elixireum.Compiler do
   # }
   # """
 
-  defp prepare_children([[do: {:__block__, _, children}]]) do
-    List.pop_at(children, -1)
+  defp prepare_children([[do: {:__block__, meta, children}]]) do
+    {last, other} = List.pop_at(children, -1)
+    {last, {:__block__, meta, other}}
   end
 
   defp prepare_children([[do: child]]) do
-    {child, []}
+    {child, {:__block__, nil, []}}
   end
 
   @disallowed_actions_inside_function ~w(defmodule def defp)a
@@ -466,6 +469,10 @@ defmodule Elixireum.Compiler do
     end
   end
 
+  defp expand_expression({:__block__, meta, children}, acc) do
+    {children, acc}
+  end
+
   defp expand_expression({function_name, meta, args} = other, acc)
        when is_atom(function_name) and is_list(args) do
     # dbg(other)
@@ -507,7 +514,12 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(list, acc) when is_list(list) do
-    {list, acc}
+    {%YulNode{
+       yul_snippet: "LIST_TO_IMPLEMENT",
+       meta: nil,
+       elixir_initial: list,
+       return_values_count: 1
+     }, acc}
   end
 
   defp expand_expression(other, acc) do

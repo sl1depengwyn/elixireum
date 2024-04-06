@@ -26,4 +26,9 @@ defmodule ETH.StorageA do
   defp get_0() do
     100
   end
+
+  defp get_list() do
+    x = 1
+    [1, 2, 3]
+  end
 end
