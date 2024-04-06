@@ -102,9 +102,9 @@
 \captionsetup[figure]{labelfont={normalfont}, name={Fig.}, labelsep=period}
 \counterwithout{figure}{chapter}
 
-\titleformat{\section}[hang]{\fontsize{20}{24}\selectfont\filcenter}{\Roman{section}}{1em}{}
+\titleformat{\section}[hang]{\fontsize{20}{24}\selectfont\filcenter}{\arabic{chapter}.\arabic{section}}{1em}{}
 \titleformat{\subsection}[hang]{\itshape}{\Alph{subsection}.}{1em}{}[]
-\titleformat{\subsubsection}[runin]{\itshape}{\arabic{subsubsection})}{1em}{}[$:$]
+\titleformat{\subsubsection}[runin]{\itshape}{\arabic{subsubsection}}{1em}{}[$:$]
 \titlespacing{\subsubsection}{1em}{1em}{1em}
 \titleformat{\paragraph}[runin]{\itshape}{\alph{paragraph})}{1em}{}[$:$\quad]
 \titlespacing{\paragraph}{2em}{1em}{1em}
@@ -132,23 +132,51 @@
    \begin{flushleft}\raggedleft #1\end{flushleft}
 }
 
+\definecolor{commentgreen}{RGB}{2,112,10}
+\definecolor{eminence}{RGB}{108,48,130}
+\definecolor{weborange}{RGB}{255,165,0}
+\definecolor{frenchplum}{RGB}{129,20,83}
+
+\lstdefinelanguage{elixir}{
+    morekeywords={case,catch,def,do,else,false,%
+        use,alias,receive,timeout,defmacro,defp,%
+        for,if,import,defmodule,defprotocol,%
+        nil,defmacrop,defoverridable,defimpl,%
+        super,fn,raise,true,try,end,with,%
+        unless},
+    otherkeywords={<-,->, |>, \%\{, \}, \{, \, (, )},
+    sensitive=true,
+    morecomment=[l]{\#},
+    morecomment=[n]{/*}{*/},
+    morecomment=[s][\color{purple}]{:}{\ },
+    morestring=[s][\color{orange}]"",
+    commentstyle=\color{commentgreen},
+    keywordstyle=\color{eminence},
+    stringstyle=\color{red},
+	showstringspaces=false,
+}
+
+\lstset{numbers=left,xleftmargin=2em,frame=single,framexleftmargin=0em,numberstyle=\footnotesize\ttfamily}
 \begin{document}
+Thesis topic: Design \& Implementation of Elixireum: Elixir-like language for Ethereum Virtual Machine
+
 
 % \includepdf[pages=-]{title.pdf}
 % \tableofcontents
-% \listoftables
-\listoffigures
+\listoftables
+% \listoffigures
+
 
 
 % \newpage
 % \include{chapters/abstract}
 % \setcounter{page}{8} % set manually an actual number from which introduction starts
-\setcounter{chapter}{2} % set manually an actual number from which introduction starts
+\setcounter{chapter}{5} % set manually an actual number from which introduction starts
 % \include{chapters/chapter1}
-\include{chapters/chapter2}
-\include{chapters/chapter3}
+% \include{chapters/chapter2}
+% \include{chapters/chapter3}
 % \include{chapters/chapter4}
-% \include{chapters/chapter5}
+\include{chapters/chapter5}
 % \include{chapters/chapter6}
 
 
