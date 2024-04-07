@@ -5,23 +5,40 @@ defmodule Blockchain.Type do
 
   def type_to_encoded_type(%__MODULE__{} = t) do
     if t.abi_name |> String.ends_with?("]") do
-      5
+      103
     else
       case t.abi_name do
-        "string" -> 1
-        "bool" -> 2
-        "fixed128x18" -> 3
-        "int256" -> 4
+        "string" ->
+          1
+
+        "bool" ->
+          2
+
         # tuple
-        "(" <> _ -> 6
-        "uint" <> size -> (6 + size) |> Integer.parse!() |> div(8)
-        "int" <> size -> (38 + size) |> Integer.parse!() |> div(8)
-        "fixed128x18" -> 55
-        "ufixed128x18" -> 56
-        "address" -> 57
-        "function" -> 58
-        "bytes" <> size -> (58 + size) |> Integer.parse!()
-        "bytes" -> 91
+        "(" <> _ ->
+          3
+
+        "uint" <> size ->
+          {int_size, ""} = Integer.parse(size)
+          3 + (int_size |> div(8))
+
+        "int" <>
+            size ->
+          {int_size, ""} = Integer.parse(size)
+          35 + (int_size |> div(8))
+
+        "address" ->
+          68
+
+        "function" ->
+          69
+
+        "bytes" <> size ->
+          {int_size, ""} = Integer.parse(size)
+          69 + int_size
+
+        "bytes" ->
+          102
       end
     end
   end
@@ -30,17 +47,15 @@ defmodule Blockchain.Type do
     case t do
       t when is_binary(t) -> 1
       t when is_boolean(t) -> 2
-      t when is_float(t) -> 3
-      t when is_integer(t) -> 4
-      t when is_list(t) -> 5
-      t when is_tuple(t) -> 6
+      # t when is_float(t) -> 3
+      t when is_integer(t) -> 67
+      t when is_list(t) -> 103
+      t when is_tuple(t) -> 3
     end
   end
 
-  def encoded_type_to_size(encoded_type) do
-    # TODO
-    123
-  end
+  def elixir_to_size(t) when is_boolean(t), do: 1
+  def elixir_to_size(_t), do: 32
 
   @spec from_module([module()], [atom() | tuple()]) :: {:ok, t()} | {:error, String.t()}
   def from_module(modules, args) do
@@ -49,8 +64,8 @@ defmodule Blockchain.Type do
     type_names = [
       "UInt",
       "Int",
-      "Fixed",
-      "UFixed",
+      # "Fixed",
+      # "UFixed",
       "Address",
       "Bool",
       "Function",
@@ -81,8 +96,8 @@ defmodule Blockchain.Type do
         type_name in ~w(UInt Int) and length(type_size) == 1 ->
           int_type(type_name, List.first(type_size))
 
-        type_name in ~w(UFixed Fixed) and length(type_size) == 1 ->
-          fixed_type(type_name, List.first(type_size))
+        # type_name in ~w(UFixed Fixed) and length(type_size) == 1 ->
+        #   fixed_type(type_name, List.first(type_size))
 
         type_name == "Bytes" and length(type_size) == 1 ->
           bytes_type(List.first(type_size))

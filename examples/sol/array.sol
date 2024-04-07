@@ -9,8 +9,8 @@ pragma solidity >=0.8.2 <0.9.0;
  */
 contract Storage {
 
-    function qwe(uint[] memory qbe) public returns (uint256[] memory) {
-        for (uint i = 0; i < qbe.length; i++) {
+    function qwe(uint16[] memory qbe) public returns (uint16[] memory) {
+        for (uint16 i = 0; i < qbe.length; i++) {
             qbe[i] += 1;
         }
         

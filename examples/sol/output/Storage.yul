@@ -1,18 +1,17 @@
 
-/// @use-src 0:"sources/storage.sol"
-object "Storage_60" {
+/// @use-src 0:"sources/array.sol"
+object "Storage_34" {
     code {
-        /// @src 0:224:847  "contract Storage {..."
+        /// @src 0:199:422  "contract Storage {..."
         mstore(64, memoryguard(128))
         if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
 
-        let _1, _2 := copy_arguments_for_constructor_23_object_Storage_60()
-        constructor_Storage_60(_1, _2)
+        constructor_Storage_34()
 
-        let _3 := allocate_unbounded()
-        codecopy(_3, dataoffset("Storage_60_deployed"), datasize("Storage_60_deployed"))
+        let _1 := allocate_unbounded()
+        codecopy(_1, dataoffset("Storage_34_deployed"), datasize("Storage_34_deployed"))
 
-        return(_3, datasize("Storage_60_deployed"))
+        return(_1, datasize("Storage_34_deployed"))
 
         function allocate_unbounded() -> memPtr {
             memPtr := mload(64)
@@ -22,177 +21,19 @@ object "Storage_60" {
             revert(0, 0)
         }
 
-        function round_up_to_mul_of_32(value) -> result {
-            result := and(add(value, 31), not(31))
-        }
+        /// @src 0:199:422  "contract Storage {..."
+        function constructor_Storage_34() {
 
-        function panic_error_0x41() {
-            mstore(0, 35408467139433450592217433187231851964531694900788300625387963629091585785856)
-            mstore(4, 0x41)
-            revert(0, 0x24)
-        }
-
-        function finalize_allocation(memPtr, size) {
-            let newFreePtr := add(memPtr, round_up_to_mul_of_32(size))
-            // protect against overflow
-            if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, memPtr)) { panic_error_0x41() }
-            mstore(64, newFreePtr)
-        }
-
-        function allocate_memory(size) -> memPtr {
-            memPtr := allocate_unbounded()
-            finalize_allocation(memPtr, size)
-        }
-
-        function revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() {
-            revert(0, 0)
-        }
-
-        function revert_error_c1322bf8034eace5e0b5c7295db60986aa89aae5e0ea0873e4689e076861a5db() {
-            revert(0, 0)
-        }
-
-        function cleanup_t_uint256(value) -> cleaned {
-            cleaned := value
-        }
-
-        function validator_revert_t_uint256(value) {
-            if iszero(eq(value, cleanup_t_uint256(value))) { revert(0, 0) }
-        }
-
-        function abi_decode_t_uint256_fromMemory(offset, end) -> value {
-            value := mload(offset)
-            validator_revert_t_uint256(value)
-        }
-
-        function cleanup_t_bool(value) -> cleaned {
-            cleaned := iszero(iszero(value))
-        }
-
-        function validator_revert_t_bool(value) {
-            if iszero(eq(value, cleanup_t_bool(value))) { revert(0, 0) }
-        }
-
-        function abi_decode_t_bool_fromMemory(offset, end) -> value {
-            value := mload(offset)
-            validator_revert_t_bool(value)
-        }
-
-        function abi_decode_tuple_t_uint256t_bool_fromMemory(headStart, dataEnd) -> value0, value1 {
-            if slt(sub(dataEnd, headStart), 64) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }
-
-            {
-
-                let offset := 0
-
-                value0 := abi_decode_t_uint256_fromMemory(add(headStart, offset), dataEnd)
-            }
-
-            {
-
-                let offset := 32
-
-                value1 := abi_decode_t_bool_fromMemory(add(headStart, offset), dataEnd)
-            }
+            /// @src 0:199:422  "contract Storage {..."
 
         }
-
-        function copy_arguments_for_constructor_23_object_Storage_60() -> ret_param_0, ret_param_1 {
-            let programSize := datasize("Storage_60")
-            let argSize := sub(codesize(), programSize)
-
-            let memoryDataOffset := allocate_memory(argSize)
-            codecopy(memoryDataOffset, programSize, argSize)
-
-            ret_param_0, ret_param_1 := abi_decode_tuple_t_uint256t_bool_fromMemory(memoryDataOffset, add(memoryDataOffset, argSize))
-        }
-
-        function shift_left_0(value) -> newValue {
-            newValue :=
-
-            shl(0, value)
-
-        }
-
-        function update_byte_slice_1_shift_0(value, toInsert) -> result {
-            let mask := 255
-            toInsert := shift_left_0(toInsert)
-            value := and(value, not(mask))
-            result := or(value, and(toInsert, mask))
-        }
-
-        function convert_t_bool_to_t_bool(value) -> converted {
-            converted := cleanup_t_bool(value)
-        }
-
-        function prepare_store_t_bool(value) -> ret {
-            ret := value
-        }
-
-        function update_storage_value_offset_0t_bool_to_t_bool(slot, value_0) {
-            let convertedValue_0 := convert_t_bool_to_t_bool(value_0)
-            sstore(slot, update_byte_slice_1_shift_0(sload(slot), prepare_store_t_bool(convertedValue_0)))
-        }
-
-        function update_byte_slice_32_shift_0(value, toInsert) -> result {
-            let mask := 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-            toInsert := shift_left_0(toInsert)
-            value := and(value, not(mask))
-            result := or(value, and(toInsert, mask))
-        }
-
-        function cleanup_t_rational_100_by_1(value) -> cleaned {
-            cleaned := value
-        }
-
-        function cleanup_t_uint16(value) -> cleaned {
-            cleaned := and(value, 0xffff)
-        }
-
-        function identity(value) -> ret {
-            ret := value
-        }
-
-        function convert_t_rational_100_by_1_to_t_uint16(value) -> converted {
-            converted := cleanup_t_uint16(identity(cleanup_t_rational_100_by_1(value)))
-        }
-
-        function prepare_store_t_uint16(value) -> ret {
-            ret := value
-        }
-
-        function update_storage_value_offset_0t_rational_100_by_1_to_t_uint16(slot, value_0) {
-            let convertedValue_0 := convert_t_rational_100_by_1_to_t_uint16(value_0)
-            sstore(slot, update_byte_slice_2_shift_0(sload(slot), prepare_store_t_uint16(convertedValue_0)))
-        }
-
-        /// @ast-id 23
-        /// @src 0:283:375  "constructor(uint256 num, bool fake) public {..."
-        function constructor_Storage_60(var_num_9, var_fake_11) {
-
-            /// @src 0:283:375  "constructor(uint256 num, bool fake) public {..."
-
-            /// @src 0:342:346  "fake"
-            let _4 := var_fake_11
-            let expr_15 := _4
-            /// @src 0:336:346  "asd = fake"
-            update_storage_value_offset_0t_bool_to_t_bool(0x01, expr_15)
-            let expr_16 := expr_15
-            /// @src 0:365:368  "num"
-            let _5 := var_num_9
-            let expr_19 := _5
-            /// @src 0:356:368  "number = num"
-            update_storage_value_offset_0t_uint256_to_t_uint256(0x00, expr_19)
-            let expr_20 := expr_19
-
-        }
-        /// @src 0:224:847  "contract Storage {..."
+        /// @src 0:199:422  "contract Storage {..."
 
     }
-    /// @use-src 0:"sources/storage.sol"
-    object "Storage_60_deployed" {
+    /// @use-src 0:"sources/array.sol"
+    object "Storage_34_deployed" {
         code {
-            /// @src 0:224:847  "contract Storage {..."
+            /// @src 0:199:422  "contract Storage {..."
             mstore(64, memoryguard(128))
 
             if iszero(lt(calldatasize(), 4))
@@ -200,25 +41,11 @@ object "Storage_60" {
                 let selector := shift_right_224_unsigned(calldataload(0))
                 switch selector
 
-                case 0x4315a5eb
+                case 0xf1f8caa4
                 {
-                    // qwe()
+                    // qwe(uint16[])
 
-                    external_fun_qwe_59()
-                }
-
-                case 0x6057361d
-                {
-                    // qwe()
-
-                    external_fun_store_34()
-                }
-
-                case 0xa9bda418
-                {
-                    // storeblabla(uint16)
-
-                    external_fun_retrieve_51()
+                    external_fun_qwe_33()
                 }
 
                 default {}
@@ -245,38 +72,48 @@ object "Storage_60" {
                 revert(0, 0)
             }
 
-            function abi_decode_tuple_(headStart, dataEnd)   {
-                if slt(sub(dataEnd, headStart), 0) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }
-
-            }
-
-            function cleanup_t_bool(value) -> cleaned {
-                cleaned := iszero(iszero(value))
-            }
-
-            function abi_encode_t_bool_to_t_bool_fromStack(value, pos) {
-                mstore(pos, cleanup_t_bool(value))
-            }
-
-            function abi_encode_tuple_t_bool__to_t_bool__fromStack(headStart , value0) -> tail {
-                tail := add(headStart, 32)
-
-                abi_encode_t_bool_to_t_bool_fromStack(value0,  add(headStart, 0))
-
-            }
-
-            function external_fun_qwe_59() {
-
-                if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
-                abi_decode_tuple_(4, calldatasize())
-                let ret_0 :=  fun_qwe_59()
-                let memPos := allocate_unbounded()
-                let memEnd := abi_encode_tuple_t_bool__to_t_bool__fromStack(memPos , ret_0)
-                return(memPos, sub(memEnd, memPos))
-
-            }
-
             function revert_error_c1322bf8034eace5e0b5c7295db60986aa89aae5e0ea0873e4689e076861a5db() {
+                revert(0, 0)
+            }
+
+            function revert_error_1b9f4a0a5773e33b91aa01db23bf8c55fce1411167c872835e7fa00a4f17d46d() {
+                revert(0, 0)
+            }
+
+            function round_up_to_mul_of_32(value) -> result {
+                result := and(add(value, 31), not(31))
+            }
+
+            function panic_error_0x41() {
+                mstore(0, 35408467139433450592217433187231851964531694900788300625387963629091585785856)
+                mstore(4, 0x41)
+                revert(0, 0x24)
+            }
+
+            function finalize_allocation(memPtr, size) {
+                let newFreePtr := add(memPtr, round_up_to_mul_of_32(size))
+                // protect against overflow
+                if or(gt(newFreePtr, 0xffffffffffffffff), lt(newFreePtr, memPtr)) { panic_error_0x41() }
+                mstore(64, newFreePtr)
+            }
+
+            function allocate_memory(size) -> memPtr {
+                memPtr := allocate_unbounded()
+                finalize_allocation(memPtr, size)
+            }
+
+            function array_allocation_size_t_array$_t_uint16_$dyn_memory_ptr(length) -> size {
+                // Make sure we can allocate memory without overflow
+                if gt(length, 0xffffffffffffffff) { panic_error_0x41() }
+
+                size := mul(length, 0x20)
+
+                // add length slot
+                size := add(size, 0x20)
+
+            }
+
+            function revert_error_81385d8c0b31fffe14be1da910c8bd3a80be4cfa248e04f42ec0faea3132a8ef() {
                 revert(0, 0)
             }
 
@@ -293,52 +130,109 @@ object "Storage_60" {
                 validator_revert_t_uint16(value)
             }
 
-            function abi_decode_tuple_t_uint16(headStart, dataEnd) -> value0 {
+            // uint16[]
+            function abi_decode_available_length_t_array$_t_uint16_$dyn_memory_ptr(offset, length, end) -> array {
+                array := allocate_memory(array_allocation_size_t_array$_t_uint16_$dyn_memory_ptr(length))
+                let dst := array
+
+                mstore(array, length)
+                dst := add(array, 0x20)
+
+                let srcEnd := add(offset, mul(length, 0x20))
+                if gt(srcEnd, end) {
+                    revert_error_81385d8c0b31fffe14be1da910c8bd3a80be4cfa248e04f42ec0faea3132a8ef()
+                }
+                for { let src := offset } lt(src, srcEnd) { src := add(src, 0x20) }
+                {
+
+                    let elementPos := src
+
+                    mstore(dst, abi_decode_t_uint16(elementPos, end))
+                    dst := add(dst, 0x20)
+                }
+            }
+
+            // uint16[]
+            function abi_decode_t_array$_t_uint16_$dyn_memory_ptr(offset, end) -> array {
+                if iszero(slt(add(offset, 0x1f), end)) { revert_error_1b9f4a0a5773e33b91aa01db23bf8c55fce1411167c872835e7fa00a4f17d46d() }
+                let length := calldataload(offset)
+                array := abi_decode_available_length_t_array$_t_uint16_$dyn_memory_ptr(add(offset, 0x20), length, end)
+            }
+
+            function abi_decode_tuple_t_array$_t_uint16_$dyn_memory_ptr(headStart, dataEnd) -> value0 {
                 if slt(sub(dataEnd, headStart), 32) { revert_error_dbdddcbe895c83990c08b3492a0e83918d802a52331272ac6fdb6a7c4aea3b1b() }
 
                 {
 
-                    let offset := 0
+                    let offset := calldataload(add(headStart, 0))
+                    if gt(offset, 0xffffffffffffffff) { revert_error_c1322bf8034eace5e0b5c7295db60986aa89aae5e0ea0873e4689e076861a5db() }
 
-                    value0 := abi_decode_t_uint16(add(headStart, offset), dataEnd)
+                    value0 := abi_decode_t_array$_t_uint16_$dyn_memory_ptr(add(headStart, offset), dataEnd)
                 }
 
             }
 
-            function abi_encode_tuple__to__fromStack(headStart ) -> tail {
-                tail := add(headStart, 0)
+            function array_length_t_array$_t_uint16_$dyn_memory_ptr(value) -> length {
+
+                length := mload(value)
 
             }
 
-            function external_fun_store_34() {
+            function array_storeLengthForEncoding_t_array$_t_uint16_$dyn_memory_ptr_fromStack(pos, length) -> updated_pos {
+                mstore(pos, length)
+                updated_pos := add(pos, 0x20)
+            }
 
-                if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
-                let param_0 :=  abi_decode_tuple_t_uint256(4, calldatasize())
-                fun_store_34(param_0)
-                let memPos := allocate_unbounded()
-                let memEnd := abi_encode_tuple__to__fromStack(memPos  )
-                return(memPos, sub(memEnd, memPos))
+            function array_dataslot_t_array$_t_uint16_$dyn_memory_ptr(ptr) -> data {
+                data := ptr
+
+                data := add(ptr, 0x20)
 
             }
 
-            function abi_encode_t_uint16_to_t_uint16_fromStack(value, pos) {
+            function abi_encode_t_uint16_to_t_uint16(value, pos) {
                 mstore(pos, cleanup_t_uint16(value))
             }
 
-            function abi_encode_tuple_t_uint16__to_t_uint16__fromStack(headStart , value0) -> tail {
+            function abi_encodeUpdatedPos_t_uint16_to_t_uint16(value0, pos) -> updatedPos {
+                abi_encode_t_uint16_to_t_uint16(value0, pos)
+                updatedPos := add(pos, 0x20)
+            }
+
+            function array_nextElement_t_array$_t_uint16_$dyn_memory_ptr(ptr) -> next {
+                next := add(ptr, 0x20)
+            }
+
+            // uint16[] -> uint16[]
+            function abi_encode_t_array$_t_uint16_$dyn_memory_ptr_to_t_array$_t_uint16_$dyn_memory_ptr_fromStack(value, pos)  -> end  {
+                let length := array_length_t_array$_t_uint16_$dyn_memory_ptr(value)
+                pos := array_storeLengthForEncoding_t_array$_t_uint16_$dyn_memory_ptr_fromStack(pos, length)
+                let baseRef := array_dataslot_t_array$_t_uint16_$dyn_memory_ptr(value)
+                let srcPtr := baseRef
+                for { let i := 0 } lt(i, length) { i := add(i, 1) }
+                {
+                    let elementValue0 := mload(srcPtr)
+                    pos := abi_encodeUpdatedPos_t_uint16_to_t_uint16(elementValue0, pos)
+                    srcPtr := array_nextElement_t_array$_t_uint16_$dyn_memory_ptr(srcPtr)
+                }
+                end := pos
+            }
+
+            function abi_encode_tuple_t_array$_t_uint16_$dyn_memory_ptr__to_t_array$_t_uint16_$dyn_memory_ptr__fromStack(headStart , value0) -> tail {
                 tail := add(headStart, 32)
 
-                abi_encode_t_uint16_to_t_uint16_fromStack(value0,  add(headStart, 0))
+                mstore(add(headStart, 0), sub(tail, headStart))
+                tail := abi_encode_t_array$_t_uint16_$dyn_memory_ptr_to_t_array$_t_uint16_$dyn_memory_ptr_fromStack(value0,  tail)
 
             }
 
-            function external_fun_retrieve_51() {
+            function external_fun_qwe_33() {
 
                 if callvalue() { revert_error_ca66f745a3ce8ff40e2ccaf1ad45db7774001b90d25810abd9040049be7bf4bb() }
-                let param_0 :=  abi_decode_tuple_t_uint256(4, calldatasize())
-                let ret_0 :=  fun_retrieve_51(param_0)
+                let param_0 :=  abi_decode_tuple_t_array$_t_uint16_$dyn_memory_ptr(4, calldatasize())
+                let ret_0 :=  fun_qwe_33(param_0)
                 let memPos := allocate_unbounded()
-                let memEnd := abi_encode_tuple_t_uint16__to_t_uint16__fromStack(memPos , ret_0)
+                let memEnd := abi_encode_tuple_t_array$_t_uint16_$dyn_memory_ptr__to_t_array$_t_uint16_$dyn_memory_ptr__fromStack(memPos , ret_0)
                 return(memPos, sub(memEnd, memPos))
 
             }
@@ -347,152 +241,153 @@ object "Storage_60" {
                 revert(0, 0)
             }
 
-            function zero_value_for_split_t_bool() -> ret {
-                ret := 0
+            function zero_value_for_split_t_array$_t_uint16_$dyn_memory_ptr() -> ret {
+                ret := 96
             }
 
-            /// @ast-id 59
-            /// @src 0:780:845  "function qwe() public returns (bool) {..."
-            function fun_qwe_59() -> var__54 {
-                /// @src 0:811:815  "bool"
-                let zero_t_bool_1 := zero_value_for_split_t_bool()
-                var__54 := zero_t_bool_1
-
-                /// @src 0:834:838  "true"
-                let expr_56 := 0x01
-                /// @src 0:827:838  "return true"
-                var__54 := expr_56
-                leave
-
-            }
-            /// @src 0:224:847  "contract Storage {..."
-
-            function shift_left_0(value) -> newValue {
-                newValue :=
-
-                shl(0, value)
-
-            }
-
-            function update_byte_slice_2_shift_0(value, toInsert) -> result {
-                let mask := 65535
-                toInsert := shift_left_0(toInsert)
-                value := and(value, not(mask))
-                result := or(value, and(toInsert, mask))
+            function cleanup_t_rational_0_by_1(value) -> cleaned {
+                cleaned := value
             }
 
             function identity(value) -> ret {
                 ret := value
             }
 
-            function convert_t_uint16_to_t_uint16(value) -> converted {
-                converted := cleanup_t_uint16(identity(cleanup_t_uint16(value)))
+            function convert_t_rational_0_by_1_to_t_uint16(value) -> converted {
+                converted := cleanup_t_uint16(identity(cleanup_t_rational_0_by_1(value)))
             }
 
-            function prepare_store_t_uint16(value) -> ret {
-                ret := value
+            function panic_error_0x11() {
+                mstore(0, 35408467139433450592217433187231851964531694900788300625387963629091585785856)
+                mstore(4, 0x11)
+                revert(0, 0x24)
             }
 
-            function update_storage_value_offset_0t_uint16_to_t_uint16(slot, value_0) {
-                let convertedValue_0 := convert_t_uint16_to_t_uint16(value_0)
-                sstore(slot, update_byte_slice_2_shift_0(sload(slot), prepare_store_t_uint16(convertedValue_0)))
+            function increment_t_uint16(value) -> ret {
+                value := cleanup_t_uint16(value)
+                if eq(value, 0xffff) { panic_error_0x11() }
+                ret := add(value, 1)
             }
 
-            /// @ast-id 34
-            /// @src 0:471:535  "function store(uint256 num) public {..."
-            function fun_store_34(var_num_26) {
-
-                /// @src 0:525:528  "num"
-                let _2 := var_num_26
-                let expr_30 := _2
-                /// @src 0:516:528  "number = num"
-                update_storage_value_offset_0t_uint256_to_t_uint256(0x00, expr_30)
-                let expr_31 := expr_30
-
-            }
-            /// @src 0:224:847  "contract Storage {..."
-
-            function zero_value_for_split_t_uint16() -> ret {
-                ret := 0
-            }
-
-            function shift_right_0_unsigned(value) -> newValue {
-                newValue :=
-
-                shr(0, value)
-
-            }
-
-            function cleanup_from_storage_t_bool(value) -> cleaned {
-                cleaned := and(value, 0xff)
-            }
-
-            function extract_from_storage_value_offset_0t_bool(slot_value) -> value {
-                value := cleanup_from_storage_t_bool(shift_right_0_unsigned(slot_value))
-            }
-
-            function read_from_storage_split_offset_0_t_bool(slot) -> value {
-                value := extract_from_storage_value_offset_0t_bool(sload(slot))
-
-            }
-
-            function cleanup_from_storage_t_uint256(value) -> cleaned {
+            function cleanup_t_uint256(value) -> cleaned {
                 cleaned := value
             }
 
-            function extract_from_storage_value_offset_0t_uint256(slot_value) -> value {
-                value := cleanup_from_storage_t_uint256(shift_right_0_unsigned(slot_value))
+            function convert_t_uint16_to_t_uint256(value) -> converted {
+                converted := cleanup_t_uint256(identity(cleanup_t_uint16(value)))
             }
 
-            function read_from_storage_split_offset_0_t_uint256(slot) -> value {
-                value := extract_from_storage_value_offset_0t_uint256(sload(slot))
-
-            }
-
-            function cleanup_t_rational_234_by_1(value) -> cleaned {
+            function cleanup_t_rational_1_by_1(value) -> cleaned {
                 cleaned := value
             }
 
-            function convert_t_rational_234_by_1_to_t_uint256(value) -> converted {
-                converted := cleanup_t_uint256(identity(cleanup_t_rational_234_by_1(value)))
+            function convert_t_rational_1_by_1_to_t_uint16(value) -> converted {
+                converted := cleanup_t_uint16(identity(cleanup_t_rational_1_by_1(value)))
             }
 
-            /// @ast-id 51
-            /// @src 0:616:774  "function retrieve(uint256 a) public returns (uint256) {..."
-            function fun_retrieve_51(var_a_37) -> var__40 {
-                /// @src 0:661:668  "uint256"
-                let zero_t_uint256_3 := zero_value_for_split_t_uint256()
-                var__40 := zero_t_uint256_3
+            function panic_error_0x32() {
+                mstore(0, 35408467139433450592217433187231851964531694900788300625387963629091585785856)
+                mstore(4, 0x32)
+                revert(0, 0x24)
+            }
 
-                /// @src 0:684:687  "asd"
-                let _4 := read_from_storage_split_offset_0_t_bool(0x01)
-                let expr_42 := _4
-                /// @src 0:680:768  "if (asd) {..."
-                switch expr_42
-                case 0 {
-                    /// @src 0:751:757  "number"
-                    let _5 := read_from_storage_split_offset_0_t_uint256(0x00)
-                    let expr_46 := _5
-                    /// @src 0:744:757  "return number"
-                    var__40 := expr_46
-                    leave
-                    /// @src 0:680:768  "if (asd) {..."
+            function memory_array_index_access_t_array$_t_uint16_$dyn_memory_ptr(baseRef, index) -> addr {
+                if iszero(lt(index, array_length_t_array$_t_uint16_$dyn_memory_ptr(baseRef))) {
+                    panic_error_0x32()
                 }
-                default {
-                    /// @src 0:710:713  "234"
-                    let expr_43 := 0xea
-                    /// @src 0:703:713  "return 234"
-                    var__40 := convert_t_rational_234_by_1_to_t_uint256(expr_43)
-                    leave
-                    /// @src 0:680:768  "if (asd) {..."
-                }
+
+                let offset := mul(index, 32)
+
+                offset := add(offset, 32)
+
+                addr := add(baseRef, offset)
+            }
+
+            function read_from_memoryt_uint16(ptr) -> returnValue {
+
+                let value := cleanup_t_uint16(mload(ptr))
+
+                returnValue :=
+
+                value
 
             }
-            /// @src 0:224:847  "contract Storage {..."
+
+            function checked_add_t_uint16(x, y) -> sum {
+                x := cleanup_t_uint16(x)
+                y := cleanup_t_uint16(y)
+                sum := add(x, y)
+
+                if gt(sum, 0xffff) { panic_error_0x11() }
+
+            }
+
+            function write_to_memory_t_uint16(memPtr, value) {
+                mstore(memPtr, cleanup_t_uint16(value))
+            }
+
+            /// @ast-id 33
+            /// @src 0:223:420  "function qwe(uint16[] memory qbe) public returns (uint16[] memory) {..."
+            function fun_qwe_33(var_qbe_5_mpos) -> var__9_mpos {
+                /// @src 0:273:288  "uint16[] memory"
+                let zero_t_array$_t_uint16_$dyn_memory_ptr_1_mpos := zero_value_for_split_t_array$_t_uint16_$dyn_memory_ptr()
+                var__9_mpos := zero_t_array$_t_uint16_$dyn_memory_ptr_1_mpos
+
+                /// @src 0:300:376  "for (uint16 i = 0; i < qbe.length; i++) {..."
+                for {
+                    /// @src 0:316:317  "0"
+                    let expr_13 := 0x00
+                    /// @src 0:305:317  "uint16 i = 0"
+                    let var_i_12 := convert_t_rational_0_by_1_to_t_uint16(expr_13)
+                    } 1 {
+                    /// @src 0:335:338  "i++"
+                    let _3 := var_i_12
+                    let _2 := increment_t_uint16(_3)
+                    var_i_12 := _2
+                    let expr_20 := _3
+                }
+                {
+                    /// @src 0:319:320  "i"
+                    let _4 := var_i_12
+                    let expr_15 := _4
+                    /// @src 0:323:326  "qbe"
+                    let _5_mpos := var_qbe_5_mpos
+                    let expr_16_mpos := _5_mpos
+                    /// @src 0:323:333  "qbe.length"
+                    let expr_17 := array_length_t_array$_t_uint16_$dyn_memory_ptr(expr_16_mpos)
+                    /// @src 0:319:333  "i < qbe.length"
+                    let expr_18 := lt(convert_t_uint16_to_t_uint256(expr_15), cleanup_t_uint256(expr_17))
+                    if iszero(expr_18) { break }
+                    /// @src 0:364:365  "1"
+                    let expr_25 := 0x01
+                    /// @src 0:354:365  "qbe[i] += 1"
+                    let _6 := convert_t_rational_1_by_1_to_t_uint16(expr_25)
+                    /// @src 0:354:357  "qbe"
+                    let _7_mpos := var_qbe_5_mpos
+                    let expr_22_mpos := _7_mpos
+                    /// @src 0:358:359  "i"
+                    let _8 := var_i_12
+                    let expr_23 := _8
+                    /// @src 0:354:365  "qbe[i] += 1"
+                    let _9 := read_from_memoryt_uint16(memory_array_index_access_t_array$_t_uint16_$dyn_memory_ptr(expr_22_mpos, convert_t_uint16_to_t_uint256(expr_23)))
+                    let expr_26 := checked_add_t_uint16(_9, _6)
+
+                    let _10 := expr_26
+                    write_to_memory_t_uint16(memory_array_index_access_t_array$_t_uint16_$dyn_memory_ptr(expr_22_mpos, convert_t_uint16_to_t_uint256(expr_23)), _10)
+                }
+                /// @src 0:410:413  "qbe"
+                let _11_mpos := var_qbe_5_mpos
+                let expr_30_mpos := _11_mpos
+                /// @src 0:403:413  "return qbe"
+                var__9_mpos := expr_30_mpos
+                leave
+
+            }
+            /// @src 0:199:422  "contract Storage {..."
 
         }
 
-        data ".metadata" hex"a2646970667358221220670c7c884ee045f9c971aeb708dfbd76ca29e2226b921e949b75481d35fd49f264736f6c63430008180033"
+        data ".metadata" hex"a264697066735822122088f413d14addbe8f4b56541da67be72de18c75471fe19ffee9bb44fbbc2aba6764736f6c63430008180033"
     }
 
 }

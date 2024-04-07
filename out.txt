@@ -4,46 +4,304 @@
 Pretty printed source:
 object "contract" {
     code {
-        {
-            datacopy(0, dataoffset("runtime"), datasize("runtime"))
-            return(0, datasize("runtime"))
-        }
+        datacopy(0, dataoffset("runtime"), datasize("runtime"))
+        return(0, datasize("runtime"))
     }
     object "runtime" {
         code {
-            {
-                let method_id := shr(0xe0, calldataload(0x0))
-                switch method_id
-                case 0x6ed28ed0 {
-                    let num := calldataload(add(4, 0))
-                    let fake_num := calldataload(add(4, 32))
-                    pop(store(num, fake_num))
-                    return(0, 0)
-                }
-                case 0x2e64cec1 {
-                    let return_value := retrieve()
-                    mstore(0, return_value)
-                    return(0, 32)
-                }
+            let method_id := shr(0xe0, calldataload(0x0))
+            switch method_id
+            case 0xdde0f413 {
+                mstore8(0, 67)
+                mstore(1, calldataload(add(4, 0)))
+                let num := 0
+                mstore8(33, 67)
+                mstore(34, calldataload(add(4, 32)))
+                let fake_num := 33
+                let return_value := store(num, fake_num)
+                return(0, 0)
             }
-            function store(num, fake_num) -> return_value
-            {
-                let test := abc(1)
-                sstore(1, test)
+            case 0x2e64cec1 {
+                let return_value := retrieve()
+                return(add(return_value, 1), 32)
             }
-            function retrieve() -> return_value
-            { return_value := sload(1) }
-            function abc(qwe) -> return_value
-            { return_value := get() }
-            function get() -> return_value
-            { return_value := 100 }
+            function store(num, fake_num) -> return_value$
+            {
+                let offset$ := msize()
+                let test := abc(num)
+                sstore(1, take_32_bytes$(mload(add(test, 1))))
+            }
+            function retrieve() -> return_value$
+            {
+                let offset$ := msize()
+                mstore8(add(0, offset$), 67)
+                mstore(add(add(0, offset$), 1), sload(1))
+                return_value$ := add(0, offset$)
+            }
+            function abc(qwe) -> return_value$
+            {
+                let offset$ := msize()
+                mstore8(add(0, offset$), 67)
+                mstore(add(1, offset$), 1)
+                return_value$ := add$(add$(qwe, add(0, offset$)), get_0())
+            }
+            function get_0() -> return_value$
+            {
+                let offset$ := msize()
+                mstore8(add(0, offset$), 67)
+                mstore(add(1, offset$), 100)
+                return_value$ := add(0, offset$)
+            }
+            function take_32_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_31_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_30_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_29_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_28_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_27_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_26_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_25_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_24_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_23_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_22_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_21_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_20_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_19_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_18_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_17_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_16_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_15_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_14_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_13_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_12_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_11_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_10_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFF)
+            }
+            function take_9_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFF)
+            }
+            function take_8_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFFFF)
+            }
+            function take_7_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFFFF)
+            }
+            function take_6_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFFFF)
+            }
+            function take_5_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFFFF)
+            }
+            function take_4_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFFFF)
+            }
+            function take_3_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFFFF)
+            }
+            function take_2_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFFFF)
+            }
+            function take_1_bytes$(value) -> return_value$
+            {
+                return_value$ := and(value, 0xFF)
+            }
+            function load_integer$(ptr) -> return_value$, size$
+            {
+                size$ := byte(0, mload(ptr))
+                let value := mload(add(ptr, 1))
+                switch size$
+                case 36 {
+                    return_value$ := take_1_bytes$(value)
+                }
+                case 37 {
+                    return_value$ := take_2_bytes$(value)
+                }
+                case 38 {
+                    return_value$ := take_3_bytes$(value)
+                }
+                case 39 {
+                    return_value$ := take_4_bytes$(value)
+                }
+                case 40 {
+                    return_value$ := take_5_bytes$(value)
+                }
+                case 41 {
+                    return_value$ := take_6_bytes$(value)
+                }
+                case 42 {
+                    return_value$ := take_7_bytes$(value)
+                }
+                case 43 {
+                    return_value$ := take_8_bytes$(value)
+                }
+                case 44 {
+                    return_value$ := take_9_bytes$(value)
+                }
+                case 45 {
+                    return_value$ := take_10_bytes$(value)
+                }
+                case 46 {
+                    return_value$ := take_11_bytes$(value)
+                }
+                case 47 {
+                    return_value$ := take_12_bytes$(value)
+                }
+                case 48 {
+                    return_value$ := take_13_bytes$(value)
+                }
+                case 49 {
+                    return_value$ := take_14_bytes$(value)
+                }
+                case 50 {
+                    return_value$ := take_15_bytes$(value)
+                }
+                case 51 {
+                    return_value$ := take_16_bytes$(value)
+                }
+                case 52 {
+                    return_value$ := take_17_bytes$(value)
+                }
+                case 53 {
+                    return_value$ := take_18_bytes$(value)
+                }
+                case 54 {
+                    return_value$ := take_19_bytes$(value)
+                }
+                case 55 {
+                    return_value$ := take_20_bytes$(value)
+                }
+                case 56 {
+                    return_value$ := take_21_bytes$(value)
+                }
+                case 57 {
+                    return_value$ := take_22_bytes$(value)
+                }
+                case 58 {
+                    return_value$ := take_23_bytes$(value)
+                }
+                case 59 {
+                    return_value$ := take_24_bytes$(value)
+                }
+                case 60 {
+                    return_value$ := take_25_bytes$(value)
+                }
+                case 61 {
+                    return_value$ := take_26_bytes$(value)
+                }
+                case 62 {
+                    return_value$ := take_27_bytes$(value)
+                }
+                case 63 {
+                    return_value$ := take_28_bytes$(value)
+                }
+                case 64 {
+                    return_value$ := take_29_bytes$(value)
+                }
+                case 65 {
+                    return_value$ := take_30_bytes$(value)
+                }
+                case 66 {
+                    return_value$ := take_31_bytes$(value)
+                }
+                case 67 {
+                    return_value$ := take_32_bytes$(value)
+                }
+                default { revert(0, 0) }
+            }
+            function add$(a, b) -> return_value$
+            {
+                let a$, a_size$ := load_integer$(a)
+                let b$, b_size$ := load_integer$(b)
+                b$ := add(a$, b$)
+                let c := a_size$
+                if gt(b_size$, a_size$) { c := b_size$ }
+                let offset$ := msize()
+                mstore8(offset$, c)
+                mstore(add(offset$, 1), b$)
+                return_value$ := offset$
+            }
         }
     }
 }
 
 
 Binary representation:
-6062600b5f3960625ff3fe5f3560e01c80636ed28ed014602657632e64cec114601957005b601f604d565b5f5260205ff35b60385f6004013560206004013590603c565b5f80f35b50505f90604860016053565b600155565b60015490565b50605a605d565b90565b60649056
+6107af61000e5f396107af5ff3fe5f3560e01c8063dde0f413811461002057632e64cec1811461004b5761005b565b60435f535f600401356001525f604360215360206004013560225260216100478183610061565b5f80f35b610053610084565b602060018201f35b506107ad565b5f5961006c8361009f565b61007960018201516100ea565b600155505092915050565b5f596043815f01536001546001825f010152805f0191505090565b5f596043815f0153600181600101526100ca6100b96100d2565b6100c5835f018661076f565b61076f565b915050919050565b5f596043815f015360648160010152805f0191505090565b5f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f7effffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f7dffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f7cffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f7bffffffffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f7affffffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f79ffffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f78ffffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f77ffffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f76ffffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f75ffffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f74ffffffffffffffffffffffffffffffffffffffffff82169050919050565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f72ffffffffffffffffffffffffffffffffffffff82169050919050565b5f71ffffffffffffffffffffffffffffffffffff82169050919050565b5f70ffffffffffffffffffffffffffffffffff82169050919050565b5f6fffffffffffffffffffffffffffffffff82169050919050565b5f6effffffffffffffffffffffffffffff82169050919050565b5f6dffffffffffffffffffffffffffff82169050919050565b5f6cffffffffffffffffffffffffff82169050919050565b5f6bffffffffffffffffffffffff82169050919050565b5f6affffffffffffffffffffff82169050919050565b5f69ffffffffffffffffffff82169050919050565b5f68ffffffffffffffffff82169050919050565b5f67ffffffffffffffff82169050919050565b5f66ffffffffffffff82169050919050565b5f65ffffffffffff82169050919050565b5f64ffffffffff82169050919050565b5f63ffffffff82169050919050565b5f62ffffff82169050919050565b5f61ffff82169050919050565b5f60ff82169050919050565b5f8082515f1a90506001830151816024811461056c576025811461057c576026811461058c576027811461059c57602881146105ac57602981146105bc57602a81146105cc57602b81146105dc57602c81146105ec57602d81146105fc57602e811461060c57602f811461061c576030811461062c576031811461063c576032811461064c576033811461065c576034811461066c576035811461067c576036811461068c576037811461069c57603881146106ac57603981146106bc57603a81146106cc57603b81146106dc57603c81146106ec57603d81146106fc57603e811461070c57603f811461071c576040811461072c576041811461073c576042811461074c576043811461075c575f80fd5b6105758261044e565b9350610768565b61058582610441565b9350610768565b61059582610433565b9350610768565b6105a582610424565b9350610768565b6105b582610414565b9350610768565b6105c582610403565b9350610768565b6105d5826103f1565b9350610768565b6105e5826103de565b9350610768565b6105f5826103ca565b9350610768565b610605826103b5565b9350610768565b6106158261039f565b9350610768565b61062582610388565b9350610768565b61063582610370565b9350610768565b61064582610357565b9350610768565b6106558261033d565b9350610768565b61066582610322565b9350610768565b61067582610306565b9350610768565b610685826102e9565b9350610768565b610695826102cb565b9350610768565b6106a5826102ac565b9350610768565b6106b58261028c565b9350610768565b6106c58261026b565b9350610768565b6106d582610249565b9350610768565b6106e582610226565b9350610768565b6106f582610202565b9350610768565b610705826101dd565b9350610768565b610715826101b7565b9350610768565b61072582610190565b9350610768565b61073582610168565b9350610768565b6107458261013f565b9350610768565b61075582610115565b9350610768565b610765826100ea565b93505b5050915091565b5f6107798261045a565b6107828561045a565b81840191508283821115610794578190505b5981815383600182015280965050505050505092915050565b50
 
 Text representation:
     /* "out.yul":68:87   */
@@ -71,117 +329,1698 @@ sub_0: assembly {
       0xe0
         /* "out.yul":183:211   */
       shr
-        /* "out.yul":229:383   */
+        /* "out.yul":219:228   */
       dup1
         /* "out.yul":234:244   */
-      0x6ed28ed0
-        /* "out.yul":229:383   */
+      0xdde0f413
+        /* "out.yul":229:442   */
+      dup2
       eq
-      tag_5
+      tag_40
       jumpi
-        /* "out.yul":389:399   */
+        /* "out.yul":448:458   */
       0x2e64cec1
-        /* "out.yul":384:478   */
+        /* "out.yul":443:532   */
+      dup2
       eq
-      tag_7
+      tag_41
       jumpi
-        /* "out.yul":212:478   */
-      stop
-        /* "out.yul":400:478   */
-    tag_7:
-        /* "out.yul":427:437   */
-      tag_9
-      tag_2
-      jump	// in
-    tag_9:
-        /* "out.yul":445:446   */
+        /* "out.yul":212:532   */
+      jump(tag_39)
+        /* "out.yul":229:442   */
+    tag_40:
+        /* "out.yul":260:262   */
+      0x43
+        /* "out.yul":257:258   */
       0x00
-        /* "out.yul":438:461   */
+        /* "out.yul":249:263   */
+      mstore8
+        /* "out.yul":294:295   */
+      0x00
+        /* "out.yul":291:292   */
+      0x04
+        /* "out.yul":287:296   */
+      add
+        /* "out.yul":274:297   */
+      calldataload
+        /* "out.yul":271:272   */
+      0x01
+        /* "out.yul":264:298   */
       mstore
-        /* "out.yul":472:474   */
-      0x20
-        /* "out.yul":469:470   */
+        /* "out.yul":310:311   */
       0x00
-        /* "out.yul":462:475   */
-      return
-        /* "out.yul":245:383   */
-    tag_5:
-        /* "out.yul":348:367   */
-      tag_10
-        /* "out.yul":280:281   */
-      0x00
-        /* "out.yul":277:278   */
-      0x04
-        /* "out.yul":273:282   */
-      add
-        /* "out.yul":260:283   */
-      calldataload
+        /* "out.yul":324:326   */
+      0x43
         /* "out.yul":320:322   */
+      0x21
+        /* "out.yul":312:327   */
+      mstore8
+        /* "out.yul":359:361   */
       0x20
-        /* "out.yul":317:318   */
+        /* "out.yul":356:357   */
       0x04
-        /* "out.yul":313:323   */
+        /* "out.yul":352:362   */
       add
-        /* "out.yul":300:324   */
+        /* "out.yul":339:363   */
       calldataload
-        /* "out.yul":348:367   */
-      swap1
+        /* "out.yul":335:337   */
+      0x22
+        /* "out.yul":328:364   */
+      mstore
+        /* "out.yul":381:383   */
+      0x21
+        /* "out.yul":407:426   */
+      tag_42
+        /* "out.yul":417:425   */
+      dup2
+        /* "out.yul":413:416   */
+      dup4
+        /* "out.yul":407:426   */
       tag_1
       jump	// in
-    tag_10:
-        /* "out.yul":378:379   */
+    tag_42:
+        /* "out.yul":437:438   */
       0x00
-        /* "out.yul":368:380   */
+        /* "out.yul":434:435   */
       dup1
+        /* "out.yul":427:439   */
       return
-        /* "out.yul":488:577   */
-    tag_1:
-      pop
-      pop
-        /* "out.yul":521:533   */
-      0x00
-        /* "out.yul":488:577   */
-      swap1
-        /* "out.yul":550:556   */
-      tag_11
-        /* "out.yul":554:555   */
+        /* "out.yul":443:532   */
+    tag_41:
+        /* "out.yul":486:496   */
+      tag_43
+      tag_2
+      jump	// in
+    tag_43:
+        /* "out.yul":526:528   */
+      0x20
+        /* "out.yul":522:523   */
       0x01
-        /* "out.yul":550:556   */
+        /* "out.yul":508:520   */
+      dup3
+        /* "out.yul":504:524   */
+      add
+        /* "out.yul":497:529   */
+      return
+        /* "out.yul":212:532   */
+    tag_39:
+      pop
+        /* "out.yul":542:694   */
+      jump(tag_44)
+    tag_1:
+        /* "out.yul":575:588   */
+      0x00
+        /* "out.yul":608:615   */
+      msize
+        /* "out.yul":631:639   */
+      tag_46
+        /* "out.yul":635:638   */
+      dup4
+        /* "out.yul":631:639   */
       tag_3
       jump	// in
-    tag_11:
-        /* "out.yul":567:568   */
+    tag_46:
+        /* "out.yul":656:691   */
+      tag_47
+        /* "out.yul":687:688   */
       0x01
-        /* "out.yul":560:575   */
+        /* "out.yul":681:685   */
+      dup3
+        /* "out.yul":677:689   */
+      add
+        /* "out.yul":671:690   */
+      mload
+        /* "out.yul":656:691   */
+      tag_5
+      jump	// in
+    tag_47:
+        /* "out.yul":653:654   */
+      0x01
+        /* "out.yul":646:692   */
       sstore
-        /* "out.yul":488:577   */
+        /* "out.yul":589:694   */
+      pop
+      pop
+        /* "out.yul":542:694   */
+      swap3
+      swap2
+      pop
+      pop
       jump	// out
-        /* "out.yul":578:649   */
+        /* "out.yul":695:872   */
     tag_2:
-        /* "out.yul":645:646   */
+        /* "out.yul":718:731   */
+      0x00
+        /* "out.yul":751:758   */
+      msize
+        /* "out.yul":789:791   */
+      0x43
+        /* "out.yul":779:786   */
+      dup2
+        /* "out.yul":776:777   */
+      0x00
+        /* "out.yul":772:787   */
+      add
+        /* "out.yul":764:792   */
+      mstore8
+        /* "out.yul":831:832   */
       0x01
-        /* "out.yul":639:647   */
+        /* "out.yul":825:833   */
       sload
-        /* "out.yul":578:649   */
+        /* "out.yul":821:822   */
+      0x01
+        /* "out.yul":811:818   */
+      dup3
+        /* "out.yul":808:809   */
+      0x00
+        /* "out.yul":804:819   */
+      add
+        /* "out.yul":800:823   */
+      add
+        /* "out.yul":793:834   */
+      mstore
+        /* "out.yul":862:869   */
+      dup1
+        /* "out.yul":859:860   */
+      0x00
+        /* "out.yul":855:870   */
+      add
+        /* "out.yul":838:870   */
+      swap2
+      pop
+        /* "out.yul":732:872   */
+      pop
+        /* "out.yul":695:872   */
       swap1
       jump	// out
-        /* "out.yul":658:742   */
+        /* "out.yul":873:1061   */
     tag_3:
-      pop
-        /* "out.yul":733:740   */
-      tag_12
+        /* "out.yul":894:907   */
+      0x00
+        /* "out.yul":927:934   */
+      msize
+        /* "out.yul":966:968   */
+      0x43
+        /* "out.yul":956:963   */
+      dup2
+        /* "out.yul":953:954   */
+      0x00
+        /* "out.yul":949:964   */
+      add
+        /* "out.yul":941:969   */
+      mstore8
+        /* "out.yul":994:995   */
+      0x01
+        /* "out.yul":984:991   */
+      dup2
+        /* "out.yul":981:982   */
+      0x01
+        /* "out.yul":977:992   */
+      add
+        /* "out.yul":970:996   */
+      mstore
+        /* "out.yul":1018:1059   */
+      tag_50
+        /* "out.yul":1051:1058   */
+      tag_51
       tag_4
       jump	// in
-    tag_12:
-        /* "out.yul":658:742   */
+    tag_51:
+        /* "out.yul":1023:1049   */
+      tag_52
+        /* "out.yul":1040:1047   */
+      dup4
+        /* "out.yul":1037:1038   */
+      0x00
+        /* "out.yul":1033:1048   */
+      add
+        /* "out.yul":1028:1031   */
+      dup7
+        /* "out.yul":1023:1049   */
+      tag_38
+      jump	// in
+    tag_52:
+        /* "out.yul":1018:1059   */
+      tag_38
+      jump	// in
+    tag_50:
+        /* "out.yul":1001:1059   */
+      swap2
+      pop
+        /* "out.yul":908:1061   */
+      pop
+        /* "out.yul":873:1061   */
+      swap2
       swap1
+      pop
       jump	// out
-        /* "out.yul":743:806   */
+        /* "out.yul":1062:1223   */
     tag_4:
-        /* "out.yul":801:804   */
+        /* "out.yul":1082:1095   */
+      0x00
+        /* "out.yul":1115:1122   */
+      msize
+        /* "out.yul":1153:1155   */
+      0x43
+        /* "out.yul":1143:1150   */
+      dup2
+        /* "out.yul":1140:1141   */
+      0x00
+        /* "out.yul":1136:1151   */
+      add
+        /* "out.yul":1128:1156   */
+      mstore8
+        /* "out.yul":1181:1184   */
       0x64
-        /* "out.yul":743:806   */
+        /* "out.yul":1171:1178   */
+      dup2
+        /* "out.yul":1168:1169   */
+      0x01
+        /* "out.yul":1164:1179   */
+      add
+        /* "out.yul":1157:1185   */
+      mstore
+        /* "out.yul":1213:1220   */
+      dup1
+        /* "out.yul":1210:1211   */
+      0x00
+        /* "out.yul":1206:1221   */
+      add
+        /* "out.yul":1189:1221   */
+      swap2
+      pop
+        /* "out.yul":1096:1223   */
+      pop
+        /* "out.yul":1062:1223   */
       swap1
       jump	// out
+        /* "out.yul":1224:1373   */
+    tag_5:
+        /* "out.yul":1258:1271   */
+      0x00
+        /* "out.yul":1304:1370   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":1297:1302   */
+      dup3
+        /* "out.yul":1293:1371   */
+      and
+        /* "out.yul":1276:1371   */
+      swap1
+      pop
+        /* "out.yul":1224:1373   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":1375:1522   */
+    tag_6:
+        /* "out.yul":1409:1422   */
+      0x00
+        /* "out.yul":1455:1519   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":1448:1453   */
+      dup3
+        /* "out.yul":1444:1520   */
+      and
+        /* "out.yul":1427:1520   */
+      swap1
+      pop
+        /* "out.yul":1375:1522   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":1524:1669   */
+    tag_7:
+        /* "out.yul":1558:1571   */
+      0x00
+        /* "out.yul":1604:1666   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":1597:1602   */
+      dup3
+        /* "out.yul":1593:1667   */
+      and
+        /* "out.yul":1576:1667   */
+      swap1
+      pop
+        /* "out.yul":1524:1669   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":1671:1814   */
+    tag_8:
+        /* "out.yul":1705:1718   */
+      0x00
+        /* "out.yul":1751:1811   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":1744:1749   */
+      dup3
+        /* "out.yul":1740:1812   */
+      and
+        /* "out.yul":1723:1812   */
+      swap1
+      pop
+        /* "out.yul":1671:1814   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":1816:1957   */
+    tag_9:
+        /* "out.yul":1850:1863   */
+      0x00
+        /* "out.yul":1896:1954   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":1889:1894   */
+      dup3
+        /* "out.yul":1885:1955   */
+      and
+        /* "out.yul":1868:1955   */
+      swap1
+      pop
+        /* "out.yul":1816:1957   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":1959:2098   */
+    tag_10:
+        /* "out.yul":1993:2006   */
+      0x00
+        /* "out.yul":2039:2095   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2032:2037   */
+      dup3
+        /* "out.yul":2028:2096   */
+      and
+        /* "out.yul":2011:2096   */
+      swap1
+      pop
+        /* "out.yul":1959:2098   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":2100:2237   */
+    tag_11:
+        /* "out.yul":2134:2147   */
+      0x00
+        /* "out.yul":2180:2234   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2173:2178   */
+      dup3
+        /* "out.yul":2169:2235   */
+      and
+        /* "out.yul":2152:2235   */
+      swap1
+      pop
+        /* "out.yul":2100:2237   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":2239:2374   */
+    tag_12:
+        /* "out.yul":2273:2286   */
+      0x00
+        /* "out.yul":2319:2371   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2312:2317   */
+      dup3
+        /* "out.yul":2308:2372   */
+      and
+        /* "out.yul":2291:2372   */
+      swap1
+      pop
+        /* "out.yul":2239:2374   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":2376:2509   */
+    tag_13:
+        /* "out.yul":2410:2423   */
+      0x00
+        /* "out.yul":2456:2506   */
+      0xffffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2449:2454   */
+      dup3
+        /* "out.yul":2445:2507   */
+      and
+        /* "out.yul":2428:2507   */
+      swap1
+      pop
+        /* "out.yul":2376:2509   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":2511:2642   */
+    tag_14:
+        /* "out.yul":2545:2558   */
+      0x00
+        /* "out.yul":2591:2639   */
+      0xffffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2584:2589   */
+      dup3
+        /* "out.yul":2580:2640   */
+      and
+        /* "out.yul":2563:2640   */
+      swap1
+      pop
+        /* "out.yul":2511:2642   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":2644:2773   */
+    tag_15:
+        /* "out.yul":2678:2691   */
+      0x00
+        /* "out.yul":2724:2770   */
+      0xffffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2717:2722   */
+      dup3
+        /* "out.yul":2713:2771   */
+      and
+        /* "out.yul":2696:2771   */
+      swap1
+      pop
+        /* "out.yul":2644:2773   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":2775:2902   */
+    tag_16:
+        /* "out.yul":2809:2822   */
+      0x00
+        /* "out.yul":2855:2899   */
+      0xffffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2848:2853   */
+      dup3
+        /* "out.yul":2844:2900   */
+      and
+        /* "out.yul":2827:2900   */
+      swap1
+      pop
+        /* "out.yul":2775:2902   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":2904:3029   */
+    tag_17:
+        /* "out.yul":2938:2951   */
+      0x00
+        /* "out.yul":2984:3026   */
+      0xffffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":2977:2982   */
+      dup3
+        /* "out.yul":2973:3027   */
+      and
+        /* "out.yul":2956:3027   */
+      swap1
+      pop
+        /* "out.yul":2904:3029   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3031:3154   */
+    tag_18:
+        /* "out.yul":3065:3078   */
+      0x00
+        /* "out.yul":3111:3151   */
+      0xffffffffffffffffffffffffffffffffffffff
+        /* "out.yul":3104:3109   */
+      dup3
+        /* "out.yul":3100:3152   */
+      and
+        /* "out.yul":3083:3152   */
+      swap1
+      pop
+        /* "out.yul":3031:3154   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3156:3277   */
+    tag_19:
+        /* "out.yul":3190:3203   */
+      0x00
+        /* "out.yul":3236:3274   */
+      0xffffffffffffffffffffffffffffffffffff
+        /* "out.yul":3229:3234   */
+      dup3
+        /* "out.yul":3225:3275   */
+      and
+        /* "out.yul":3208:3275   */
+      swap1
+      pop
+        /* "out.yul":3156:3277   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3279:3398   */
+    tag_20:
+        /* "out.yul":3313:3326   */
+      0x00
+        /* "out.yul":3359:3395   */
+      0xffffffffffffffffffffffffffffffffff
+        /* "out.yul":3352:3357   */
+      dup3
+        /* "out.yul":3348:3396   */
+      and
+        /* "out.yul":3331:3396   */
+      swap1
+      pop
+        /* "out.yul":3279:3398   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3400:3517   */
+    tag_21:
+        /* "out.yul":3434:3447   */
+      0x00
+        /* "out.yul":3480:3514   */
+      0xffffffffffffffffffffffffffffffff
+        /* "out.yul":3473:3478   */
+      dup3
+        /* "out.yul":3469:3515   */
+      and
+        /* "out.yul":3452:3515   */
+      swap1
+      pop
+        /* "out.yul":3400:3517   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3519:3634   */
+    tag_22:
+        /* "out.yul":3553:3566   */
+      0x00
+        /* "out.yul":3599:3631   */
+      0xffffffffffffffffffffffffffffff
+        /* "out.yul":3592:3597   */
+      dup3
+        /* "out.yul":3588:3632   */
+      and
+        /* "out.yul":3571:3632   */
+      swap1
+      pop
+        /* "out.yul":3519:3634   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3636:3749   */
+    tag_23:
+        /* "out.yul":3670:3683   */
+      0x00
+        /* "out.yul":3716:3746   */
+      0xffffffffffffffffffffffffffff
+        /* "out.yul":3709:3714   */
+      dup3
+        /* "out.yul":3705:3747   */
+      and
+        /* "out.yul":3688:3747   */
+      swap1
+      pop
+        /* "out.yul":3636:3749   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3751:3862   */
+    tag_24:
+        /* "out.yul":3785:3798   */
+      0x00
+        /* "out.yul":3831:3859   */
+      0xffffffffffffffffffffffffff
+        /* "out.yul":3824:3829   */
+      dup3
+        /* "out.yul":3820:3860   */
+      and
+        /* "out.yul":3803:3860   */
+      swap1
+      pop
+        /* "out.yul":3751:3862   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3864:3973   */
+    tag_25:
+        /* "out.yul":3898:3911   */
+      0x00
+        /* "out.yul":3944:3970   */
+      0xffffffffffffffffffffffff
+        /* "out.yul":3937:3942   */
+      dup3
+        /* "out.yul":3933:3971   */
+      and
+        /* "out.yul":3916:3971   */
+      swap1
+      pop
+        /* "out.yul":3864:3973   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":3975:4082   */
+    tag_26:
+        /* "out.yul":4009:4022   */
+      0x00
+        /* "out.yul":4055:4079   */
+      0xffffffffffffffffffffff
+        /* "out.yul":4048:4053   */
+      dup3
+        /* "out.yul":4044:4080   */
+      and
+        /* "out.yul":4027:4080   */
+      swap1
+      pop
+        /* "out.yul":3975:4082   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4084:4189   */
+    tag_27:
+        /* "out.yul":4118:4131   */
+      0x00
+        /* "out.yul":4164:4186   */
+      0xffffffffffffffffffff
+        /* "out.yul":4157:4162   */
+      dup3
+        /* "out.yul":4153:4187   */
+      and
+        /* "out.yul":4136:4187   */
+      swap1
+      pop
+        /* "out.yul":4084:4189   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4191:4293   */
+    tag_28:
+        /* "out.yul":4224:4237   */
+      0x00
+        /* "out.yul":4270:4290   */
+      0xffffffffffffffffff
+        /* "out.yul":4263:4268   */
+      dup3
+        /* "out.yul":4259:4291   */
+      and
+        /* "out.yul":4242:4291   */
+      swap1
+      pop
+        /* "out.yul":4191:4293   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4295:4395   */
+    tag_29:
+        /* "out.yul":4328:4341   */
+      0x00
+        /* "out.yul":4374:4392   */
+      0xffffffffffffffff
+        /* "out.yul":4367:4372   */
+      dup3
+        /* "out.yul":4363:4393   */
+      and
+        /* "out.yul":4346:4393   */
+      swap1
+      pop
+        /* "out.yul":4295:4395   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4397:4495   */
+    tag_30:
+        /* "out.yul":4430:4443   */
+      0x00
+        /* "out.yul":4476:4492   */
+      0xffffffffffffff
+        /* "out.yul":4469:4474   */
+      dup3
+        /* "out.yul":4465:4493   */
+      and
+        /* "out.yul":4448:4493   */
+      swap1
+      pop
+        /* "out.yul":4397:4495   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4497:4593   */
+    tag_31:
+        /* "out.yul":4530:4543   */
+      0x00
+        /* "out.yul":4576:4590   */
+      0xffffffffffff
+        /* "out.yul":4569:4574   */
+      dup3
+        /* "out.yul":4565:4591   */
+      and
+        /* "out.yul":4548:4591   */
+      swap1
+      pop
+        /* "out.yul":4497:4593   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4595:4689   */
+    tag_32:
+        /* "out.yul":4628:4641   */
+      0x00
+        /* "out.yul":4674:4686   */
+      0xffffffffff
+        /* "out.yul":4667:4672   */
+      dup3
+        /* "out.yul":4663:4687   */
+      and
+        /* "out.yul":4646:4687   */
+      swap1
+      pop
+        /* "out.yul":4595:4689   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4691:4783   */
+    tag_33:
+        /* "out.yul":4724:4737   */
+      0x00
+        /* "out.yul":4770:4780   */
+      0xffffffff
+        /* "out.yul":4763:4768   */
+      dup3
+        /* "out.yul":4759:4781   */
+      and
+        /* "out.yul":4742:4781   */
+      swap1
+      pop
+        /* "out.yul":4691:4783   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4785:4875   */
+    tag_34:
+        /* "out.yul":4818:4831   */
+      0x00
+        /* "out.yul":4864:4872   */
+      0xffffff
+        /* "out.yul":4857:4862   */
+      dup3
+        /* "out.yul":4853:4873   */
+      and
+        /* "out.yul":4836:4873   */
+      swap1
+      pop
+        /* "out.yul":4785:4875   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4877:4965   */
+    tag_35:
+        /* "out.yul":4910:4923   */
+      0x00
+        /* "out.yul":4956:4962   */
+      0xffff
+        /* "out.yul":4949:4954   */
+      dup3
+        /* "out.yul":4945:4963   */
+      and
+        /* "out.yul":4928:4963   */
+      swap1
+      pop
+        /* "out.yul":4877:4965   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":4967:5053   */
+    tag_36:
+        /* "out.yul":5000:5013   */
+      0x00
+        /* "out.yul":5046:5050   */
+      0xff
+        /* "out.yul":5039:5044   */
+      dup3
+        /* "out.yul":5035:5051   */
+      and
+        /* "out.yul":5018:5051   */
+      swap1
+      pop
+        /* "out.yul":4967:5053   */
+      swap2
+      swap1
+      pop
+      jump	// out
+        /* "out.yul":5057:6960   */
+    tag_37:
+        /* "out.yul":5088:5101   */
+      0x00
+        /* "out.yul":5103:5108   */
+      dup1
+        /* "out.yul":5138:5141   */
+      dup3
+        /* "out.yul":5132:5142   */
+      mload
+        /* "out.yul":5129:5130   */
+      0x00
+        /* "out.yul":5124:5143   */
+      byte
+        /* "out.yul":5115:5143   */
+      swap1
+      pop
+        /* "out.yul":5176:5177   */
+      0x01
+        /* "out.yul":5171:5174   */
+      dup4
+        /* "out.yul":5167:5178   */
+      add
+        /* "out.yul":5161:5179   */
+      mload
+        /* "out.yul":5191:5196   */
+      dup2
+        /* "out.yul":5208:5210   */
+      0x24
+        /* "out.yul":5203:5254   */
+      dup2
+      eq
+      tag_88
+      jumpi
+        /* "out.yul":5260:5262   */
+      0x25
+        /* "out.yul":5255:5306   */
+      dup2
+      eq
+      tag_89
+      jumpi
+        /* "out.yul":5312:5314   */
+      0x26
+        /* "out.yul":5307:5358   */
+      dup2
+      eq
+      tag_90
+      jumpi
+        /* "out.yul":5364:5366   */
+      0x27
+        /* "out.yul":5359:5410   */
+      dup2
+      eq
+      tag_91
+      jumpi
+        /* "out.yul":5416:5418   */
+      0x28
+        /* "out.yul":5411:5462   */
+      dup2
+      eq
+      tag_92
+      jumpi
+        /* "out.yul":5468:5470   */
+      0x29
+        /* "out.yul":5463:5514   */
+      dup2
+      eq
+      tag_93
+      jumpi
+        /* "out.yul":5520:5522   */
+      0x2a
+        /* "out.yul":5515:5566   */
+      dup2
+      eq
+      tag_94
+      jumpi
+        /* "out.yul":5572:5574   */
+      0x2b
+        /* "out.yul":5567:5618   */
+      dup2
+      eq
+      tag_95
+      jumpi
+        /* "out.yul":5624:5626   */
+      0x2c
+        /* "out.yul":5619:5670   */
+      dup2
+      eq
+      tag_96
+      jumpi
+        /* "out.yul":5676:5678   */
+      0x2d
+        /* "out.yul":5671:5723   */
+      dup2
+      eq
+      tag_97
+      jumpi
+        /* "out.yul":5729:5731   */
+      0x2e
+        /* "out.yul":5724:5776   */
+      dup2
+      eq
+      tag_98
+      jumpi
+        /* "out.yul":5782:5784   */
+      0x2f
+        /* "out.yul":5777:5829   */
+      dup2
+      eq
+      tag_99
+      jumpi
+        /* "out.yul":5835:5837   */
+      0x30
+        /* "out.yul":5830:5882   */
+      dup2
+      eq
+      tag_100
+      jumpi
+        /* "out.yul":5888:5890   */
+      0x31
+        /* "out.yul":5883:5935   */
+      dup2
+      eq
+      tag_101
+      jumpi
+        /* "out.yul":5941:5943   */
+      0x32
+        /* "out.yul":5936:5988   */
+      dup2
+      eq
+      tag_102
+      jumpi
+        /* "out.yul":5994:5996   */
+      0x33
+        /* "out.yul":5989:6041   */
+      dup2
+      eq
+      tag_103
+      jumpi
+        /* "out.yul":6047:6049   */
+      0x34
+        /* "out.yul":6042:6094   */
+      dup2
+      eq
+      tag_104
+      jumpi
+        /* "out.yul":6100:6102   */
+      0x35
+        /* "out.yul":6095:6147   */
+      dup2
+      eq
+      tag_105
+      jumpi
+        /* "out.yul":6153:6155   */
+      0x36
+        /* "out.yul":6148:6200   */
+      dup2
+      eq
+      tag_106
+      jumpi
+        /* "out.yul":6206:6208   */
+      0x37
+        /* "out.yul":6201:6253   */
+      dup2
+      eq
+      tag_107
+      jumpi
+        /* "out.yul":6259:6261   */
+      0x38
+        /* "out.yul":6254:6306   */
+      dup2
+      eq
+      tag_108
+      jumpi
+        /* "out.yul":6312:6314   */
+      0x39
+        /* "out.yul":6307:6359   */
+      dup2
+      eq
+      tag_109
+      jumpi
+        /* "out.yul":6365:6367   */
+      0x3a
+        /* "out.yul":6360:6412   */
+      dup2
+      eq
+      tag_110
+      jumpi
+        /* "out.yul":6418:6420   */
+      0x3b
+        /* "out.yul":6413:6465   */
+      dup2
+      eq
+      tag_111
+      jumpi
+        /* "out.yul":6471:6473   */
+      0x3c
+        /* "out.yul":6466:6518   */
+      dup2
+      eq
+      tag_112
+      jumpi
+        /* "out.yul":6524:6526   */
+      0x3d
+        /* "out.yul":6519:6571   */
+      dup2
+      eq
+      tag_113
+      jumpi
+        /* "out.yul":6577:6579   */
+      0x3e
+        /* "out.yul":6572:6624   */
+      dup2
+      eq
+      tag_114
+      jumpi
+        /* "out.yul":6630:6632   */
+      0x3f
+        /* "out.yul":6625:6677   */
+      dup2
+      eq
+      tag_115
+      jumpi
+        /* "out.yul":6683:6685   */
+      0x40
+        /* "out.yul":6678:6730   */
+      dup2
+      eq
+      tag_116
+      jumpi
+        /* "out.yul":6736:6738   */
+      0x41
+        /* "out.yul":6731:6783   */
+      dup2
+      eq
+      tag_117
+      jumpi
+        /* "out.yul":6789:6791   */
+      0x42
+        /* "out.yul":6784:6836   */
+      dup2
+      eq
+      tag_118
+      jumpi
+        /* "out.yul":6842:6844   */
+      0x43
+        /* "out.yul":6837:6889   */
+      dup2
+      eq
+      tag_119
+      jumpi
+        /* "out.yul":6946:6947   */
+      0x00
+        /* "out.yul":6943:6944   */
+      dup1
+        /* "out.yul":6936:6948   */
+      revert
+        /* "out.yul":5203:5254   */
+    tag_88:
+        /* "out.yul":5232:5252   */
+      tag_120
+        /* "out.yul":5246:5251   */
+      dup3
+        /* "out.yul":5232:5252   */
+      tag_36
+      jump	// in
+    tag_120:
+        /* "out.yul":5215:5252   */
+      swap4
+      pop
+        /* "out.yul":5203:5254   */
+      jump(tag_87)
+        /* "out.yul":5255:5306   */
+    tag_89:
+        /* "out.yul":5284:5304   */
+      tag_121
+        /* "out.yul":5298:5303   */
+      dup3
+        /* "out.yul":5284:5304   */
+      tag_35
+      jump	// in
+    tag_121:
+        /* "out.yul":5267:5304   */
+      swap4
+      pop
+        /* "out.yul":5255:5306   */
+      jump(tag_87)
+        /* "out.yul":5307:5358   */
+    tag_90:
+        /* "out.yul":5336:5356   */
+      tag_122
+        /* "out.yul":5350:5355   */
+      dup3
+        /* "out.yul":5336:5356   */
+      tag_34
+      jump	// in
+    tag_122:
+        /* "out.yul":5319:5356   */
+      swap4
+      pop
+        /* "out.yul":5307:5358   */
+      jump(tag_87)
+        /* "out.yul":5359:5410   */
+    tag_91:
+        /* "out.yul":5388:5408   */
+      tag_123
+        /* "out.yul":5402:5407   */
+      dup3
+        /* "out.yul":5388:5408   */
+      tag_33
+      jump	// in
+    tag_123:
+        /* "out.yul":5371:5408   */
+      swap4
+      pop
+        /* "out.yul":5359:5410   */
+      jump(tag_87)
+        /* "out.yul":5411:5462   */
+    tag_92:
+        /* "out.yul":5440:5460   */
+      tag_124
+        /* "out.yul":5454:5459   */
+      dup3
+        /* "out.yul":5440:5460   */
+      tag_32
+      jump	// in
+    tag_124:
+        /* "out.yul":5423:5460   */
+      swap4
+      pop
+        /* "out.yul":5411:5462   */
+      jump(tag_87)
+        /* "out.yul":5463:5514   */
+    tag_93:
+        /* "out.yul":5492:5512   */
+      tag_125
+        /* "out.yul":5506:5511   */
+      dup3
+        /* "out.yul":5492:5512   */
+      tag_31
+      jump	// in
+    tag_125:
+        /* "out.yul":5475:5512   */
+      swap4
+      pop
+        /* "out.yul":5463:5514   */
+      jump(tag_87)
+        /* "out.yul":5515:5566   */
+    tag_94:
+        /* "out.yul":5544:5564   */
+      tag_126
+        /* "out.yul":5558:5563   */
+      dup3
+        /* "out.yul":5544:5564   */
+      tag_30
+      jump	// in
+    tag_126:
+        /* "out.yul":5527:5564   */
+      swap4
+      pop
+        /* "out.yul":5515:5566   */
+      jump(tag_87)
+        /* "out.yul":5567:5618   */
+    tag_95:
+        /* "out.yul":5596:5616   */
+      tag_127
+        /* "out.yul":5610:5615   */
+      dup3
+        /* "out.yul":5596:5616   */
+      tag_29
+      jump	// in
+    tag_127:
+        /* "out.yul":5579:5616   */
+      swap4
+      pop
+        /* "out.yul":5567:5618   */
+      jump(tag_87)
+        /* "out.yul":5619:5670   */
+    tag_96:
+        /* "out.yul":5648:5668   */
+      tag_128
+        /* "out.yul":5662:5667   */
+      dup3
+        /* "out.yul":5648:5668   */
+      tag_28
+      jump	// in
+    tag_128:
+        /* "out.yul":5631:5668   */
+      swap4
+      pop
+        /* "out.yul":5619:5670   */
+      jump(tag_87)
+        /* "out.yul":5671:5723   */
+    tag_97:
+        /* "out.yul":5700:5721   */
+      tag_129
+        /* "out.yul":5715:5720   */
+      dup3
+        /* "out.yul":5700:5721   */
+      tag_27
+      jump	// in
+    tag_129:
+        /* "out.yul":5683:5721   */
+      swap4
+      pop
+        /* "out.yul":5671:5723   */
+      jump(tag_87)
+        /* "out.yul":5724:5776   */
+    tag_98:
+        /* "out.yul":5753:5774   */
+      tag_130
+        /* "out.yul":5768:5773   */
+      dup3
+        /* "out.yul":5753:5774   */
+      tag_26
+      jump	// in
+    tag_130:
+        /* "out.yul":5736:5774   */
+      swap4
+      pop
+        /* "out.yul":5724:5776   */
+      jump(tag_87)
+        /* "out.yul":5777:5829   */
+    tag_99:
+        /* "out.yul":5806:5827   */
+      tag_131
+        /* "out.yul":5821:5826   */
+      dup3
+        /* "out.yul":5806:5827   */
+      tag_25
+      jump	// in
+    tag_131:
+        /* "out.yul":5789:5827   */
+      swap4
+      pop
+        /* "out.yul":5777:5829   */
+      jump(tag_87)
+        /* "out.yul":5830:5882   */
+    tag_100:
+        /* "out.yul":5859:5880   */
+      tag_132
+        /* "out.yul":5874:5879   */
+      dup3
+        /* "out.yul":5859:5880   */
+      tag_24
+      jump	// in
+    tag_132:
+        /* "out.yul":5842:5880   */
+      swap4
+      pop
+        /* "out.yul":5830:5882   */
+      jump(tag_87)
+        /* "out.yul":5883:5935   */
+    tag_101:
+        /* "out.yul":5912:5933   */
+      tag_133
+        /* "out.yul":5927:5932   */
+      dup3
+        /* "out.yul":5912:5933   */
+      tag_23
+      jump	// in
+    tag_133:
+        /* "out.yul":5895:5933   */
+      swap4
+      pop
+        /* "out.yul":5883:5935   */
+      jump(tag_87)
+        /* "out.yul":5936:5988   */
+    tag_102:
+        /* "out.yul":5965:5986   */
+      tag_134
+        /* "out.yul":5980:5985   */
+      dup3
+        /* "out.yul":5965:5986   */
+      tag_22
+      jump	// in
+    tag_134:
+        /* "out.yul":5948:5986   */
+      swap4
+      pop
+        /* "out.yul":5936:5988   */
+      jump(tag_87)
+        /* "out.yul":5989:6041   */
+    tag_103:
+        /* "out.yul":6018:6039   */
+      tag_135
+        /* "out.yul":6033:6038   */
+      dup3
+        /* "out.yul":6018:6039   */
+      tag_21
+      jump	// in
+    tag_135:
+        /* "out.yul":6001:6039   */
+      swap4
+      pop
+        /* "out.yul":5989:6041   */
+      jump(tag_87)
+        /* "out.yul":6042:6094   */
+    tag_104:
+        /* "out.yul":6071:6092   */
+      tag_136
+        /* "out.yul":6086:6091   */
+      dup3
+        /* "out.yul":6071:6092   */
+      tag_20
+      jump	// in
+    tag_136:
+        /* "out.yul":6054:6092   */
+      swap4
+      pop
+        /* "out.yul":6042:6094   */
+      jump(tag_87)
+        /* "out.yul":6095:6147   */
+    tag_105:
+        /* "out.yul":6124:6145   */
+      tag_137
+        /* "out.yul":6139:6144   */
+      dup3
+        /* "out.yul":6124:6145   */
+      tag_19
+      jump	// in
+    tag_137:
+        /* "out.yul":6107:6145   */
+      swap4
+      pop
+        /* "out.yul":6095:6147   */
+      jump(tag_87)
+        /* "out.yul":6148:6200   */
+    tag_106:
+        /* "out.yul":6177:6198   */
+      tag_138
+        /* "out.yul":6192:6197   */
+      dup3
+        /* "out.yul":6177:6198   */
+      tag_18
+      jump	// in
+    tag_138:
+        /* "out.yul":6160:6198   */
+      swap4
+      pop
+        /* "out.yul":6148:6200   */
+      jump(tag_87)
+        /* "out.yul":6201:6253   */
+    tag_107:
+        /* "out.yul":6230:6251   */
+      tag_139
+        /* "out.yul":6245:6250   */
+      dup3
+        /* "out.yul":6230:6251   */
+      tag_17
+      jump	// in
+    tag_139:
+        /* "out.yul":6213:6251   */
+      swap4
+      pop
+        /* "out.yul":6201:6253   */
+      jump(tag_87)
+        /* "out.yul":6254:6306   */
+    tag_108:
+        /* "out.yul":6283:6304   */
+      tag_140
+        /* "out.yul":6298:6303   */
+      dup3
+        /* "out.yul":6283:6304   */
+      tag_16
+      jump	// in
+    tag_140:
+        /* "out.yul":6266:6304   */
+      swap4
+      pop
+        /* "out.yul":6254:6306   */
+      jump(tag_87)
+        /* "out.yul":6307:6359   */
+    tag_109:
+        /* "out.yul":6336:6357   */
+      tag_141
+        /* "out.yul":6351:6356   */
+      dup3
+        /* "out.yul":6336:6357   */
+      tag_15
+      jump	// in
+    tag_141:
+        /* "out.yul":6319:6357   */
+      swap4
+      pop
+        /* "out.yul":6307:6359   */
+      jump(tag_87)
+        /* "out.yul":6360:6412   */
+    tag_110:
+        /* "out.yul":6389:6410   */
+      tag_142
+        /* "out.yul":6404:6409   */
+      dup3
+        /* "out.yul":6389:6410   */
+      tag_14
+      jump	// in
+    tag_142:
+        /* "out.yul":6372:6410   */
+      swap4
+      pop
+        /* "out.yul":6360:6412   */
+      jump(tag_87)
+        /* "out.yul":6413:6465   */
+    tag_111:
+        /* "out.yul":6442:6463   */
+      tag_143
+        /* "out.yul":6457:6462   */
+      dup3
+        /* "out.yul":6442:6463   */
+      tag_13
+      jump	// in
+    tag_143:
+        /* "out.yul":6425:6463   */
+      swap4
+      pop
+        /* "out.yul":6413:6465   */
+      jump(tag_87)
+        /* "out.yul":6466:6518   */
+    tag_112:
+        /* "out.yul":6495:6516   */
+      tag_144
+        /* "out.yul":6510:6515   */
+      dup3
+        /* "out.yul":6495:6516   */
+      tag_12
+      jump	// in
+    tag_144:
+        /* "out.yul":6478:6516   */
+      swap4
+      pop
+        /* "out.yul":6466:6518   */
+      jump(tag_87)
+        /* "out.yul":6519:6571   */
+    tag_113:
+        /* "out.yul":6548:6569   */
+      tag_145
+        /* "out.yul":6563:6568   */
+      dup3
+        /* "out.yul":6548:6569   */
+      tag_11
+      jump	// in
+    tag_145:
+        /* "out.yul":6531:6569   */
+      swap4
+      pop
+        /* "out.yul":6519:6571   */
+      jump(tag_87)
+        /* "out.yul":6572:6624   */
+    tag_114:
+        /* "out.yul":6601:6622   */
+      tag_146
+        /* "out.yul":6616:6621   */
+      dup3
+        /* "out.yul":6601:6622   */
+      tag_10
+      jump	// in
+    tag_146:
+        /* "out.yul":6584:6622   */
+      swap4
+      pop
+        /* "out.yul":6572:6624   */
+      jump(tag_87)
+        /* "out.yul":6625:6677   */
+    tag_115:
+        /* "out.yul":6654:6675   */
+      tag_147
+        /* "out.yul":6669:6674   */
+      dup3
+        /* "out.yul":6654:6675   */
+      tag_9
+      jump	// in
+    tag_147:
+        /* "out.yul":6637:6675   */
+      swap4
+      pop
+        /* "out.yul":6625:6677   */
+      jump(tag_87)
+        /* "out.yul":6678:6730   */
+    tag_116:
+        /* "out.yul":6707:6728   */
+      tag_148
+        /* "out.yul":6722:6727   */
+      dup3
+        /* "out.yul":6707:6728   */
+      tag_8
+      jump	// in
+    tag_148:
+        /* "out.yul":6690:6728   */
+      swap4
+      pop
+        /* "out.yul":6678:6730   */
+      jump(tag_87)
+        /* "out.yul":6731:6783   */
+    tag_117:
+        /* "out.yul":6760:6781   */
+      tag_149
+        /* "out.yul":6775:6780   */
+      dup3
+        /* "out.yul":6760:6781   */
+      tag_7
+      jump	// in
+    tag_149:
+        /* "out.yul":6743:6781   */
+      swap4
+      pop
+        /* "out.yul":6731:6783   */
+      jump(tag_87)
+        /* "out.yul":6784:6836   */
+    tag_118:
+        /* "out.yul":6813:6834   */
+      tag_150
+        /* "out.yul":6828:6833   */
+      dup3
+        /* "out.yul":6813:6834   */
+      tag_6
+      jump	// in
+    tag_150:
+        /* "out.yul":6796:6834   */
+      swap4
+      pop
+        /* "out.yul":6784:6836   */
+      jump(tag_87)
+        /* "out.yul":6837:6889   */
+    tag_119:
+        /* "out.yul":6866:6887   */
+      tag_151
+        /* "out.yul":6881:6886   */
+      dup3
+        /* "out.yul":6866:6887   */
+      tag_5
+      jump	// in
+    tag_151:
+        /* "out.yul":6849:6887   */
+      swap4
+      pop
+        /* "out.yul":5184:6956   */
+    tag_87:
+      pop
+        /* "out.yul":5109:6960   */
+      pop
+        /* "out.yul":5057:6960   */
+      swap2
+      pop
+      swap2
+      jump	// out
+        /* "out.yul":6962:7270   */
+    tag_38:
+        /* "out.yul":6985:6998   */
+      0x00
+        /* "out.yul":7022:7038   */
+      tag_153
+        /* "out.yul":7036:7037   */
+      dup3
+        /* "out.yul":7022:7038   */
+      tag_37
+      jump	// in
+    tag_153:
+        /* "out.yul":7060:7076   */
+      tag_154
+        /* "out.yul":7074:7075   */
+      dup6
+        /* "out.yul":7060:7076   */
+      tag_37
+      jump	// in
+    tag_154:
+        /* "out.yul":7093:7095   */
+      dup2
+        /* "out.yul":7089:7091   */
+      dup5
+        /* "out.yul":7085:7096   */
+      add
+        /* "out.yul":7079:7096   */
+      swap2
+      pop
+        /* "out.yul":7108:7115   */
+      dup3
+        /* "out.yul":7133:7140   */
+      dup4
+        /* "out.yul":7124:7131   */
+      dup3
+        /* "out.yul":7121:7141   */
+      gt
+        /* "out.yul":7118:7164   */
+      iszero
+      tag_155
+      jumpi
+        /* "out.yul":7153:7160   */
+      dup2
+        /* "out.yul":7148:7160   */
+      swap1
+      pop
+        /* "out.yul":7118:7164   */
+    tag_155:
+        /* "out.yul":7182:7189   */
+      msize
+        /* "out.yul":7209:7210   */
+      dup2
+        /* "out.yul":7200:7207   */
+      dup2
+        /* "out.yul":7192:7211   */
+      mstore8
+        /* "out.yul":7238:7240   */
+      dup4
+        /* "out.yul":7234:7235   */
+      0x01
+        /* "out.yul":7225:7232   */
+      dup3
+        /* "out.yul":7221:7236   */
+      add
+        /* "out.yul":7214:7241   */
+      mstore
+        /* "out.yul":7261:7268   */
+      dup1
+        /* "out.yul":7244:7268   */
+      swap7
+      pop
+        /* "out.yul":6999:7270   */
+      pop
+      pop
+      pop
+      pop
+      pop
+      pop
+        /* "out.yul":6962:7270   */
+      swap3
+      swap2
+      pop
+      pop
+      jump	// out
+    tag_44:
+        /* "out.yul":158:7277   */
+      pop
 }
 
