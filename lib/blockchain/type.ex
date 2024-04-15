@@ -1,47 +1,12 @@
 defmodule Blockchain.Type do
-  @type t :: %__MODULE__{size: non_neg_integer() | :dynamic, abi_name: String.t()}
+  @type t :: %__MODULE__{
+          size: non_neg_integer() | :dynamic,
+          abi_name: String.t(),
+          encoded_type: pos_integer(),
+          components: [t()]
+        }
 
-  defstruct [:size, :abi_name]
-
-  def type_to_encoded_type(%__MODULE__{} = t) do
-    if t.abi_name |> String.ends_with?("]") do
-      103
-    else
-      case t.abi_name do
-        "string" ->
-          1
-
-        "bool" ->
-          2
-
-        # tuple
-        "(" <> _ ->
-          3
-
-        "uint" <> size ->
-          {int_size, ""} = Integer.parse(size)
-          3 + (int_size |> div(8))
-
-        "int" <>
-            size ->
-          {int_size, ""} = Integer.parse(size)
-          35 + (int_size |> div(8))
-
-        "address" ->
-          68
-
-        "function" ->
-          69
-
-        "bytes" <> size ->
-          {int_size, ""} = Integer.parse(size)
-          69 + int_size
-
-        "bytes" ->
-          102
-      end
-    end
-  end
+  defstruct [:size, :abi_name, :encoded_type, :components]
 
   def elixir_to_encoded_type(t) do
     case t do
@@ -119,14 +84,21 @@ defmodule Blockchain.Type do
   defp int_type(type_name, size) do
     case Integer.parse(size) do
       {int_size, ""} when int_size > 0 and int_size <= 256 and int_size |> rem(8) == 0 ->
-        {:ok, %__MODULE__{size: int_size |> div(8), abi_name: String.downcase(type_name) <> size}}
+        abi_name = String.downcase(type_name) <> size
+
+        {:ok,
+         %__MODULE__{
+           size: int_size |> div(8),
+           abi_name: abi_name,
+           encoded_type: abi_name_to_encoded_type(abi_name)
+         }}
 
       _ ->
         {:error, "invalid size for integer type: #{size}"}
     end
   end
 
-  defp fixed_type(type_name, size) do
+  defp _fixed_type(type_name, size) do
     with [m, n] <- String.split(size, "x"),
          {int_m, ""} when int_m >= 8 and int_m <= 256 and int_m |> rem(8) == 0 <-
            Integer.parse(m),
@@ -142,18 +114,84 @@ defmodule Blockchain.Type do
   defp bytes_type(size) do
     case Integer.parse(size) do
       {int_size, ""} when int_size > 0 and int_size <= 32 ->
-        {:ok, %__MODULE__{size: int_size, abi_name: "bytes#{size}"}}
+        abi_name = "bytes#{size}"
+
+        {:ok, %__MODULE__{size: int_size, abi_name: abi_name},
+         encoded_type: abi_name_to_encoded_type(abi_name)}
 
       _ ->
         {:error, "invalid size for bytes type: #{size}"}
     end
   end
 
+  defp array_type([component, size]) when size == :dynamic or is_integer(size) do
+    case size do
+      :dynamic ->
+        {:ok,
+         %__MODULE__{
+           size: :dynamic,
+           abi_name: component.abi_name <> "[]",
+           components: [component],
+           encoded_type: 103
+         }}
+
+      size when is_integer(size) ->
+        {:ok,
+         %__MODULE__{
+           size: size * 32,
+           abi_name: component.abi_name <> "[#{size}]",
+           components: [component],
+           encoded_type: 103
+         }}
+    end
+  end
+
   defp array_type(args) do
-    # TODO
+    {:error,
+     "invalid array type args, expected components size and size (integer or :dynamic): #{inspect(args)}"}
   end
 
   defp tuple_type(args) do
     # TODO
+  end
+
+  defp abi_name_to_encoded_type(abi_name) do
+    if abi_name |> String.ends_with?("]") do
+      103
+    else
+      case abi_name do
+        "string" ->
+          1
+
+        "bool" ->
+          2
+
+        # tuple
+        "(" <> _ ->
+          3
+
+        "uint" <> size ->
+          {int_size, ""} = Integer.parse(size)
+          3 + (int_size |> div(8))
+
+        "int" <>
+            size ->
+          {int_size, ""} = Integer.parse(size)
+          35 + (int_size |> div(8))
+
+        "address" ->
+          68
+
+        "function" ->
+          69
+
+        "bytes" <> size ->
+          {int_size, ""} = Integer.parse(size)
+          69 + int_size
+
+        "bytes" ->
+          102
+      end
+    end
   end
 end

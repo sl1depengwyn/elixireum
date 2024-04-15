@@ -16,12 +16,80 @@ mstore(34, calldataload(add(4, 32)))
 let fake_num := 33
 
   let return_value := store(num,fake_num)
-return(0, 0)
+  return(0, 0)
+}
+case 0x3ff07c4e {
+  mstore8(0, 103)
+mstore(1, 3)
+let arr := 0
+for { let i := 0 } lt(i, 3) { i := add(i, 1) } {
+  mstore8(add(33, mul(i, 33)), 67)
+  mstore(add(34, mul(i, 33)), calldataload(add(4, add(0, mul(i, 32)))))
+}
+
+  let return_value := arr_test(arr)
+  //    if not(eq(byte(0, mload(return_value)), 103)) {
+//      // Return type mismatch abi
+//      revert(0, 0)
+//    }
+
+switch byte(0, mload(return_value))
+case 103 {}
+default {
+  // Return type mismatch abi
+  revert(0, 0)
+}
+
+let ptr := add(return_value, 1)
+let size := mload(ptr)
+//    if not(eq(size, 3)) {
+//      // Array size mismatch
+//      revert(0, 0)
+//    }
+
+switch size
+case 3 {}
+default {
+  // Array size mismatch
+  revert(0, 0)
+}
+
+ptr := add(ptr, 32)
+let offset := msize()
+
+for { let i := 0 } lt(i, size) { i := add(i, 1) } {
+  let type := byte(0, mload(ptr))
+
+  // if not(eq(type, 67)) {
+  //   // Array item's type mismatch
+  //   revert(0, 0)
+  // }
+
+  switch type
+  case 67 {}
+  default {
+    // Array item's type mismatch
+    revert(0, 0)
+  }
+
+  let value := mload(add(ptr, 1))
+
+  ptr := add(ptr, 33)
+
+  mstore(add(offset, mul(i, 32)), value)
+}
+
+return(offset, mul(size, 32))
 
 }
 case 0x2e64cec1 {
   
   let return_value := retrieve()
+  if not(eq(byte(0, mload(return_value)), 67)) {
+  // Return type mismatch abi
+  revert (0, 0)
+}
+
 return(add(return_value, 1), 32)
 
 }
@@ -34,13 +102,19 @@ return(add(return_value, 1), 32)
 let test := abc(num)
 
   
-  sstore(1, take_32_bytes$(mload(add(test, 1))))
+  sstore(0, take_32_bytes$(mload(add(test, 1))))
+}
+function arr_test(arr) -> return_value$ {
+  let offset$ := msize()
+  
+  
+  return_value$ := arr
 }
 function retrieve() -> return_value$ {
-  let offset$ := msize() 
+  let offset$ := msize()
   
   mstore8(add(0, offset$), 67)
-mstore(add(add(0, offset$), 1), sload(1))
+mstore(add(1, offset$), sload(0))
 
   return_value$ := add(0, offset$)
 }

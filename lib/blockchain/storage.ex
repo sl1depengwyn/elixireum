@@ -4,10 +4,8 @@ defmodule Blockchain.Storage do
 
   # TODO add mstore
   def get(%Variable{} = variable, %CompilerState{offset: offset} = state) do
-    encoded_type = Type.type_to_encoded_type(variable.type)
-
     definition = """
-    mstore8(add(#{offset}, offset$), #{encoded_type})
+    mstore8(add(#{offset}, offset$), #{variable.type.encoded_type})
     mstore(add(#{offset + 1}, offset$), sload(#{variable.storage_pointer}))
     """
 
