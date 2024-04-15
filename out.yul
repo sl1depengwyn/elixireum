@@ -8,78 +8,69 @@ object "contract" {
       let method_id := shr(0xe0, calldataload(0x0))
 switch method_id
 case 0xdde0f413 {
-  mstore8(0, 67)
-mstore(1, calldataload(add(4, 0)))
-let num := 0
-mstore8(33, 67)
-mstore(34, calldataload(add(4, 32)))
-let fake_num := 33
+  let num_offset := msize()
+mstore8(num_offset, 67)
+mstore(add(1, num_offset), calldataload(add(4, 0)))
+let num := num_offset
+let fake_num_offset := msize()
+mstore8(fake_num_offset, 67)
+mstore(add(1, fake_num_offset), calldataload(add(4, 32)))
+let fake_num := fake_num_offset
 
   let return_value := store(num,fake_num)
   return(0, 0)
 }
-case 0x3ff07c4e {
-  mstore8(0, 103)
-mstore(1, 3)
-let arr := 0
-for { let i := 0 } lt(i, 3) { i := add(i, 1) } {
-  mstore8(add(33, mul(i, 33)), 67)
-  mstore(add(34, mul(i, 33)), calldataload(add(4, add(0, mul(i, 32)))))
+case 0xfc040071 {
+  let arr_offset := msize()
+let arr := arr_offset
+mstore8(arr_offset, 103)
+
+let arr_calldata_offset := add(4, calldataload(4))
+let arr_size := calldataload(arr_calldata_offset)
+mstore(add(1, arr_offset), arr_size)
+
+for { let i := 1 } lt(i, add(1, arr_size)) { i := add(i, 1) } {
+  mstore8(add(arr_offset, mul(i, 33)), 67)
+  mstore(add(add(1, arr_offset), mul(i, 33)), calldataload(add(arr_calldata_offset, mul(i, 32))))
 }
 
   let return_value := arr_test(arr)
-  //    if not(eq(byte(0, mload(return_value)), 103)) {
-//      // Return type mismatch abi
-//      revert(0, 0)
-//    }
-
-switch byte(0, mload(return_value))
-case 103 {}
-default {
-  // Return type mismatch abi
-  revert(0, 0)
-}
+  switch byte(0, mload(return_value))
+ case 103 {}
+ default {
+   // Return type mismatch abi
+   revert(0, 0)
+ }
 
 let ptr := add(return_value, 1)
 let size := mload(ptr)
-//    if not(eq(size, 3)) {
-//      // Array size mismatch
-//      revert(0, 0)
-//    }
-
-switch size
-case 3 {}
-default {
-  // Array size mismatch
-  revert(0, 0)
-}
 
 ptr := add(ptr, 32)
+
 let offset := msize()
+let init_offset := offset
+mstore(offset, 32)
+mstore(add(offset, 32), size)
+offset := add(offset, 64)
 
 for { let i := 0 } lt(i, size) { i := add(i, 1) } {
-  let type := byte(0, mload(ptr))
+ let type := byte(0, mload(ptr))
 
-  // if not(eq(type, 67)) {
-  //   // Array item's type mismatch
-  //   revert(0, 0)
-  // }
+ switch type
+   case 67 {}
+   default {
+     // Array item's type mismatch
+     revert(0, 0)
+   }
 
-  switch type
-  case 67 {}
-  default {
-    // Array item's type mismatch
-    revert(0, 0)
-  }
+ let value := mload(add(ptr, 1))
 
-  let value := mload(add(ptr, 1))
+ ptr := add(ptr, 33)
 
-  ptr := add(ptr, 33)
-
-  mstore(add(offset, mul(i, 32)), value)
+ mstore(add(offset, mul(i, 32)), value)
 }
 
-return(offset, mul(size, 32))
+return(init_offset, mul(add(size, 2), 32))
 
 }
 case 0x2e64cec1 {

@@ -190,7 +190,7 @@ defmodule Elixireum.Compiler do
     let offset := msize()
     let init_offset := offset
     mstore(offset, 32)
-    mstore(offset, size)
+    mstore(add(offset, 32), size)
     offset := add(offset, 64)
 
     for { let i := 0 } lt(i, size) { i := add(i, 1) } {
@@ -232,74 +232,74 @@ defmodule Elixireum.Compiler do
   end
 
   defp typed_function_to_arguments(function) do
-    {functions_extraction, _, _} =
+    {functions_extraction, _} =
       function.args
       |> Enum.zip(function.typespec.args)
-      |> Enum.reduce({"", 0, 0}, &do_typed_function_to_arguments/2)
+      |> Enum.reduce({"", 0}, &do_typed_function_to_arguments/2)
 
     {functions_extraction, function.args |> Enum.join(",")}
   end
 
   defp do_typed_function_to_arguments(
          {arg_name, %Type{encoded_type: 103, size: :dynamic, components: [components]} = type},
-         {yul, memory_offset, calldata_offset}
+         {yul, calldata_offset}
        ) do
     {
       yul <>
         """
-        let #{arg_name} := #{memory_offset}
-        mstore8(#{memory_offset}, #{type.encoded_type})
+        let #{arg_name}_offset := msize()
+        let #{arg_name} := #{arg_name}_offset
+        mstore8(#{arg_name}_offset, #{type.encoded_type})
 
-        let #{arg_name}_calldata_offset := calldataload(#{4 + calldata_offset})
+        let #{arg_name}_calldata_offset := add(4, calldataload(#{4 + calldata_offset}))
         let #{arg_name}_size := calldataload(#{arg_name}_calldata_offset)
-        mstore(#{memory_offset + 1}, #{arg_name}_size)
+        mstore(add(1, #{arg_name}_offset), #{arg_name}_size)
 
-        for { let i := 0 } lt(i, #{arg_name}_size) { i := add(i, 1) } {
-          mstore8(add(#{memory_offset + 33}, mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(#{memory_offset + 34}, mul(i, #{1 + components.size})), calldataload(add(#{arg_name}_calldata_offset, mul(i, 32)))
+        for { let i := 1 } lt(i, add(1, #{arg_name}_size)) { i := add(i, 1) } {
+          mstore8(add(#{arg_name}_offset, mul(i, #{1 + components.size})), #{components.encoded_type})
+          mstore(add(add(1, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(#{arg_name}_calldata_offset, mul(i, 32))))
         }
         """,
-      memory_offset + 33 + arr_size * components.size,
       calldata_offset + 32
     }
   end
 
   defp do_typed_function_to_arguments(
          {arg_name, %Type{encoded_type: 103, size: byte_size, components: [components]} = type},
-         {yul, memory_offset, calldata_offset}
+         {yul, calldata_offset}
        ) do
     arr_size = div(byte_size, components.size)
 
     {
       yul <>
         """
-        mstore8(#{memory_offset}, #{type.encoded_type})
-        mstore(#{memory_offset + 1}, #{arr_size})
-        let #{arg_name} := #{memory_offset}
+        let #{arg_name}_offset := msize()
+        let #{arg_name} := #{arg_name}_offset
+        mstore8(#{arg_name}_offset, #{type.encoded_type})
+        mstore(add(1, #{arg_name}_offset), #{arr_size})
         """ <>
         """
         for { let i := 0 } lt(i, #{arr_size}) { i := add(i, 1) } {
-          mstore8(add(#{memory_offset + 33}, mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(#{memory_offset + 34}, mul(i, #{1 + components.size})), calldataload(add(4, add(#{calldata_offset}, mul(i, 32)))))
+          mstore8(add(add(33, #{arg_name}_offset), mul(i, #{1 + components.size})), #{components.encoded_type})
+          mstore(add(add(34, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(4, add(#{calldata_offset}, mul(i, 32)))))
         }
         """,
-      memory_offset + 33 + arr_size * components.size,
       calldata_offset + arr_size * 32
     }
   end
 
   defp do_typed_function_to_arguments(
          {arg_name, %Type{} = type},
-         {yul, memory_offset, calldata_offset}
+         {yul, calldata_offset}
        ) do
     {
       yul <>
         """
-        mstore8(#{memory_offset}, #{type.encoded_type})
-        mstore(#{memory_offset + 1}, calldataload(add(4, #{calldata_offset})))
-        let #{arg_name} := #{memory_offset}
+        let #{arg_name}_offset := msize()
+        mstore8(#{arg_name}_offset, #{type.encoded_type})
+        mstore(add(1, #{arg_name}_offset), calldataload(add(4, #{calldata_offset})))
+        let #{arg_name} := #{arg_name}_offset
         """,
-      memory_offset + 1 + type.size,
       calldata_offset + 32
     }
   end
