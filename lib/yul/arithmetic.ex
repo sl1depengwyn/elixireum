@@ -3,7 +3,7 @@ defmodule Elixireum.Yul.Arithmetic do
 
   def add do
     %StdFunction{
-      deps: MapSet.new([&Utils.load_integer/0]),
+      deps: %{"load_integer$": Utils.load_integer()},
       yul: """
       function add$(a, b) -> return_value$ {
         let a$, a_size$ := load_integer$(a)

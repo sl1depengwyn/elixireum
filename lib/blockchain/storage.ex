@@ -31,10 +31,8 @@ defmodule Blockchain.Storage do
        | used_standard_functions:
            Map.put_new(
              state.used_standard_functions,
-             :"take_#{variable.type.size}_bytes",
-             fn ->
-               apply(Elixireum.Yul.Utils, String.to_atom("take_#{variable.type.size}_bytes"), [])
-             end
+             :"take_#{variable.type.size}_bytes$",
+             apply(Elixireum.Yul.Utils, String.to_atom("take_#{variable.type.size}_bytes"), [])
            )
      }}
   end

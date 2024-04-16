@@ -6,7 +6,7 @@ defmodule Elixireum.CompilerState do
           storage_variables: %{atom() => Variable.t()},
           offset: non_neg_integer(),
           variables: %{atom() => Variable.t()},
-          used_standard_functions: %{atom: (-> t())}
+          used_standard_functions: %{atom() => t()}
         }
 
   @enforce_keys [:aliases]
@@ -18,6 +18,6 @@ defmodule Elixireum.CompilerState do
     storage_variables: %{},
     offset: 0,
     variables: %{},
-    used_standard_functions: MapSet.new()
+    used_standard_functions: %{}
   ]
 end

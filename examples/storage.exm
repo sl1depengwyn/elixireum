@@ -13,7 +13,7 @@ defmodule ETH.StorageA do
     Blockchain.Storage.store(@var_name, test)
   end
 
-  @spec arr_test(Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)
+  @spec arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)
   def arr_test(arr) do
     arr
   end

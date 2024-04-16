@@ -108,6 +108,8 @@ defmodule Elixireum.Compiler do
       {extraction, usage} = typed_function_to_arguments(function)
       """
       case 0x#{method_id} {
+        let calldata_offset$ := 4
+        let memory_offset$ := 0
         #{extraction}
         let return_value := #{function.name}(#{usage})
         #{generate_function_call_and_return(function.typespec.return)}
@@ -232,76 +234,95 @@ defmodule Elixireum.Compiler do
   end
 
   defp typed_function_to_arguments(function) do
-    {functions_extraction, _} =
+    functions_extraction =
       function.args
       |> Enum.zip(function.typespec.args)
-      |> Enum.reduce({"", 0}, &do_typed_function_to_arguments/2)
+      |> Enum.reduce("", &do_typed_function_to_arguments/2)
 
     {functions_extraction, function.args |> Enum.join(",")}
   end
 
   defp do_typed_function_to_arguments(
-         {arg_name, %Type{encoded_type: 103, size: :dynamic, components: [components]} = type},
-         {yul, calldata_offset}
+         {arg_name, %Type{} = type},
+         yul
        ) do
-    {
-      yul <>
-        """
-        let #{arg_name}_offset := msize()
-        let #{arg_name} := #{arg_name}_offset
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-
-        let #{arg_name}_calldata_offset := add(4, calldataload(#{4 + calldata_offset}))
-        let #{arg_name}_size := calldataload(#{arg_name}_calldata_offset)
-        mstore(add(1, #{arg_name}_offset), #{arg_name}_size)
-
-        for { let i := 1 } lt(i, add(1, #{arg_name}_size)) { i := add(i, 1) } {
-          mstore8(add(#{arg_name}_offset, mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(add(1, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(#{arg_name}_calldata_offset, mul(i, 32))))
-        }
-        """,
-      calldata_offset + 32
-    }
+    yul <>
+      """
+        let #{arg_name} := memory_offset$
+        #{copy_type_from_calldata(arg_name, type, "calldata_offset$", "calldata_offset$")}
+      """
   end
 
-  defp do_typed_function_to_arguments(
-         {arg_name, %Type{encoded_type: 103, size: byte_size, components: [components]} = type},
-         {yul, calldata_offset}
+  defp copy_type_from_calldata(
+         arg_name,
+         %Type{encoded_type: 103, size: :dynamic, components: [components]} = type,
+         calldata_var,
+         init_calldata_var
+       ) do
+    tail_offset_var_name = "#{calldata_var}#{arg_name}"
+    inti_tail_offset_var_name = "#{calldata_var}#{arg_name}_init"
+    list_length_var_name = "#{calldata_var}#{arg_name}_length"
+    i = "#{arg_name}#{calldata_var}_i"
+
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+
+    let #{tail_offset_var_name} := add(#{init_calldata_var}, calldataload(#{calldata_var}))
+
+    let #{list_length_var_name} := calldataload(#{tail_offset_var_name})
+    mstore(memory_offset$, #{list_length_var_name})
+    memory_offset$ := add(memory_offset$, 32)
+    #{tail_offset_var_name} := add(#{tail_offset_var_name}, 32)
+    let #{inti_tail_offset_var_name} := #{tail_offset_var_name}
+
+    for { let #{i} := 0 } lt(#{i}, #{list_length_var_name}) { #{i} := add(#{i}, 1) } {
+      #{copy_type_from_calldata(arg_name, components, tail_offset_var_name, inti_tail_offset_var_name)}
+    }
+
+    #{calldata_var} := add(#{calldata_var}, 32)
+    """
+  end
+
+  defp copy_type_from_calldata(
+         arg_name,
+         %Type{encoded_type: 103, size: byte_size, components: [components]} = type,
+         calldata_var,
+         _init_calldata_var
        ) do
     arr_size = div(byte_size, components.size)
+    i = "#{arg_name}#{calldata_var}_i"
 
-    {
-      yul <>
-        """
-        let #{arg_name}_offset := msize()
-        let #{arg_name} := #{arg_name}_offset
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-        mstore(add(1, #{arg_name}_offset), #{arr_size})
-        """ <>
-        """
-        for { let i := 0 } lt(i, #{arr_size}) { i := add(i, 1) } {
-          mstore8(add(add(33, #{arg_name}_offset), mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(add(34, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(4, add(#{calldata_offset}, mul(i, 32)))))
-        }
-        """,
-      calldata_offset + arr_size * 32
+    init_calldata_var = "#{calldata_var}#{arg_name}_init"
+
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+
+    mstore(memory_offset$, #{arr_size})
+    memory_offset$ := add(memory_offset$, 32)
+
+    let #{init_calldata_var} := #{calldata_var}
+
+    for { let #{i} := 0 } lt(#{i}, #{arr_size}) { #{i} := add(#{i}, 1) } {
+      #{copy_type_from_calldata(arg_name, components, calldata_var, init_calldata_var)}
     }
+    """
   end
 
-  defp do_typed_function_to_arguments(
-         {arg_name, %Type{} = type},
-         {yul, calldata_offset}
+  defp copy_type_from_calldata(
+         _arg_name,
+         %Type{} = type,
+         calldata_var,
+         _init_calldata_var
        ) do
-    {
-      yul <>
-        """
-        let #{arg_name}_offset := msize()
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-        mstore(add(1, #{arg_name}_offset), calldataload(add(4, #{calldata_offset})))
-        let #{arg_name} := #{arg_name}_offset
-        """,
-      calldata_offset + 32
-    }
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+    mstore(memory_offset$, calldataload(#{calldata_var}))
+    memory_offset$ := add(memory_offset$, #{type.size})
+    #{calldata_var} := add(#{calldata_var}, 32)
+    """
   end
 
   defp functions_list_to_functions_map(functions) do
@@ -460,9 +481,11 @@ defmodule Elixireum.Compiler do
         {yul_acc <> yul, updated_compiler_state}
       end)
 
-    {_, std_functions} = generate_std_functions(compiler_state.used_standard_functions)
+    dbg(compiler_state.used_standard_functions)
 
-    user_defined_functions <> Enum.join(std_functions, "\n")
+    std_functions = generate_std_functions(compiler_state.used_standard_functions)
+
+    user_defined_functions <> Enum.join(Map.values(std_functions), "\n")
   end
 
   defp generate_function(function, contract, compiler_state) do
@@ -554,14 +577,13 @@ defmodule Elixireum.Compiler do
     {child, {:__block__, nil, []}}
   end
 
-  defp generate_std_functions(used_std_functions, definitions \\ []) do
-    Enum.reduce(used_std_functions, {%{}, definitions}, fn function,
-                                                           {used_functions_acc, definitions_acc} ->
-      %StdFunction{yul: yul, deps: deps} = function.()
+  defp generate_std_functions(used_std_functions, definitions \\ %{}) do
+    Enum.reduce(used_std_functions, definitions, fn {function_name,
+                                                     %StdFunction{yul: yul, deps: deps}},
+                                                    definitions_acc ->
+      {_, not_defined_deps} = Map.split(deps, Map.keys(definitions_acc))
 
-      {_, not_defined_deps} = Map.split(deps, Map.keys(used_functions_acc))
-
-      generate_std_functions(not_defined_deps, [yul | definitions_acc])
+      generate_std_functions(not_defined_deps, Map.put_new(definitions_acc, function_name, yul))
     end)
   end
 

@@ -22,9 +22,12 @@ defmodule Elixireum.Yul.Utils do
         }
       """,
       deps:
-        MapSet.new(
+        Map.new(
           for i <- 1..32 do
-            fn -> apply(__MODULE__, String.to_atom("take_#{i}_bytes"), []) end
+            {
+              :"take_#{i}_bytes$",
+              apply(__MODULE__, String.to_atom("take_#{i}_bytes"), [])
+            }
           end
         )
     }

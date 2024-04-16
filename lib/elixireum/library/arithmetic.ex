@@ -22,7 +22,7 @@ defmodule Elixireum.Library.Arithmetic do
      },
      %CompilerState{
        state
-       | used_standard_functions: MapSet.put(used_standard_functions, &Arithmetic.add/0)
+       | used_standard_functions: Map.put_new(used_standard_functions, :"add$", Arithmetic.add())
      }}
   end
 end
