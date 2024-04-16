@@ -111,63 +111,57 @@ defmodule Elixireum.Compiler do
         let calldata_offset$ := 4
         let memory_offset$ := 0
         #{extraction}
-        let return_value := #{function.name}(#{usage})
+        let return_value$ := #{function.name}(#{usage})
+        let processed_return_value$ := msize()
+        let processed_return_value_init$ := processed_return_value$
         #{generate_function_call_and_return(function.typespec.return)}
+        return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
       }
       """
     end}
     """
   end
 
-  defp generate_function_call_and_return(nil) do
-    "return(0, 0)"
+  defp generate_function_call_and_return(type, i_var_name \\ "i$", size_var_name \\ "size$")
+
+  defp generate_function_call_and_return(nil, _i_var_name, _size_var_name) do
+    """
+    processed_return_value$ := 0
+    processed_return_value_init$ := processed_return_value$
+    """
   end
 
   defp generate_function_call_and_return(%Type{
          encoded_type: 103 = encoded_type,
-         size: size,
+         items_count: size,
          components: [components]
-       })
+       }, i_var_name, size_var_name)
        when is_integer(size) do
     """
-    switch byte(0, mload(return_value))
+    switch byte(0, mload(return_value$))
       case #{encoded_type} {}
       default {
         // Return type mismatch abi
         revert(0, 0)
       }
 
-    let ptr := add(return_value, 1)
-    let size := mload(ptr)
+    return_value$ := add(return_value$, 1)
+    let #{size_var_name} := mload(return_value$)
 
-    switch size
-      case #{div(size, components.size)} {}
+    switch #{size_var_name}
+      case #{size} {}
       default {
         // Array size mismatch
         revert(0, 0)
       }
 
-    ptr := add(ptr, 32)
-    let offset := msize()
+    return_value$ := add(return_value$, 32)
 
-    for { let i := 0 } lt(i, size) { i := add(i, 1) } {
-      let type := byte(0, mload(ptr))
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    //for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
 
-      switch type
-        case #{components.encoded_type} {}
-        default {
-          // Array item's type mismatch
-          revert(0, 0)
-        }
-
-      let value := mload(add(ptr, 1))
-
-      ptr := add(ptr, 33)
-
-      mstore(add(offset, mul(i, 32)), value)
+      #{generate_function_call_and_return(components, i_var_name <> "_", size_var_name <> "_")}
     }
-
-    return(offset, mul(size, 32))
     """
   end
 
@@ -175,55 +169,47 @@ defmodule Elixireum.Compiler do
          encoded_type: 103 = encoded_type,
          size: :dynamic,
          components: [components]
-       }) do
+       }, i_var_name, size_var_name) do
     """
-    switch byte(0, mload(return_value))
-     case #{encoded_type} {}
-     default {
-       // Return type mismatch abi
-       revert(0, 0)
-     }
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
 
-    let ptr := add(return_value, 1)
-    let size := mload(ptr)
+    return_value$ := add(return_value$, 1)
+    let #{size_var_name} := mload(return_value$)
 
-    ptr := add(ptr, 32)
+    return_value$ := add(return_value$, 32)
 
-    let offset := msize()
-    let init_offset := offset
-    mstore(offset, 32)
-    mstore(add(offset, 32), size)
-    offset := add(offset, 64)
+    mstore(processed_return_value$, 32)
+    processed_return_value$ := add(processed_return_value$, 32)
+    mstore(processed_return_value$, #{size_var_name})
+    processed_return_value$ := add(processed_return_value$, 32)
 
-    for { let i := 0 } lt(i, size) { i := add(i, 1) } {
-     let type := byte(0, mload(ptr))
 
-     switch type
-       case #{components.encoded_type} {}
-       default {
-         // Array item's type mismatch
-         revert(0, 0)
-       }
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    // for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
 
-     let value := mload(add(ptr, 1))
-
-     ptr := add(ptr, 33)
-
-     mstore(add(offset, mul(i, 32)), value)
+      #{generate_function_call_and_return(components, i_var_name <> "_", size_var_name <> "_")}
     }
-
-    return(init_offset, mul(add(size, 2), 32))
     """
   end
 
-  defp generate_function_call_and_return(type) do
+  defp generate_function_call_and_return(type, _i_var_name, _size_var_name) do
     """
-    if not(eq(byte(0, mload(return_value)), #{type.encoded_type})) {
-      // Return type mismatch abi
-      revert (0, 0)
-    }
+    switch byte(0, mload(return_value$))
+      case #{type.encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
 
-    return(add(return_value, 1), 32)
+    return_value$ := add(return_value$, 1)
+    mstore(processed_return_value$, mload(return_value$))
+    return_value$ := add(return_value$, 32)
+    processed_return_value$ := add(processed_return_value$, 32)
     """
   end
 
@@ -255,7 +241,7 @@ defmodule Elixireum.Compiler do
 
   defp copy_type_from_calldata(
          arg_name,
-         %Type{encoded_type: 103, size: :dynamic, components: [components]} = type,
+         %Type{encoded_type: 103, items_count: :dynamic, components: [components]} = type,
          calldata_var,
          init_calldata_var
        ) do
@@ -286,11 +272,10 @@ defmodule Elixireum.Compiler do
 
   defp copy_type_from_calldata(
          arg_name,
-         %Type{encoded_type: 103, size: byte_size, components: [components]} = type,
+         %Type{encoded_type: 103, items_count: arr_size, components: [components]} = type,
          calldata_var,
          _init_calldata_var
        ) do
-    arr_size = div(byte_size, components.size)
     i = "#{arg_name}#{calldata_var}_i"
 
     init_calldata_var = "#{calldata_var}#{arg_name}_init"
