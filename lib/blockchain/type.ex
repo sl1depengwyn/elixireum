@@ -3,10 +3,11 @@ defmodule Blockchain.Type do
           size: non_neg_integer() | :dynamic,
           abi_name: String.t(),
           encoded_type: pos_integer(),
-          components: [t()]
+          components: [t()],
+          items_count: non_neg_integer()
         }
 
-  defstruct [:size, :abi_name, :encoded_type, :components]
+  defstruct [:size, :abi_name, :encoded_type, :components, :items_count]
 
   def elixir_to_encoded_type(t) do
     case t do
@@ -132,7 +133,7 @@ defmodule Blockchain.Type do
            size: :dynamic,
            abi_name: component.abi_name <> "[]",
            components: [component],
-           encoded_type: 103
+           encoded_type: 104
          }}
 
       size when is_integer(size) ->
@@ -141,7 +142,8 @@ defmodule Blockchain.Type do
            size: size * 32,
            abi_name: component.abi_name <> "[#{size}]",
            components: [component],
-           encoded_type: 103
+           encoded_type: 103,
+           items_count: size
          }}
     end
   end

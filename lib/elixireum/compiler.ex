@@ -235,58 +235,97 @@ defmodule Elixireum.Compiler do
     {functions_extraction, _} =
       function.args
       |> Enum.zip(function.typespec.args)
-      |> Enum.reduce({"", 0}, &do_typed_function_to_arguments/2)
+      |> Enum.reduce(
+        {"""
+         let calldata_offset := 4
+         let memory_offset := msize()
+         """, 0},
+        &do_typed_function_to_arguments/2
+      )
 
     {functions_extraction, function.args |> Enum.join(",")}
   end
 
   defp do_typed_function_to_arguments(
-         {arg_name, %Type{encoded_type: 103, size: :dynamic, components: [components]} = type},
+         {arg_name, %Type{components: [_components]} = type},
          {yul, calldata_offset}
        ) do
+    {types, sizes} = type_to_types_and_sizes(type)
+    types = Enum.reverse(types)
+    sizes = Enum.reverse(sizes)
     {
       yul <>
         """
-        let #{arg_name}_offset := msize()
-        let #{arg_name} := #{arg_name}_offset
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
+        let #{arg_name}_types := msize()
+        mstore8(#{arg_name}_types, 103)
+        mstore(add(#{arg_name}_types, 1), #{Enum.count(types)})
+        #{for {type, index} <- Enum.with_index(types) do
+          "mstore8(add(#{arg_name}_types, #{index * 33 + 33}), 67)"
+          "mstore(add(#{arg_name}_types, #{index * 33 + 33 + 1}), #{type})"
+        end}
+        let #{arg_name}_sizes := add(#{arg_name}_types, #{Enum.count(types) * 33 + 33})
+        mstore8(#{arg_name}_sizes, 103)
+        mstore(add(#{arg_name}_sizes, 1), #{Enum.count(sizes)})
+        #{for {size, index} <- Enum.with_index(sizes) do
+          "mstore8(add(#{arg_name}_sizes, #{index * 33 + 33}), 67)"
+          "mstore(add(#{arg_name}_sizes, #{index * 33 + 33 + 1}), #{size})"
+        end}
 
-        let #{arg_name}_calldata_offset := add(4, calldataload(#{4 + calldata_offset}))
-        let #{arg_name}_size := calldataload(#{arg_name}_calldata_offset)
-        mstore(add(1, #{arg_name}_offset), #{arg_name}_size)
-
-        for { let i := 1 } lt(i, add(1, #{arg_name}_size)) { i := add(i, 1) } {
-          mstore8(add(#{arg_name}_offset, mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(add(1, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(#{arg_name}_calldata_offset, mul(i, 32))))
-        }
+        memory_offset := add(memory_offset, #{Enum.count(types) * 33 + 33 + Enum.count(sizes) * 33 + 33})
+        let #{arg_name} := memory_offset
+        memory_offset, calldata_offset := select_and_call$(#{arg_name}_types, #{arg_name}_sizes, memory_offset, calldata_offset)
         """,
       calldata_offset + 32
     }
   end
 
-  defp do_typed_function_to_arguments(
-         {arg_name, %Type{encoded_type: 103, size: byte_size, components: [components]} = type},
-         {yul, calldata_offset}
-       ) do
-    arr_size = div(byte_size, components.size)
+  # defp do_typed_function_to_arguments(
+  #        {arg_name, %Type{encoded_type: 103, size: :dynamic, components: [components]} = type},
+  #        {yul, calldata_offset}
+  #      ) do
+  #   {
+  #     yul <>
+  #       """
+  #       let #{arg_name}_offset := msize()
+  #       let #{arg_name} := #{arg_name}_offset
+  #       mstore8(#{arg_name}_offset, #{type.encoded_type})
 
-    {
-      yul <>
-        """
-        let #{arg_name}_offset := msize()
-        let #{arg_name} := #{arg_name}_offset
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-        mstore(add(1, #{arg_name}_offset), #{arr_size})
-        """ <>
-        """
-        for { let i := 0 } lt(i, #{arr_size}) { i := add(i, 1) } {
-          mstore8(add(add(33, #{arg_name}_offset), mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(add(34, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(4, add(#{calldata_offset}, mul(i, 32)))))
-        }
-        """,
-      calldata_offset + arr_size * 32
-    }
-  end
+  #       let #{arg_name}_calldata_offset := add(4, calldataload(#{4 + calldata_offset}))
+  #       let #{arg_name}_size := calldataload(#{arg_name}_calldata_offset)
+  #       mstore(add(1, #{arg_name}_offset), #{arg_name}_size)
+
+  #       for { let i := 1 } lt(i, add(1, #{arg_name}_size)) { i := add(i, 1) } {
+  #         mstore8(add(#{arg_name}_offset, mul(i, #{1 + components.size})), #{components.encoded_type})
+  #         mstore(add(add(1, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(#{arg_name}_calldata_offset, mul(i, 32))))
+  #       }
+  #       """,
+  #     calldata_offset + 32
+  #   }
+  # end
+
+  # defp do_typed_function_to_arguments(
+  #        {arg_name, %Type{encoded_type: 103, size: byte_size, components: [components]} = type},
+  #        {yul, calldata_offset}
+  #      ) do
+  #   arr_size = div(byte_size, components.size)
+
+  #   {
+  #     yul <>
+  #       """
+  #       let #{arg_name}_offset := msize()
+  #       let #{arg_name} := #{arg_name}_offset
+  #       mstore8(#{arg_name}_offset, #{type.encoded_type})
+  #       mstore(add(1, #{arg_name}_offset), #{arr_size})
+  #       """ <>
+  #       """
+  #       for { let i := 0 } lt(i, #{arr_size}) { i := add(i, 1) } {
+  #         mstore8(add(add(33, #{arg_name}_offset), mul(i, #{1 + components.size})), #{components.encoded_type})
+  #         mstore(add(add(34, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(4, add(#{calldata_offset}, mul(i, 32)))))
+  #       }
+  #       """,
+  #     calldata_offset + arr_size * 32
+  #   }
+  # end
 
   defp do_typed_function_to_arguments(
          {arg_name, %Type{} = type},
@@ -295,13 +334,32 @@ defmodule Elixireum.Compiler do
     {
       yul <>
         """
-        let #{arg_name}_offset := msize()
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-        mstore(add(1, #{arg_name}_offset), calldataload(add(4, #{calldata_offset})))
-        let #{arg_name} := #{arg_name}_offset
+        let #{arg_name} := memory_offset
+        memory_offset, calldata_offset := copy_word_from_calldata$(memory_offset, calldata_offset, #{type.encoded_type})
         """,
       calldata_offset + 32
     }
+  end
+
+  defp type_to_types_and_sizes(%Type{encoded_type: type, size: :dynamic, components: [components]}) do
+    {types, sizes} = type_to_types_and_sizes(components)
+
+    {[type | types], sizes}
+  end
+
+  defp type_to_types_and_sizes(%Type{
+         encoded_type: type,
+         size: _,
+         components: [components],
+         items_count: size
+       }) do
+    {types, sizes} = type_to_types_and_sizes(components)
+
+    {[type | types], [size | sizes]}
+  end
+
+  defp type_to_types_and_sizes(%Type{encoded_type: type, size: _, items_count: size}) do
+    {[type], []}
   end
 
   defp functions_list_to_functions_map(functions) do
