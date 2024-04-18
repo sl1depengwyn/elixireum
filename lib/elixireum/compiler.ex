@@ -2,6 +2,7 @@ defmodule Elixireum.Compiler do
   @moduledoc """
   Elixireum Compiler
   """
+  alias ElixirSense.Plugins.Util
   alias Blockchain.{Storage, Type}
 
   alias Elixireum.{
@@ -83,6 +84,13 @@ defmodule Elixireum.Compiler do
             #{generate_selector(Map.values(functions_map))}
 
             #{generate_functions(Map.values(functions_map) ++ Map.values(private_functions_map), contract)}
+
+            #{Elixireum.Yul.Utils.copier_selector().yul}
+            #{Elixireum.Yul.Utils.copy_dynamic_array_from_calldata().yul}
+            #{Elixireum.Yul.Utils.copy_static_array_from_calldata().yul}
+            #{Elixireum.Yul.Utils.copy_word_from_calldata().yul}
+            #{Elixireum.Yul.Utils.get_type().yul}
+
           }
         }
       }
@@ -170,7 +178,7 @@ defmodule Elixireum.Compiler do
   end
 
   defp generate_function_call_and_return(%Type{
-         encoded_type: 103 = encoded_type,
+         encoded_type: 104 = encoded_type,
          size: :dynamic,
          components: [components]
        }) do
@@ -253,6 +261,7 @@ defmodule Elixireum.Compiler do
     {types, sizes} = type_to_types_and_sizes(type)
     types = Enum.reverse(types)
     sizes = Enum.reverse(sizes)
+
     {
       yul <>
         """
@@ -260,20 +269,24 @@ defmodule Elixireum.Compiler do
         mstore8(#{arg_name}_types, 103)
         mstore(add(#{arg_name}_types, 1), #{Enum.count(types)})
         #{for {type, index} <- Enum.with_index(types) do
-          "mstore8(add(#{arg_name}_types, #{index * 33 + 33}), 67)"
-          "mstore(add(#{arg_name}_types, #{index * 33 + 33 + 1}), #{type})"
+          """
+          mstore8(add(#{arg_name}_types, #{index * 33 + 33}), 67)
+          mstore(add(#{arg_name}_types, #{index * 33 + 33 + 1}), #{type})
+          """
         end}
         let #{arg_name}_sizes := add(#{arg_name}_types, #{Enum.count(types) * 33 + 33})
         mstore8(#{arg_name}_sizes, 103)
         mstore(add(#{arg_name}_sizes, 1), #{Enum.count(sizes)})
         #{for {size, index} <- Enum.with_index(sizes) do
-          "mstore8(add(#{arg_name}_sizes, #{index * 33 + 33}), 67)"
-          "mstore(add(#{arg_name}_sizes, #{index * 33 + 33 + 1}), #{size})"
+          """
+          mstore8(add(#{arg_name}_sizes, #{index * 33 + 33}), 67)
+          mstore(add(#{arg_name}_sizes, #{index * 33 + 33 + 1}), #{size})
+          """
         end}
 
         memory_offset := add(memory_offset, #{Enum.count(types) * 33 + 33 + Enum.count(sizes) * 33 + 33})
         let #{arg_name} := memory_offset
-        memory_offset, calldata_offset := select_and_call$(#{arg_name}_types, #{arg_name}_sizes, memory_offset, calldata_offset)
+        memory_offset, calldata_offset := select_and_call$(#{arg_name}_types, #{arg_name}_sizes, memory_offset, calldata_offset, #{Enum.count(types)})
         """,
       calldata_offset + 32
     }

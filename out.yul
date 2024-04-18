@@ -18,29 +18,65 @@ memory_offset, calldata_offset := copy_word_from_calldata$(memory_offset, callda
   let return_value := store(num,fake_num)
   return(0, 0)
 }
-case 0xfc040071 {
+case 0x9361fd77 {
   let calldata_offset := 4
 let memory_offset := msize()
 let arr_types := msize()
 mstore8(arr_types, 103)
-mstore(add(arr_types, 1), 2)
-mstore(add(arr_types, 34), 67)mstore(add(arr_types, 67), 104)
-let arr_sizes := add(arr_types, 99)
+mstore(add(arr_types, 1), 3)
+mstore8(add(arr_types, 33), 67)
+mstore(add(arr_types, 34), 67)
+mstore8(add(arr_types, 66), 67)
+mstore(add(arr_types, 67), 104)
+mstore8(add(arr_types, 99), 67)
+mstore(add(arr_types, 100), 104)
+
+let arr_sizes := add(arr_types, 132)
 mstore8(arr_sizes, 103)
 mstore(add(arr_sizes, 1), 0)
 
 
-memory_offset := add(memory_offset, 132)
+memory_offset := add(memory_offset, 165)
 let arr := memory_offset
-memory_offset, calldata_offset := select_and_call$(arr_types, arr_sizes, memory_offset, calldata_offset)
+memory_offset, calldata_offset := select_and_call$(arr_types, arr_sizes, memory_offset, calldata_offset, 3)
 
   let return_value := arr_test(arr)
-  if not(eq(byte(0, mload(return_value)), 104)) {
-  // Return type mismatch abi
-  revert (0, 0)
+  switch byte(0, mload(return_value))
+ case 104 {}
+ default {
+   // Return type mismatch abi
+   revert(0, 0)
+ }
+
+let ptr := add(return_value, 1)
+let size := mload(ptr)
+
+ptr := add(ptr, 32)
+
+let offset := msize()
+let init_offset := offset
+mstore(offset, 32)
+mstore(add(offset, 32), size)
+offset := add(offset, 64)
+
+for { let i := 0 } lt(i, size) { i := add(i, 1) } {
+ let type := byte(0, mload(ptr))
+
+ switch type
+   case 104 {}
+   default {
+     // Array item's type mismatch
+     revert(0, 0)
+   }
+
+ let value := mload(add(ptr, 1))
+
+ ptr := add(ptr, 33)
+
+ mstore(add(offset, mul(i, 32)), value)
 }
 
-return(add(return_value, 1), 32)
+return(init_offset, mul(add(size, 2), 32))
 
 }
 case 0x2e64cec1 {
@@ -348,63 +384,81 @@ function add$(a, b) -> return_value$ {
   return_value$ := offset$
 }
 
-            function copy_static_array_from_calldata$(array_items_count, components_types, sizes, memory_offset, calldata_offset) -> new_memory_offset, new_calldata_offset
-            {
-                mstore8(memory_offset, 103)
-                mstore(add(memory_offset, 1), array_items_count)
-                memory_offset := add(memory_offset, 33)
-                for { let i := 0 } lt(i, array_items_count) { i := add(i, 1) }
-                {
-                    memory_offset, calldata_offset := select_and_call$(components_types, sizes, memory_offset, calldata_offset)
-                }
-                new_memory_offset := memory_offset
-                new_calldata_offset := calldata_offset
-            }
-            function copy_dynamic_array_from_calldata$(components_types, sizes, memory_offset, calldata_offset) -> new_memory_offset, new_calldata_offset
-            {
-                calldata_offset := add(calldata_offset, calldataload(calldata_offset))
-                let array_items_count := calldataload(calldata_offset)
-                calldata_offset := add(calldata_offset, 32)
-                mstore8(memory_offset, 104)
-                mstore(add(memory_offset, 1), array_items_count)
-                memory_offset := add(memory_offset, 33)
-                for { let i := 0 } lt(i, array_items_count) { i := add(i, 1) }
-                {
-                    memory_offset, calldata_offset := select_and_call$(components_types, sizes, memory_offset, calldata_offset)
-                }
-                new_memory_offset := memory_offset
-                new_calldata_offset := calldata_offset
-            }
-            function select_and_call$(types, mb_sizes, memory_offset, calldata_offset) -> new_memory_offset, new_calldata_offset
-            {
-                let types_size_ptr := add(types, 1)
-                let current_types_size := mload(types_size_ptr)
-                let types_array_start_ptr := add(types, 33)
-                let current_type := mload(add(types_array_start_ptr, mul(33, sub(current_types_size, 1))))
-                mstore(types_size_ptr, sub(current_types_size, 1))
-                switch current_type
-                case 103 {
-                    let sizes_size_ptr := add(mb_sizes, 1)
-                    let current_sizes_size := mload(sizes_size_ptr)
-                    let sizes_array_start_ptr := add(mb_sizes, 33)
-                    let current_size := mload(add(sizes_array_start_ptr, mul(33, sub(current_sizes_size, 1))))
-                    mstore(sizes_size_ptr, sub(current_types_size, 1))
-                    new_memory_offset, new_calldata_offset := copy_static_array_from_calldata$(current_size, types, mb_sizes, memory_offset, calldata_offset)
-                }
-                case 104 {
-                    new_memory_offset, new_calldata_offset := copy_dynamic_array_from_calldata$(types, mb_sizes, memory_offset, calldata_offset)
-                }
-                default {
-                    new_memory_offset, new_calldata_offset := copy_word_from_calldata$(memory_offset, calldata_offset, current_type)
-                }
-            }
-            function copy_word_from_calldata$(memory_offset, calldata_offset, type) -> new_memory_offset, new_calldata_offset
-            {
-                mstore8(memory_offset, type)
-                calldatacopy(add(memory_offset, 1), calldata_offset, 32)
-                new_memory_offset := add(memory_offset, 33)
-                new_calldata_offset := add(calldata_offset, 32)
-            }
+
+      function select_and_call$(types, mb_sizes, memory_offset, calldata_offset, current_types_size) -> new_memory_offset, new_calldata_offset {
+  if eq(current_types_size, 0) {leave}
+
+  let types_size_ptr := add(types, 1)
+  // let current_types_size := mload(types_size_ptr)
+  let types_array_start_ptr := add(types, 33)
+  let current_type := mload(add(add(types_array_start_ptr, mul(33, sub(current_types_size, 1))), 1))
+  // mstore(types_size_ptr, sub(current_types_size, 1))
+  current_types_size := sub(current_types_size, 1)
+
+  switch current_type
+    case 103 {
+      let sizes_size_ptr := add(mb_sizes, 1)
+      let current_sizes_size := mload(sizes_size_ptr)
+      let sizes_array_start_ptr := add(mb_sizes, 33)
+      let current_size := mload(add(sizes_array_start_ptr, mul(33, sub(current_sizes_size, 1))))
+      // mstore(sizes_size_ptr, sub(current_types_size, 1))
+
+      new_memory_offset, new_calldata_offset := copy_static_array_from_calldata$(current_size, types, mb_sizes, memory_offset, calldata_offset, current_types_size)
+    }
+    case 104 { // dynamic array
+      new_memory_offset, new_calldata_offset := copy_dynamic_array_from_calldata$(types, mb_sizes, memory_offset, calldata_offset,current_types_size)
+    }
+    default {
+      new_memory_offset, new_calldata_offset := copy_word_from_calldata$(memory_offset, calldata_offset, current_type)
+    }
+}
+
+      function copy_dynamic_array_from_calldata$(components_types, sizes, memory_offset, calldata_offset, current_types_size) ->
+   new_memory_offset, new_calldata_offset {
+    calldata_offset := add(calldata_offset, calldataload(calldata_offset))
+    let array_items_count := calldataload(calldata_offset)
+    calldata_offset := add(calldata_offset, 32)
+    mstore8(memory_offset, 104)
+    mstore(add(memory_offset, 1), array_items_count)
+    memory_offset := add(memory_offset, 33)
+    let mb_ignore
+  for { let i := 0 } lt(i, array_items_count) { i := add(i, 1) } {
+    memory_offset, mb_ignore := select_and_call$(components_types, sizes, memory_offset, calldata_offset, current_types_size)
+    let type := get_type(components_types, current_types_size)
+    switch type
+     case 103 {calldata_offset := add(calldata_offset, mb_ignore)}
+     default {calldata_offset := add(calldata_offset, 32)}
+  }
+  //let types_size_ptr := add(types, 1)
+  //mstore(components_types, sub(mload(add(components_types, 1)), 1))
+  new_memory_offset := memory_offset
+  new_calldata_offset := calldata_offset
+}
+
+      function copy_static_array_from_calldata$(array_items_count, components_types, sizes, memory_offset, calldata_offset, current_types_size) ->
+   new_memory_offset, new_calldata_offset {
+    mstore8(memory_offset, 103)
+    mstore(add(memory_offset, 1), array_items_count)
+    memory_offset := add(memory_offset, 33)
+  for { let i := 0 } lt(i, array_items_count) { i := add(i, 1) } {
+    memory_offset, calldata_offset := select_and_call$(components_types, sizes, memory_offset, calldata_offset, current_types_size)
+  }
+  new_memory_offset := memory_offset
+  new_calldata_offset := calldata_offset
+}
+
+      function copy_word_from_calldata$(memory_offset, calldata_offset, type) -> new_memory_offset, new_calldata_offset {
+  mstore8(memory_offset, type)
+  calldatacopy(add(memory_offset, 1), calldata_offset, 32)
+  new_memory_offset := add(memory_offset, 33)
+  new_calldata_offset := add(calldata_offset, 32)
+}
+
+      function get_type(types, current_types_size) -> type {
+  let types_array_start_ptr := add(types, 33)
+  type := mload(add(add(types_array_start_ptr, mul(33, sub(current_types_size, 1))), 1))
+}
+
 
     }
   }
