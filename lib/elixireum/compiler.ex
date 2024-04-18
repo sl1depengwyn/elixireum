@@ -108,8 +108,6 @@ defmodule Elixireum.Compiler do
       {extraction, usage} = typed_function_to_arguments(function)
       """
       case 0x#{method_id} {
-        let calldata_offset$ := 4
-        let memory_offset$ := 0
         #{extraction}
         let return_value$ := #{function.name}(#{usage})
 
@@ -153,46 +151,7 @@ defmodule Elixireum.Compiler do
   defp do_generate_return(
          %Type{
            encoded_type: 103 = encoded_type,
-           items_count: size,
-           components: [components]
-         },
-         i_var_name,
-         size_var_name,
-         where_to_store_head_var_name,
-         where_to_store_head_init_var_name
-       )
-       when is_integer(size) do
-    """
-    switch byte(0, mload(return_value$))
-      case #{encoded_type} {}
-      default {
-        // Return type mismatch abi
-        revert(0, 0)
-      }
-
-    return_value$ := add(return_value$, 1)
-    let #{size_var_name} := mload(return_value$)
-
-    switch #{size_var_name}
-      case #{size} {}
-      default {
-        // Array size mismatch
-        revert(0, 0)
-      }
-
-    return_value$ := add(return_value$, 32)
-
-    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
-    //for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
-
-      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_head_var_name, where_to_store_head_init_var_name)}
-    }
-    """
-  end
-
-  defp do_generate_return(
-         %Type{
-           encoded_type: 103 = encoded_type,
+           items_count: :dynamic,
            size: :dynamic,
            components: [components]
          },
@@ -229,6 +188,96 @@ defmodule Elixireum.Compiler do
     for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
     // for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
       #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_children_heads_var_name, where_to_store_children_heads_init_var_name)}
+    }
+    """
+  end
+
+  defp do_generate_return(
+         %Type{
+           encoded_type: 103 = encoded_type,
+           items_count: items_count,
+           size: :dynamic,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       )
+       when is_integer(items_count) do
+    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}_$"
+    where_to_store_children_heads_init_var_name = "#{where_to_store_head_init_var_name}_$"
+
+    """
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+    return_value$ := add(return_value$, 1)
+
+    let #{size_var_name} := mload(return_value$)
+    return_value$ := add(return_value$, 32)
+
+    switch #{size_var_name}
+    case #{items_count} {}
+    default {
+      // Array size mismatch
+      revert(0, 0)
+    }
+
+    mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
+
+    let #{where_to_store_children_heads_var_name} := processed_return_value$
+    let #{where_to_store_children_heads_init_var_name} := #{where_to_store_children_heads_var_name}
+
+    processed_return_value$ := add(processed_return_value$, mul(#{size_var_name}, #{type_to_head_size(components)}))
+
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    // for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_children_heads_var_name, where_to_store_children_heads_init_var_name)}
+    }
+    """
+  end
+
+  defp do_generate_return(
+         %Type{
+           encoded_type: 103 = encoded_type,
+           items_count: size,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       )
+       when is_integer(size) do
+    """
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+
+    return_value$ := add(return_value$, 1)
+    let #{size_var_name} := mload(return_value$)
+
+    switch #{size_var_name}
+      case #{size} {}
+      default {
+        // Array size mismatch
+        revert(0, 0)
+      }
+
+    return_value$ := add(return_value$, 32)
+
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    //for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
+
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_head_var_name, where_to_store_head_init_var_name)}
     }
     """
   end
@@ -274,7 +323,14 @@ defmodule Elixireum.Compiler do
     functions_extraction =
       function.args
       |> Enum.zip(function.typespec.args)
-      |> Enum.reduce("", &do_typed_function_to_arguments/2)
+      |> Enum.reduce(
+        """
+        let calldata_offset$ := 4
+        let init_calldata_offset$ := calldata_offset$
+        let memory_offset$ := 0
+        """,
+        &do_typed_function_to_arguments/2
+      )
 
     {functions_extraction, function.args |> Enum.join(",")}
   end
@@ -286,7 +342,7 @@ defmodule Elixireum.Compiler do
     yul <>
       """
         let #{arg_name} := memory_offset$
-        #{copy_type_from_calldata(arg_name, type, "calldata_offset$", "calldata_offset$")}
+        #{copy_type_from_calldata(arg_name, type, "calldata_offset$", "init_calldata_offset$")}
       """
   end
 
@@ -296,10 +352,10 @@ defmodule Elixireum.Compiler do
          calldata_var,
          init_calldata_var
        ) do
-    tail_offset_var_name = "#{calldata_var}#{arg_name}"
-    inti_tail_offset_var_name = "#{calldata_var}#{arg_name}_init"
-    list_length_var_name = "#{calldata_var}#{arg_name}_length"
-    i = "#{arg_name}#{calldata_var}_i"
+    tail_offset_var_name = "#{calldata_var}$#{arg_name}"
+    inti_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}init"
+    list_length_var_name = "#{calldata_var}$#{arg_name}length"
+    i = "#{arg_name}$#{init_calldata_var}i"
 
     """
     mstore8(memory_offset$, #{type.encoded_type})
@@ -323,13 +379,42 @@ defmodule Elixireum.Compiler do
 
   defp copy_type_from_calldata(
          arg_name,
+         %Type{encoded_type: 103, items_count: arr_size, components: [components], size: :dynamic} =
+           type,
+         calldata_var,
+         init_calldata_var
+       ) do
+    tail_offset_var_name = "#{calldata_var}$#{arg_name}"
+    inti_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}init"
+    i = "#{arg_name}$#{init_calldata_var}i"
+
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+
+    let #{tail_offset_var_name} := add(#{init_calldata_var}, calldataload(#{calldata_var}))
+
+    mstore(memory_offset$, #{arr_size})
+    memory_offset$ := add(memory_offset$, 32)
+    let #{inti_tail_offset_var_name} := #{tail_offset_var_name}
+
+    for { let #{i} := 0 } lt(#{i}, #{arr_size}) { #{i} := add(#{i}, 1) } {
+     #{copy_type_from_calldata(arg_name, components, tail_offset_var_name, inti_tail_offset_var_name)}
+    }
+
+    #{calldata_var} := add(#{calldata_var}, 32)
+    """
+  end
+
+  defp copy_type_from_calldata(
+         arg_name,
          %Type{encoded_type: 103, items_count: arr_size, components: [components]} = type,
          calldata_var,
          _init_calldata_var
        ) do
-    i = "#{arg_name}#{calldata_var}_i"
+    i = "#{arg_name}$#{calldata_var}i"
 
-    init_calldata_var = "#{calldata_var}#{arg_name}_init"
+    init_calldata_var = "#{calldata_var}$#{arg_name}init"
 
     """
     mstore8(memory_offset$, #{type.encoded_type})

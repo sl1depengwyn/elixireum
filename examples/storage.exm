@@ -13,13 +13,23 @@ defmodule ETH.StorageA do
     Blockchain.Storage.store(@var_name, test)
   end
 
-  @spec arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)
-  def arr_test(arr) do
+  @spec simple_arr_test(Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)
+  def simple_arr_test(_, arr) do
     arr
   end
 
-  @spec arr_test_1(Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)
-  def arr_test_1(arr) do
+  @spec dyn_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)
+  def dyn_dyn_arr_test(_, arr) do
+    arr
+  end
+
+  @spec dyn_st_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)
+  def dyn_st_arr_test(_, arr) do
+    arr
+  end
+
+  @spec st_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)
+  def st_dyn_arr_test(_, arr) do
     arr
   end
 
