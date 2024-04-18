@@ -116,121 +116,160 @@ defmodule Elixireum.Compiler do
       {extraction, usage} = typed_function_to_arguments(function)
       """
       case 0x#{method_id} {
+        let calldata_offset$ := 4
+        let memory_offset$ := 0
         #{extraction}
-        let return_value := #{function.name}(#{usage})
-        #{generate_function_call_and_return(function.typespec.return)}
+        let return_value$ := #{function.name}(#{usage})
+
+        #{generate_return(function.typespec.return)}
       }
       """
     end}
     """
   end
 
-  defp generate_function_call_and_return(nil) do
-    "return(0, 0)"
+  defp generate_return(nil) do
+    """
+    return(0, 0)
+    """
   end
 
-  defp generate_function_call_and_return(%Type{
-         encoded_type: 103 = encoded_type,
-         size: size,
-         components: [components]
-       })
+  defp generate_return(%Type{size: :dynamic} = type) do
+    """
+    let processed_return_value$ := msize()
+    let processed_return_value_init$ := processed_return_value$
+    let where_to_store_head$ := processed_return_value$
+    let where_to_store_head_init$ := where_to_store_head$
+    processed_return_value$ := add(processed_return_value$, 32)
+    #{do_generate_return(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
+    return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+    """
+  end
+
+  defp generate_return(type) do
+    """
+    let processed_return_value$ := msize()
+    let processed_return_value_init$ := processed_return_value$
+    let where_to_store_head$ := processed_return_value$
+    let where_to_store_head_init$ := where_to_store_head$
+    #{do_generate_return(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
+    processed_return_value$ := add(processed_return_value$, #{type.size})
+    return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+    """
+  end
+
+  defp do_generate_return(
+         %Type{
+           encoded_type: 103 = encoded_type,
+           items_count: size,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       )
        when is_integer(size) do
     """
-    switch byte(0, mload(return_value))
+    switch byte(0, mload(return_value$))
       case #{encoded_type} {}
       default {
         // Return type mismatch abi
         revert(0, 0)
       }
 
-    let ptr := add(return_value, 1)
-    let size := mload(ptr)
+    return_value$ := add(return_value$, 1)
+    let #{size_var_name} := mload(return_value$)
 
-    switch size
-      case #{div(size, components.size)} {}
+    switch #{size_var_name}
+      case #{size} {}
       default {
         // Array size mismatch
         revert(0, 0)
       }
 
-    ptr := add(ptr, 32)
-    let offset := msize()
+    return_value$ := add(return_value$, 32)
 
-    for { let i := 0 } lt(i, size) { i := add(i, 1) } {
-      let type := byte(0, mload(ptr))
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    //for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
 
-      switch type
-        case #{components.encoded_type} {}
-        default {
-          // Array item's type mismatch
-          revert(0, 0)
-        }
-
-      let value := mload(add(ptr, 1))
-
-      ptr := add(ptr, 33)
-
-      mstore(add(offset, mul(i, 32)), value)
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_head_var_name, where_to_store_head_init_var_name)}
     }
-
-    return(offset, mul(size, 32))
     """
   end
 
-  defp generate_function_call_and_return(%Type{
-         encoded_type: 104 = encoded_type,
-         size: :dynamic,
-         components: [components]
-       }) do
+  defp do_generate_return(
+         %Type{
+           encoded_type: 104 = encoded_type,
+           size: :dynamic,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       ) do
+    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}_$"
+    where_to_store_children_heads_init_var_name = "#{where_to_store_head_init_var_name}_$"
+
     """
-    switch byte(0, mload(return_value))
-     case #{encoded_type} {}
-     default {
-       // Return type mismatch abi
-       revert(0, 0)
-     }
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+    return_value$ := add(return_value$, 1)
 
-    let ptr := add(return_value, 1)
-    let size := mload(ptr)
+    let #{size_var_name} := mload(return_value$)
+    return_value$ := add(return_value$, 32)
 
-    ptr := add(ptr, 32)
+    mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
 
-    let offset := msize()
-    let init_offset := offset
-    mstore(offset, 32)
-    mstore(add(offset, 32), size)
-    offset := add(offset, 64)
+    mstore(processed_return_value$, #{size_var_name})
+    processed_return_value$ := add(processed_return_value$, 32)
+    let #{where_to_store_children_heads_var_name} := processed_return_value$
+    let #{where_to_store_children_heads_init_var_name} := #{where_to_store_children_heads_var_name}
 
-    for { let i := 0 } lt(i, size) { i := add(i, 1) } {
-     let type := byte(0, mload(ptr))
+    processed_return_value$ := add(processed_return_value$, mul(#{size_var_name}, #{type_to_head_size(components)}))
 
-     switch type
-       case #{components.encoded_type} {}
-       default {
-         // Array item's type mismatch
-         revert(0, 0)
-       }
-
-     let value := mload(add(ptr, 1))
-
-     ptr := add(ptr, 33)
-
-     mstore(add(offset, mul(i, 32)), value)
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    // for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_children_heads_var_name, where_to_store_children_heads_init_var_name)}
     }
-
-    return(init_offset, mul(add(size, 2), 32))
     """
   end
 
-  defp generate_function_call_and_return(type) do
+  # add handling bool type
+  defp do_generate_return(
+         type,
+         _i_var_name,
+         _size_var_name,
+         where_to_store_head_var_name,
+         _where_to_store_head_init_var_name
+       ) do
     """
-    if not(eq(byte(0, mload(return_value)), #{type.encoded_type})) {
-      // Return type mismatch abi
-      revert (0, 0)
-    }
+    switch byte(0, mload(return_value$))
+      case #{type.encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
 
-    return(add(return_value, 1), 32)
+    return_value$ := add(return_value$, 1)
+    mstore(#{where_to_store_head_var_name}, mload(return_value$))
+    return_value$ := add(return_value$, 32)
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
     """
+  end
+
+  defp type_to_head_size(%Type{size: :dynamic}) do
+    32
+  end
+
+  defp type_to_head_size(%Type{size: size}) do
+    size
   end
 
   defp function_to_keccak_bytes(function) do
@@ -286,7 +325,7 @@ defmodule Elixireum.Compiler do
 
         memory_offset := add(memory_offset, #{Enum.count(types) * 33 + 33 + Enum.count(sizes) * 33 + 33})
         let #{arg_name} := memory_offset
-        memory_offset, calldata_offset := select_and_call$(#{arg_name}_types, #{arg_name}_sizes, memory_offset, calldata_offset, #{Enum.count(types)})
+        memory_offset, calldata_offset := select_and_call$(#{arg_name}_types, #{arg_name}_sizes, memory_offset, calldata_offset, calldata_offset, #{Enum.count(types)})
         """,
       calldata_offset + 32
     }

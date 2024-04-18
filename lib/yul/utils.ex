@@ -37,13 +37,13 @@ defmodule Elixireum.Yul.Utils do
   def copy_static_array_from_calldata() do
     %StdFunction{
       yul: """
-      function copy_static_array_from_calldata$(array_items_count, components_types, sizes, memory_offset, calldata_offset, current_types_size) ->
+      function copy_static_array_from_calldata$(array_items_count, components_types, sizes, memory_offset, init_calldata_offset, calldata_offset, current_types_size) ->
          new_memory_offset, new_calldata_offset {
           mstore8(memory_offset, 103)
           mstore(add(memory_offset, 1), array_items_count)
           memory_offset := add(memory_offset, 33)
         for { let i := 0 } lt(i, array_items_count) { i := add(i, 1) } {
-          memory_offset, calldata_offset := select_and_call$(components_types, sizes, memory_offset, calldata_offset, current_types_size)
+          memory_offset, calldata_offset := select_and_call$(components_types, sizes, memory_offset, init_calldata_offset, calldata_offset, current_types_size)
         }
         new_memory_offset := memory_offset
         new_calldata_offset := calldata_offset
@@ -52,31 +52,42 @@ defmodule Elixireum.Yul.Utils do
     }
   end
 
+#   Internal exception in StandardCompiler::compile: /solidity/libyul/backends/evm/EVMObjectCompiler.cpp(126): Throw in function void solidity::yul::EVMObjectCompiler::run(Object &, bool)
+# Dynamic exception type: boost::wrapexcept<solidity::yul::StackTooDeepError>
+# std::exception::what: Variable current_types_size is 1 slot(s) too deep inside the stack. Stack too deep. Try compiling with `--via-ir` (cli) or the equivalent `viaIR: true` (standard JSON) while enabling the optimizer. Otherwise, try removing local variables.
+# [solidity::util::tag_comment*] = Variable current_types_size is 1 slot(s) too deep inside the stack. Stack too deep. Try compiling with `--via-ir` (cli) or the equivalent `viaIR: true` (standard JSON) while enabling the optimizer. Otherwise, try removing local variables.
+
   # а че если динамический массив статических массивов??? там бошки или сразу сами массивы лежат?????????????? у макса тоже спросить обрабатывает ли он
   # у меня вроде обрабатывает по идее
   def copy_dynamic_array_from_calldata do
     %StdFunction{
       yul: """
-      function copy_dynamic_array_from_calldata$(components_types, sizes, memory_offset, calldata_offset, current_types_size) ->
-         new_memory_offset, new_calldata_offset {
-          calldata_offset := add(calldata_offset, calldataload(calldata_offset))
+      function copy_dynamic_array_from_calldata$(components_types, sizes, memory_offset, init_calldata_offset, calldata_offset, current_types_size) -> new_memory_offset, new_calldata_offset
+      {
+          calldata_offset := add(init_calldata_offset, calldataload(calldata_offset))
           let array_items_count := calldataload(calldata_offset)
           calldata_offset := add(calldata_offset, 32)
           mstore8(memory_offset, 104)
           mstore(add(memory_offset, 1), array_items_count)
           memory_offset := add(memory_offset, 33)
           let mb_ignore
-        for { let i := 0 } lt(i, array_items_count) { i := add(i, 1) } {
-          memory_offset, mb_ignore := select_and_call$(components_types, sizes, memory_offset, calldata_offset, current_types_size)
           let type := get_type(components_types, current_types_size)
-          switch type
-           case 103 {calldata_offset := add(calldata_offset, mb_ignore)}
-           default {calldata_offset := add(calldata_offset, 32)}
-        }
-        //let types_size_ptr := add(types, 1)
-        //mstore(components_types, sub(mload(add(components_types, 1)), 1))
-        new_memory_offset := memory_offset
-        new_calldata_offset := calldata_offset
+
+          init_calldata_offset := calldata_offset
+          for { let i := 0 } lt(i, array_items_count) { i := add(i, 1) }
+          {
+              memory_offset, mb_ignore := select_and_call$(components_types, sizes, memory_offset, init_calldata_offset, calldata_offset, current_types_size)
+              switch type
+              case 103 {
+                  calldata_offset := add(calldata_offset, mb_ignore)
+              }
+              default {
+                  calldata_offset := add(calldata_offset, 32)
+              }
+          }
+
+          new_memory_offset := memory_offset
+          new_calldata_offset := calldata_offset
       }
       """
     }
@@ -97,7 +108,7 @@ defmodule Elixireum.Yul.Utils do
   def copier_selector do
     %StdFunction{
       yul: """
-      function select_and_call$(types, mb_sizes, memory_offset, calldata_offset, current_types_size) -> new_memory_offset, new_calldata_offset {
+      function select_and_call$(types, mb_sizes, memory_offset, init_calldata_offset, calldata_offset, current_types_size) -> new_memory_offset, new_calldata_offset {
         if eq(current_types_size, 0) {leave}
 
         let types_size_ptr := add(types, 1)
@@ -115,10 +126,10 @@ defmodule Elixireum.Yul.Utils do
             let current_size := mload(add(sizes_array_start_ptr, mul(33, sub(current_sizes_size, 1))))
             // mstore(sizes_size_ptr, sub(current_types_size, 1))
 
-            new_memory_offset, new_calldata_offset := copy_static_array_from_calldata$(current_size, types, mb_sizes, memory_offset, calldata_offset, current_types_size)
+            new_memory_offset, new_calldata_offset := copy_static_array_from_calldata$(current_size, types, mb_sizes, memory_offset, init_calldata_offset, calldata_offset, current_types_size)
           }
           case 104 { // dynamic array
-            new_memory_offset, new_calldata_offset := copy_dynamic_array_from_calldata$(types, mb_sizes, memory_offset, calldata_offset,current_types_size)
+            new_memory_offset, new_calldata_offset := copy_dynamic_array_from_calldata$(types, mb_sizes, memory_offset, init_calldata_offset, calldata_offset,current_types_size)
           }
           default {
             new_memory_offset, new_calldata_offset := copy_word_from_calldata$(memory_offset, calldata_offset, current_type)
