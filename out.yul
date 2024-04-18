@@ -9,8 +9,9 @@ object "contract" {
 switch method_id
 case 0xdde0f413 {
   let calldata_offset$ := 4
-  let memory_offset$ := 0
-    let num := memory_offset$
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+  let num := memory_offset$
   mstore8(memory_offset$, 67)
 memory_offset$ := add(memory_offset$, 1)
 mstore(memory_offset$, calldataload(calldata_offset$))
@@ -30,50 +31,64 @@ calldata_offset$ := add(calldata_offset$, 32)
   return(0, 0)
 
 }
-case 0x9361fd77 {
+case 0x0d2356e3 {
   let calldata_offset$ := 4
-  let memory_offset$ := 0
-    let arr := memory_offset$
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+  let _ := memory_offset$
   mstore8(memory_offset$, 103)
 memory_offset$ := add(memory_offset$, 1)
 
-let calldata_offset$arr := add(calldata_offset$, calldataload(calldata_offset$))
+let calldata_offset$$_ := add(init_calldata_offset$, calldataload(calldata_offset$))
 
-let calldata_offset$arr_length := calldataload(calldata_offset$arr)
-mstore(memory_offset$, calldata_offset$arr_length)
+let calldata_offset$$_length := calldataload(calldata_offset$$_)
+calldata_offset$$_ := add(calldata_offset$$_, 32)
+
+
+mstore(memory_offset$, calldata_offset$$_length)
 memory_offset$ := add(memory_offset$, 32)
-calldata_offset$arr := add(calldata_offset$arr, 32)
-let calldata_offset$arr_init := calldata_offset$arr
 
-for { let arrcalldata_offset$_i := 0 } lt(arrcalldata_offset$_i, calldata_offset$arr_length) { arrcalldata_offset$_i := add(arrcalldata_offset$_i, 1) } {
-  mstore8(memory_offset$, 103)
-memory_offset$ := add(memory_offset$, 1)
+let init_calldata_offset$$_init := calldata_offset$$_
 
-let calldata_offset$arrarr := add(calldata_offset$arr_init, calldataload(calldata_offset$arr))
-
-let calldata_offset$arrarr_length := calldataload(calldata_offset$arrarr)
-mstore(memory_offset$, calldata_offset$arrarr_length)
-memory_offset$ := add(memory_offset$, 32)
-calldata_offset$arrarr := add(calldata_offset$arrarr, 32)
-let calldata_offset$arrarr_init := calldata_offset$arrarr
-
-for { let arrcalldata_offset$arr_i := 0 } lt(arrcalldata_offset$arr_i, calldata_offset$arrarr_length) { arrcalldata_offset$arr_i := add(arrcalldata_offset$arr_i, 1) } {
+for { let _$init_calldata_offset$i := 0 } lt(_$init_calldata_offset$i, calldata_offset$$_length) { _$init_calldata_offset$i := add(_$init_calldata_offset$i, 1) } {
   mstore8(memory_offset$, 67)
 memory_offset$ := add(memory_offset$, 1)
-mstore(memory_offset$, calldataload(calldata_offset$arrarr))
+mstore(memory_offset$, calldataload(calldata_offset$$_))
 memory_offset$ := add(memory_offset$, 32)
-calldata_offset$arrarr := add(calldata_offset$arrarr, 32)
+calldata_offset$$_ := add(calldata_offset$$_, 32)
 
 }
 
-calldata_offset$arr := add(calldata_offset$arr, 32)
+calldata_offset$ := add(calldata_offset$, 32)
+
+  let arr := memory_offset$
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$arr := add(init_calldata_offset$, calldataload(calldata_offset$))
+
+let calldata_offset$$arrlength := calldataload(calldata_offset$$arr)
+calldata_offset$$arr := add(calldata_offset$$arr, 32)
+
+
+mstore(memory_offset$, calldata_offset$$arrlength)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$arrinit := calldata_offset$$arr
+
+for { let arr$init_calldata_offset$i := 0 } lt(arr$init_calldata_offset$i, calldata_offset$$arrlength) { arr$init_calldata_offset$i := add(arr$init_calldata_offset$i, 1) } {
+  mstore8(memory_offset$, 67)
+memory_offset$ := add(memory_offset$, 1)
+mstore(memory_offset$, calldataload(calldata_offset$$arr))
+memory_offset$ := add(memory_offset$, 32)
+calldata_offset$$arr := add(calldata_offset$$arr, 32)
 
 }
 
 calldata_offset$ := add(calldata_offset$, 32)
 
 
-  let return_value$ := arr_test(arr)
+  let return_value$ := simple_arr_test(_,arr)
 
   let processed_return_value$ := msize()
 let processed_return_value_init$ := processed_return_value$
@@ -91,11 +106,161 @@ return_value$ := add(return_value$, 1)
 let size$ := mload(return_value$)
 return_value$ := add(return_value$, 32)
 
+
+
 mstore(where_to_store_head$, sub(processed_return_value$, where_to_store_head_init$))
 where_to_store_head$ := add(where_to_store_head$, 32)
 
 mstore(processed_return_value$, size$)
 processed_return_value$ := add(processed_return_value$, 32)
+
+
+let where_to_store_head$_$ := processed_return_value$
+let where_to_store_head_init$_$ := where_to_store_head$_$
+
+processed_return_value$ := add(processed_return_value$, mul(size$, 32))
+
+for { let i$ := 0 } lt(i$, size$) { i$ := add(i$, 1) } {
+// for { let i$ := 0 } lt(i$, 2) { i$ := add(i$, 1) } {
+  switch byte(0, mload(return_value$))
+  case 67 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+
+return_value$ := add(return_value$, 1)
+mstore(where_to_store_head$_$, mload(return_value$))
+return_value$ := add(return_value$, 32)
+where_to_store_head$_$ := add(where_to_store_head$_$, 32)
+
+}
+
+return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+
+}
+case 0xdb4d0ef7 {
+  let calldata_offset$ := 4
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+  let _ := memory_offset$
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$_ := add(init_calldata_offset$, calldataload(calldata_offset$))
+
+let calldata_offset$$_length := calldataload(calldata_offset$$_)
+calldata_offset$$_ := add(calldata_offset$$_, 32)
+
+
+mstore(memory_offset$, calldata_offset$$_length)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$_init := calldata_offset$$_
+
+for { let _$init_calldata_offset$i := 0 } lt(_$init_calldata_offset$i, calldata_offset$$_length) { _$init_calldata_offset$i := add(_$init_calldata_offset$i, 1) } {
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$_$_ := add(init_calldata_offset$$_init, calldataload(calldata_offset$$_))
+
+let calldata_offset$$_$_length := calldataload(calldata_offset$$_$_)
+calldata_offset$$_$_ := add(calldata_offset$$_$_, 32)
+
+
+mstore(memory_offset$, calldata_offset$$_$_length)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$_init$_init := calldata_offset$$_$_
+
+for { let _$init_calldata_offset$$_initi := 0 } lt(_$init_calldata_offset$$_initi, calldata_offset$$_$_length) { _$init_calldata_offset$$_initi := add(_$init_calldata_offset$$_initi, 1) } {
+  mstore8(memory_offset$, 67)
+memory_offset$ := add(memory_offset$, 1)
+mstore(memory_offset$, calldataload(calldata_offset$$_$_))
+memory_offset$ := add(memory_offset$, 32)
+calldata_offset$$_$_ := add(calldata_offset$$_$_, 32)
+
+}
+
+calldata_offset$$_ := add(calldata_offset$$_, 32)
+
+}
+
+calldata_offset$ := add(calldata_offset$, 32)
+
+  let arr := memory_offset$
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$arr := add(init_calldata_offset$, calldataload(calldata_offset$))
+
+let calldata_offset$$arrlength := calldataload(calldata_offset$$arr)
+calldata_offset$$arr := add(calldata_offset$$arr, 32)
+
+
+mstore(memory_offset$, calldata_offset$$arrlength)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$arrinit := calldata_offset$$arr
+
+for { let arr$init_calldata_offset$i := 0 } lt(arr$init_calldata_offset$i, calldata_offset$$arrlength) { arr$init_calldata_offset$i := add(arr$init_calldata_offset$i, 1) } {
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$arr$arr := add(init_calldata_offset$$arrinit, calldataload(calldata_offset$$arr))
+
+let calldata_offset$$arr$arrlength := calldataload(calldata_offset$$arr$arr)
+calldata_offset$$arr$arr := add(calldata_offset$$arr$arr, 32)
+
+
+mstore(memory_offset$, calldata_offset$$arr$arrlength)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$arrinit$arrinit := calldata_offset$$arr$arr
+
+for { let arr$init_calldata_offset$$arriniti := 0 } lt(arr$init_calldata_offset$$arriniti, calldata_offset$$arr$arrlength) { arr$init_calldata_offset$$arriniti := add(arr$init_calldata_offset$$arriniti, 1) } {
+  mstore8(memory_offset$, 67)
+memory_offset$ := add(memory_offset$, 1)
+mstore(memory_offset$, calldataload(calldata_offset$$arr$arr))
+memory_offset$ := add(memory_offset$, 32)
+calldata_offset$$arr$arr := add(calldata_offset$$arr$arr, 32)
+
+}
+
+calldata_offset$$arr := add(calldata_offset$$arr, 32)
+
+}
+
+calldata_offset$ := add(calldata_offset$, 32)
+
+
+  let return_value$ := dyn_dyn_arr_test(_,arr)
+
+  let processed_return_value$ := msize()
+let processed_return_value_init$ := processed_return_value$
+let where_to_store_head$ := processed_return_value$
+let where_to_store_head_init$ := where_to_store_head$
+processed_return_value$ := add(processed_return_value$, 32)
+switch byte(0, mload(return_value$))
+  case 103 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+return_value$ := add(return_value$, 1)
+
+let size$ := mload(return_value$)
+return_value$ := add(return_value$, 32)
+
+
+
+mstore(where_to_store_head$, sub(processed_return_value$, where_to_store_head_init$))
+where_to_store_head$ := add(where_to_store_head$, 32)
+
+mstore(processed_return_value$, size$)
+processed_return_value$ := add(processed_return_value$, 32)
+
+
 let where_to_store_head$_$ := processed_return_value$
 let where_to_store_head_init$_$ := where_to_store_head$_$
 
@@ -114,11 +279,15 @@ return_value$ := add(return_value$, 1)
 let size$_ := mload(return_value$)
 return_value$ := add(return_value$, 32)
 
+
+
 mstore(where_to_store_head$_$, sub(processed_return_value$, where_to_store_head_init$_$))
 where_to_store_head$_$ := add(where_to_store_head$_$, 32)
 
 mstore(processed_return_value$, size$_)
 processed_return_value$ := add(processed_return_value$, 32)
+
+
 let where_to_store_head$_$_$ := processed_return_value$
 let where_to_store_head_init$_$_$ := where_to_store_head$_$_$
 
@@ -145,34 +314,86 @@ where_to_store_head$_$_$ := add(where_to_store_head$_$_$, 32)
 return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
 
 }
-case 0xdc9905ae {
+case 0xde12f274 {
   let calldata_offset$ := 4
-  let memory_offset$ := 0
-    let arr := memory_offset$
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+  let _ := memory_offset$
   mstore8(memory_offset$, 103)
 memory_offset$ := add(memory_offset$, 1)
 
-let calldata_offset$arr := add(calldata_offset$, calldataload(calldata_offset$))
+let calldata_offset$$_ := add(init_calldata_offset$, calldataload(calldata_offset$))
 
-let calldata_offset$arr_length := calldataload(calldata_offset$arr)
-mstore(memory_offset$, calldata_offset$arr_length)
+let calldata_offset$$_length := calldataload(calldata_offset$$_)
+calldata_offset$$_ := add(calldata_offset$$_, 32)
+
+
+mstore(memory_offset$, calldata_offset$$_length)
 memory_offset$ := add(memory_offset$, 32)
-calldata_offset$arr := add(calldata_offset$arr, 32)
-let calldata_offset$arr_init := calldata_offset$arr
 
-for { let arrcalldata_offset$_i := 0 } lt(arrcalldata_offset$_i, calldata_offset$arr_length) { arrcalldata_offset$_i := add(arrcalldata_offset$_i, 1) } {
+let init_calldata_offset$$_init := calldata_offset$$_
+
+for { let _$init_calldata_offset$i := 0 } lt(_$init_calldata_offset$i, calldata_offset$$_length) { _$init_calldata_offset$i := add(_$init_calldata_offset$i, 1) } {
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+mstore(memory_offset$, 3)
+memory_offset$ := add(memory_offset$, 32)
+
+let calldata_offset$$_$_init := calldata_offset$$_
+
+for { let _$calldata_offset$$_i := 0 } lt(_$calldata_offset$$_i, 3) { _$calldata_offset$$_i := add(_$calldata_offset$$_i, 1) } {
   mstore8(memory_offset$, 67)
 memory_offset$ := add(memory_offset$, 1)
-mstore(memory_offset$, calldataload(calldata_offset$arr))
+mstore(memory_offset$, calldataload(calldata_offset$$_))
 memory_offset$ := add(memory_offset$, 32)
-calldata_offset$arr := add(calldata_offset$arr, 32)
+calldata_offset$$_ := add(calldata_offset$$_, 32)
+
+}
+
+}
+
+calldata_offset$ := add(calldata_offset$, 32)
+
+  let arr := memory_offset$
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$arr := add(init_calldata_offset$, calldataload(calldata_offset$))
+
+let calldata_offset$$arrlength := calldataload(calldata_offset$$arr)
+calldata_offset$$arr := add(calldata_offset$$arr, 32)
+
+
+mstore(memory_offset$, calldata_offset$$arrlength)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$arrinit := calldata_offset$$arr
+
+for { let arr$init_calldata_offset$i := 0 } lt(arr$init_calldata_offset$i, calldata_offset$$arrlength) { arr$init_calldata_offset$i := add(arr$init_calldata_offset$i, 1) } {
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+mstore(memory_offset$, 3)
+memory_offset$ := add(memory_offset$, 32)
+
+let calldata_offset$$arr$arrinit := calldata_offset$$arr
+
+for { let arr$calldata_offset$$arri := 0 } lt(arr$calldata_offset$$arri, 3) { arr$calldata_offset$$arri := add(arr$calldata_offset$$arri, 1) } {
+  mstore8(memory_offset$, 67)
+memory_offset$ := add(memory_offset$, 1)
+mstore(memory_offset$, calldataload(calldata_offset$$arr))
+memory_offset$ := add(memory_offset$, 32)
+calldata_offset$$arr := add(calldata_offset$$arr, 32)
+
+}
 
 }
 
 calldata_offset$ := add(calldata_offset$, 32)
 
 
-  let return_value$ := arr_test_1(arr)
+  let return_value$ := dyn_st_arr_test(_,arr)
 
   let processed_return_value$ := msize()
 let processed_return_value_init$ := processed_return_value$
@@ -190,18 +411,43 @@ return_value$ := add(return_value$, 1)
 let size$ := mload(return_value$)
 return_value$ := add(return_value$, 32)
 
+
+
 mstore(where_to_store_head$, sub(processed_return_value$, where_to_store_head_init$))
 where_to_store_head$ := add(where_to_store_head$, 32)
 
 mstore(processed_return_value$, size$)
 processed_return_value$ := add(processed_return_value$, 32)
+
+
 let where_to_store_head$_$ := processed_return_value$
 let where_to_store_head_init$_$ := where_to_store_head$_$
 
-processed_return_value$ := add(processed_return_value$, mul(size$, 32))
+processed_return_value$ := add(processed_return_value$, mul(size$, 96))
 
 for { let i$ := 0 } lt(i$, size$) { i$ := add(i$, 1) } {
 // for { let i$ := 0 } lt(i$, 2) { i$ := add(i$, 1) } {
+  switch byte(0, mload(return_value$))
+  case 103 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+return_value$ := add(return_value$, 1)
+let size$_ := mload(return_value$)
+
+switch size$_
+  case 3 {}
+  default {
+    // Array size mismatch
+    revert(0, 0)
+  }
+
+return_value$ := add(return_value$, 32)
+
+for { let i$_ := 0 } lt(i$_, size$_) { i$_ := add(i$_, 1) } {
+//for { let i$_ := 0 } lt(i$_, 2) { i$_ := add(i$_, 1) } {
+
   switch byte(0, mload(return_value$))
   case 67 {}
   default {
@@ -216,13 +462,193 @@ where_to_store_head$_$ := add(where_to_store_head$_$, 32)
 
 }
 
+}
+
+return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+
+}
+case 0x7eaeb154 {
+  let calldata_offset$ := 4
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+  let _ := memory_offset$
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$_ := add(init_calldata_offset$, calldataload(calldata_offset$))
+
+let calldata_offset$$_length := 3
+
+
+mstore(memory_offset$, calldata_offset$$_length)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$_init := calldata_offset$$_
+
+for { let _$init_calldata_offset$i := 0 } lt(_$init_calldata_offset$i, calldata_offset$$_length) { _$init_calldata_offset$i := add(_$init_calldata_offset$i, 1) } {
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$_$_ := add(init_calldata_offset$$_init, calldataload(calldata_offset$$_))
+
+let calldata_offset$$_$_length := calldataload(calldata_offset$$_$_)
+calldata_offset$$_$_ := add(calldata_offset$$_$_, 32)
+
+
+mstore(memory_offset$, calldata_offset$$_$_length)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$_init$_init := calldata_offset$$_$_
+
+for { let _$init_calldata_offset$$_initi := 0 } lt(_$init_calldata_offset$$_initi, calldata_offset$$_$_length) { _$init_calldata_offset$$_initi := add(_$init_calldata_offset$$_initi, 1) } {
+  mstore8(memory_offset$, 67)
+memory_offset$ := add(memory_offset$, 1)
+mstore(memory_offset$, calldataload(calldata_offset$$_$_))
+memory_offset$ := add(memory_offset$, 32)
+calldata_offset$$_$_ := add(calldata_offset$$_$_, 32)
+
+}
+
+calldata_offset$$_ := add(calldata_offset$$_, 32)
+
+}
+
+calldata_offset$ := add(calldata_offset$, 32)
+
+  let arr := memory_offset$
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$arr := add(init_calldata_offset$, calldataload(calldata_offset$))
+
+let calldata_offset$$arrlength := 3
+
+
+mstore(memory_offset$, calldata_offset$$arrlength)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$arrinit := calldata_offset$$arr
+
+for { let arr$init_calldata_offset$i := 0 } lt(arr$init_calldata_offset$i, calldata_offset$$arrlength) { arr$init_calldata_offset$i := add(arr$init_calldata_offset$i, 1) } {
+  mstore8(memory_offset$, 103)
+memory_offset$ := add(memory_offset$, 1)
+
+let calldata_offset$$arr$arr := add(init_calldata_offset$$arrinit, calldataload(calldata_offset$$arr))
+
+let calldata_offset$$arr$arrlength := calldataload(calldata_offset$$arr$arr)
+calldata_offset$$arr$arr := add(calldata_offset$$arr$arr, 32)
+
+
+mstore(memory_offset$, calldata_offset$$arr$arrlength)
+memory_offset$ := add(memory_offset$, 32)
+
+let init_calldata_offset$$arrinit$arrinit := calldata_offset$$arr$arr
+
+for { let arr$init_calldata_offset$$arriniti := 0 } lt(arr$init_calldata_offset$$arriniti, calldata_offset$$arr$arrlength) { arr$init_calldata_offset$$arriniti := add(arr$init_calldata_offset$$arriniti, 1) } {
+  mstore8(memory_offset$, 67)
+memory_offset$ := add(memory_offset$, 1)
+mstore(memory_offset$, calldataload(calldata_offset$$arr$arr))
+memory_offset$ := add(memory_offset$, 32)
+calldata_offset$$arr$arr := add(calldata_offset$$arr$arr, 32)
+
+}
+
+calldata_offset$$arr := add(calldata_offset$$arr, 32)
+
+}
+
+calldata_offset$ := add(calldata_offset$, 32)
+
+
+  let return_value$ := st_dyn_arr_test(_,arr)
+
+  let processed_return_value$ := msize()
+let processed_return_value_init$ := processed_return_value$
+let where_to_store_head$ := processed_return_value$
+let where_to_store_head_init$ := where_to_store_head$
+processed_return_value$ := add(processed_return_value$, 32)
+switch byte(0, mload(return_value$))
+  case 103 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+return_value$ := add(return_value$, 1)
+
+let size$ := mload(return_value$)
+return_value$ := add(return_value$, 32)
+
+switch size$
+  case 3 {}
+  default {
+    // Array size mismatch
+    revert(0, 0)
+  }
+
+
+mstore(where_to_store_head$, sub(processed_return_value$, where_to_store_head_init$))
+where_to_store_head$ := add(where_to_store_head$, 32)
+
+
+
+let where_to_store_head$_$ := processed_return_value$
+let where_to_store_head_init$_$ := where_to_store_head$_$
+
+processed_return_value$ := add(processed_return_value$, mul(size$, 32))
+
+for { let i$ := 0 } lt(i$, size$) { i$ := add(i$, 1) } {
+// for { let i$ := 0 } lt(i$, 2) { i$ := add(i$, 1) } {
+  switch byte(0, mload(return_value$))
+  case 103 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+return_value$ := add(return_value$, 1)
+
+let size$_ := mload(return_value$)
+return_value$ := add(return_value$, 32)
+
+
+
+mstore(where_to_store_head$_$, sub(processed_return_value$, where_to_store_head_init$_$))
+where_to_store_head$_$ := add(where_to_store_head$_$, 32)
+
+mstore(processed_return_value$, size$_)
+processed_return_value$ := add(processed_return_value$, 32)
+
+
+let where_to_store_head$_$_$ := processed_return_value$
+let where_to_store_head_init$_$_$ := where_to_store_head$_$_$
+
+processed_return_value$ := add(processed_return_value$, mul(size$_, 32))
+
+for { let i$_ := 0 } lt(i$_, size$_) { i$_ := add(i$_, 1) } {
+// for { let i$_ := 0 } lt(i$_, 2) { i$_ := add(i$_, 1) } {
+  switch byte(0, mload(return_value$))
+  case 67 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+
+return_value$ := add(return_value$, 1)
+mstore(where_to_store_head$_$_$, mload(return_value$))
+return_value$ := add(return_value$, 32)
+where_to_store_head$_$_$ := add(where_to_store_head$_$_$, 32)
+
+}
+
+}
+
 return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
 
 }
 case 0x2e64cec1 {
   let calldata_offset$ := 4
-  let memory_offset$ := 0
-  
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+
   let return_value$ := retrieve()
 
   let processed_return_value$ := msize()
@@ -256,13 +682,25 @@ let test := abc(num)
   
   sstore(0, take_32_bytes$(mload(add(test, 1))))
 }
-function arr_test(arr) -> return_value$ {
+function simple_arr_test(_, arr) -> return_value$ {
   let offset$ := msize()
   
   
   return_value$ := arr
 }
-function arr_test_1(arr) -> return_value$ {
+function dyn_dyn_arr_test(_, arr) -> return_value$ {
+  let offset$ := msize()
+  
+  
+  return_value$ := arr
+}
+function dyn_st_arr_test(_, arr) -> return_value$ {
+  let offset$ := msize()
+  
+  
+  return_value$ := arr
+}
+function st_dyn_arr_test(_, arr) -> return_value$ {
   let offset$ := msize()
   
   
@@ -294,6 +732,14 @@ mstore(add(1, offset$), 100)
 
   return_value$ := add(0, offset$)
 }
+function take_20_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_28_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
 function add$(a, b) -> return_value$ {
   let a$, a_size$ := load_integer$(a)
   let b$, b_size$ := load_integer$(b)
@@ -308,12 +754,60 @@ function add$(a, b) -> return_value$ {
   return_value$ := offset$
 }
 
+function take_31_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_5_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFF)
+}
+
+function take_24_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_19_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
 function take_23_bytes$(value) -> return_value$ {
   return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
-function take_31_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+function take_25_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_29_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_21_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_14_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_27_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_7_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFF)
+}
+
+function take_1_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFF)
+}
+
+function take_26_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_3_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFF)
 }
 
 function take_2_bytes$(value) -> return_value$ {
@@ -324,44 +818,20 @@ function take_8_bytes$(value) -> return_value$ {
   return_value$ := and(value, 0xFFFFFFFFFFFFFFFF)
 }
 
-function take_27_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+function take_13_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
-function take_22_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_26_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_28_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_24_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_17_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+function take_15_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
 function take_30_bytes$(value) -> return_value$ {
   return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
-function take_32_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_10_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_4_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFF)
+function take_17_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
   function load_integer$(ptr) -> return_value$, size$ {
@@ -471,76 +941,44 @@ case 67 {
       }
   }
 
-function take_29_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_6_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFF)
-}
-
-function take_5_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFF)
-}
-
-function take_11_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_16_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_18_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_20_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_3_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFF)
-}
-
-function take_13_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_15_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_25_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
-}
-
-function take_1_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFF)
-}
-
-function take_19_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+function take_10_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFF)
 }
 
 function take_12_bytes$(value) -> return_value$ {
   return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
-function take_21_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+function take_22_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
-function take_14_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+function take_32_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_16_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
 }
 
 function take_9_bytes$(value) -> return_value$ {
   return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFF)
 }
 
-function take_7_bytes$(value) -> return_value$ {
-  return_value$ := and(value, 0xFFFFFFFFFFFFFF)
+function take_18_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_11_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFFFFFFFFFFFF)
+}
+
+function take_6_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFFFFFF)
+}
+
+function take_4_bytes$(value) -> return_value$ {
+  return_value$ := and(value, 0xFFFFFFFF)
 }
 
     }
