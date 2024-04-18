@@ -18,6 +18,11 @@ defmodule ETH.StorageA do
     arr
   end
 
+  @spec arr_test_1(Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)
+  def arr_test_1(arr) do
+    arr
+  end
+
   @spec retrieve() :: Blockchain.Types.Int256.t()
   def retrieve() do
     Storage.get(@var_name)

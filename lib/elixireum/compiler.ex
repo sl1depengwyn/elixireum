@@ -112,30 +112,55 @@ defmodule Elixireum.Compiler do
         let memory_offset$ := 0
         #{extraction}
         let return_value$ := #{function.name}(#{usage})
-        let processed_return_value$ := msize()
-        let processed_return_value_init$ := processed_return_value$
-        #{generate_function_call_and_return(function.typespec.return)}
-        return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+
+        #{generate_return(function.typespec.return)}
       }
       """
     end}
     """
   end
 
-  defp generate_function_call_and_return(type, i_var_name \\ "i$", size_var_name \\ "size$")
-
-  defp generate_function_call_and_return(nil, _i_var_name, _size_var_name) do
+  defp generate_return(nil) do
     """
-    processed_return_value$ := 0
-    processed_return_value_init$ := processed_return_value$
+    return(0, 0)
     """
   end
 
-  defp generate_function_call_and_return(%Type{
-         encoded_type: 103 = encoded_type,
-         items_count: size,
-         components: [components]
-       }, i_var_name, size_var_name)
+  defp generate_return(%Type{size: :dynamic} = type) do
+    """
+    let processed_return_value$ := msize()
+    let processed_return_value_init$ := processed_return_value$
+    let where_to_store_head$ := processed_return_value$
+    let where_to_store_head_init$ := where_to_store_head$
+    processed_return_value$ := add(processed_return_value$, 32)
+    #{do_generate_return(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
+    return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+    """
+  end
+
+  defp generate_return(type) do
+    """
+    let processed_return_value$ := msize()
+    let processed_return_value_init$ := processed_return_value$
+    let where_to_store_head$ := processed_return_value$
+    let where_to_store_head_init$ := where_to_store_head$
+    #{do_generate_return(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
+    processed_return_value$ := add(processed_return_value$, #{type.size})
+    return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+    """
+  end
+
+  defp do_generate_return(
+         %Type{
+           encoded_type: 103 = encoded_type,
+           items_count: size,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       )
        when is_integer(size) do
     """
     switch byte(0, mload(return_value$))
@@ -160,16 +185,25 @@ defmodule Elixireum.Compiler do
     for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
     //for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
 
-      #{generate_function_call_and_return(components, i_var_name <> "_", size_var_name <> "_")}
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_head_var_name, where_to_store_head_init_var_name)}
     }
     """
   end
 
-  defp generate_function_call_and_return(%Type{
-         encoded_type: 103 = encoded_type,
-         size: :dynamic,
-         components: [components]
-       }, i_var_name, size_var_name) do
+  defp do_generate_return(
+         %Type{
+           encoded_type: 103 = encoded_type,
+           size: :dynamic,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       ) do
+    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}_$"
+    where_to_store_children_heads_init_var_name = "#{where_to_store_head_init_var_name}_$"
+
     """
     switch byte(0, mload(return_value$))
       case #{encoded_type} {}
@@ -177,27 +211,36 @@ defmodule Elixireum.Compiler do
         // Return type mismatch abi
         revert(0, 0)
       }
-
     return_value$ := add(return_value$, 1)
-    let #{size_var_name} := mload(return_value$)
 
+    let #{size_var_name} := mload(return_value$)
     return_value$ := add(return_value$, 32)
 
-    mstore(processed_return_value$, 32)
-    processed_return_value$ := add(processed_return_value$, 32)
+    mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
+
     mstore(processed_return_value$, #{size_var_name})
     processed_return_value$ := add(processed_return_value$, 32)
+    let #{where_to_store_children_heads_var_name} := processed_return_value$
+    let #{where_to_store_children_heads_init_var_name} := #{where_to_store_children_heads_var_name}
 
+    processed_return_value$ := add(processed_return_value$, mul(#{size_var_name}, #{type_to_head_size(components)}))
 
     for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
     // for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
-
-      #{generate_function_call_and_return(components, i_var_name <> "_", size_var_name <> "_")}
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_children_heads_var_name, where_to_store_children_heads_init_var_name)}
     }
     """
   end
 
-  defp generate_function_call_and_return(type, _i_var_name, _size_var_name) do
+  # add handling bool type
+  defp do_generate_return(
+         type,
+         _i_var_name,
+         _size_var_name,
+         where_to_store_head_var_name,
+         _where_to_store_head_init_var_name
+       ) do
     """
     switch byte(0, mload(return_value$))
       case #{type.encoded_type} {}
@@ -207,9 +250,9 @@ defmodule Elixireum.Compiler do
       }
 
     return_value$ := add(return_value$, 1)
-    mstore(processed_return_value$, mload(return_value$))
+    mstore(#{where_to_store_head_var_name}, mload(return_value$))
     return_value$ := add(return_value$, 32)
-    processed_return_value$ := add(processed_return_value$, 32)
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
     """
   end
 
@@ -217,6 +260,14 @@ defmodule Elixireum.Compiler do
     "#{to_string(function.name)}(#{Enum.map_join(function.typespec.args, ",", & &1.abi_name)})"
     |> to_string()
     |> ExKeccak.hash_256()
+  end
+
+  defp type_to_head_size(%Type{size: :dynamic}) do
+    32
+  end
+
+  defp type_to_head_size(%Type{size: size}) do
+    size
   end
 
   defp typed_function_to_arguments(function) do
