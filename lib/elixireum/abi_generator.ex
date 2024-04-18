@@ -4,6 +4,7 @@ defmodule Elixireum.ABIGenerator do
   """
 
   alias Elixireum.{Contract, Function}
+  alias Blockchain.Type
 
   @spec generate(Contract.t()) :: map()
   def generate(%Contract{} = contract) do
@@ -21,8 +22,16 @@ defmodule Elixireum.ABIGenerator do
     }
   end
 
+  defp arg_to_abi(name, %Type{encoded_type: 3} = arg) do
+    %{
+      name: name,
+      type: arg.abi_name,
+      internal_type: arg.abi_name,
+      components: Enum.map(arg.components, &arg_to_abi("name_", &1))
+    }
+  end
+
   defp arg_to_abi(name, arg) do
-    dbg()
     %{name: name, type: arg.abi_name, internal_type: arg.abi_name}
   end
 end

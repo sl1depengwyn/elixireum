@@ -25,7 +25,7 @@ defmodule Blockchain.Type do
 
   @spec from_module([module()], [atom() | tuple()]) :: {:ok, t()} | {:error, String.t()}
   def from_module(modules, args) do
-    modules_name = modules |> Enum.map(&Atom.to_string/1) |> dbg()
+    modules_name = modules |> Enum.map(&Atom.to_string/1)
 
     type_names = [
       "UInt",
@@ -155,7 +155,26 @@ defmodule Blockchain.Type do
   end
 
   defp tuple_type(args) do
-    # TODO
+    size =
+      Enum.reduce(args, 0, fn
+        arg, acc ->
+          case {arg.size, acc} do
+            {arg_size, acc_size} when is_integer(arg_size) and is_integer(acc_size) ->
+              arg_size + acc_size
+
+            _ ->
+              :dynamic
+          end
+      end)
+
+    {:ok,
+     %__MODULE__{
+       size: size,
+       abi_name: "tuple",
+       components: args,
+       encoded_type: 3,
+       items_count: Enum.count(args)
+     }}
   end
 
   defp abi_name_to_encoded_type(abi_name) do

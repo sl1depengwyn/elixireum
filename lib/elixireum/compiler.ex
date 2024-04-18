@@ -56,8 +56,6 @@ defmodule Elixireum.Compiler do
                },
                &ast_to_contract_fields/2
              ) do
-        dbg(ast)
-
         functions_map = functions_list_to_functions_map(acc.functions)
         private_functions_map = functions_list_to_functions_map(acc.private_functions)
 
@@ -68,7 +66,6 @@ defmodule Elixireum.Compiler do
           variables: acc.variables,
           aliases: acc.aliases
         }
-        |> dbg()
       end
 
     yul =
@@ -104,7 +101,7 @@ defmodule Elixireum.Compiler do
     let method_id := shr(0xe0, calldataload(0x0))
     switch method_id
     #{for function <- functions do
-      <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower)
+      <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower) |> dbg()
       {extraction, usage} = typed_function_to_arguments(function)
       """
       case 0x#{method_id} {
@@ -115,6 +112,7 @@ defmodule Elixireum.Compiler do
       }
       """
     end}
+    default {revert(0, 0)}
     """
   end
 
@@ -149,6 +147,55 @@ defmodule Elixireum.Compiler do
   end
 
   defp do_generate_return(
+         %Type{encoded_type: 3 = encoded_type, components: components} = type,
+         i_var_name,
+         _size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       ) do
+    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}#{i_var_name}_$"
+
+    where_to_store_children_heads_init_var_name =
+      "#{where_to_store_head_init_var_name}#{i_var_name}_$"
+
+    dbg(components)
+
+    """
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+
+    return_value$ := add(return_value$, 1)
+    switch mload(return_value$)
+      case #{Enum.count(components)} {}
+      default {
+        // Return type mismatch length tuple
+        revert(0, 0)
+      }
+
+    return_value$ := add(return_value$, 32)
+
+    let #{where_to_store_children_heads_var_name} := processed_return_value$
+    let #{where_to_store_children_heads_init_var_name} := #{where_to_store_children_heads_var_name}
+
+    #{if type.size == :dynamic do
+      """
+      mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
+      #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
+      processed_return_value$ := add(processed_return_value$, #{components |> Enum.map(&type_to_head_size/1) |> Enum.sum()})
+      """
+    end}
+
+    #{for {component, index} <- Enum.with_index(components) do
+      do_generate_return(component, "i$#{index}", "size$#{index}", where_to_store_children_heads_var_name, where_to_store_children_heads_init_var_name)
+    end}
+    """
+  end
+
+  defp do_generate_return(
          %Type{
            encoded_type: 103 = encoded_type,
            items_count: items_count,
@@ -160,8 +207,10 @@ defmodule Elixireum.Compiler do
          where_to_store_head_var_name,
          where_to_store_head_init_var_name
        ) do
-    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}_$"
-    where_to_store_children_heads_init_var_name = "#{where_to_store_head_init_var_name}_$"
+    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}#{i_var_name}_$"
+
+    where_to_store_children_heads_init_var_name =
+      "#{where_to_store_head_init_var_name}#{i_var_name}_$"
 
     """
     switch byte(0, mload(return_value$))
@@ -271,9 +320,19 @@ defmodule Elixireum.Compiler do
   end
 
   defp function_to_keccak_bytes(function) do
-    "#{to_string(function.name)}(#{Enum.map_join(function.typespec.args, ",", & &1.abi_name)})"
+    "#{to_string(function.name)}(#{Enum.map_join(function.typespec.args, ",", &do_function_to_keccak_bytes/1)})"
     |> to_string()
+    |> dbg()
     |> ExKeccak.hash_256()
+    |> dbg()
+  end
+
+  defp do_function_to_keccak_bytes(%Type{encoded_type: 3, components: components}) do
+    "(#{Enum.map_join(components, ",", &do_function_to_keccak_bytes/1)})"
+  end
+
+  defp do_function_to_keccak_bytes(arg) do
+    arg.abi_name
   end
 
   defp type_to_head_size(%Type{size: :dynamic}) do
@@ -307,8 +366,45 @@ defmodule Elixireum.Compiler do
     yul <>
       """
         let #{arg_name} := memory_offset$
-        #{copy_type_from_calldata(arg_name, type, "calldata_offset$", "init_calldata_offset$")}
+        #{copy_type_from_calldata(to_string(arg_name), type, "calldata_offset$", "init_calldata_offset$")}
       """
+  end
+
+  defp copy_type_from_calldata(
+         arg_name,
+         %Type{
+           encoded_type: 3,
+           components: components,
+           size: size
+         },
+         calldata_var,
+         init_calldata_var
+       ) do
+    tail_offset_var_name = "#{calldata_var}$#{arg_name}"
+    init_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}_init"
+
+    """
+    mstore8(memory_offset$, 3)
+    memory_offset$ := add(memory_offset$, 1)
+    mstore(memory_offset$, #{Enum.count(components)})
+    memory_offset$ := add(memory_offset$, 32)
+
+    #{if size == :dynamic do
+      """
+      let #{tail_offset_var_name} := add(#{init_calldata_var}, calldataload(#{calldata_var}))
+      """
+    else
+      """
+      let #{tail_offset_var_name} := #{calldata_var}
+      """
+    end}
+
+    let #{init_tail_offset_var_name} := #{tail_offset_var_name}
+
+    #{for {component, index} <- Enum.with_index(components) do
+      copy_type_from_calldata(arg_name <> "#{index}", component, tail_offset_var_name, init_tail_offset_var_name)
+    end}
+    """
   end
 
   defp copy_type_from_calldata(
@@ -323,7 +419,7 @@ defmodule Elixireum.Compiler do
          init_calldata_var
        ) do
     tail_offset_var_name = "#{calldata_var}$#{arg_name}"
-    inti_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}init"
+    init_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}init"
     list_length_var_name = "#{calldata_var}$#{arg_name}length"
     i = "#{arg_name}$#{init_calldata_var}i"
 
@@ -346,10 +442,10 @@ defmodule Elixireum.Compiler do
     mstore(memory_offset$, #{list_length_var_name})
     memory_offset$ := add(memory_offset$, 32)
 
-    let #{inti_tail_offset_var_name} := #{tail_offset_var_name}
+    let #{init_tail_offset_var_name} := #{tail_offset_var_name}
 
     for { let #{i} := 0 } lt(#{i}, #{list_length_var_name}) { #{i} := add(#{i}, 1) } {
-      #{copy_type_from_calldata(arg_name, components, tail_offset_var_name, inti_tail_offset_var_name)}
+      #{copy_type_from_calldata(arg_name, components, tail_offset_var_name, init_tail_offset_var_name)}
     }
 
     #{calldata_var} := add(#{calldata_var}, 32)
@@ -552,8 +648,6 @@ defmodule Elixireum.Compiler do
         {yul_acc <> yul, updated_compiler_state}
       end)
 
-    dbg(compiler_state.used_standard_functions)
-
     std_functions = generate_std_functions(compiler_state.used_standard_functions)
 
     user_defined_functions <> Enum.join(Map.values(std_functions), "\n")
@@ -575,8 +669,6 @@ defmodule Elixireum.Compiler do
 
     {ast_last, acc} =
       Macro.postwalk(last, acc, &expand_expression/2)
-
-    dbg(function)
 
     user_defined_functions =
       cond do
@@ -788,11 +880,6 @@ defmodule Elixireum.Compiler do
 
   defp expand_expression({function_name, meta, args} = node, acc)
        when is_atom(function_name) and is_list(args) do
-    # dbg(other)
-    # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # # {other, acc}
-
     definition =
       "#{Enum.map_join(args, "\n", fn yul_node -> yul_node.yul_snippet_definition end)}"
 
@@ -819,11 +906,6 @@ defmodule Elixireum.Compiler do
   # variable
   defp expand_expression({var, meta, nil} = other, %CompilerState{variables: _variables} = acc)
        when is_atom(var) do
-    dbg(other)
-    # dbg(other)
-    # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # # {other, acc}
     {%YulNode{
        yul_snippet_definition: "",
        yul_snippet_usage: to_string(var),
@@ -835,10 +917,6 @@ defmodule Elixireum.Compiler do
 
   defp expand_expression({_node, _meta, _} = other, _acc) do
     raise "Not implemented: #{inspect(other)}"
-    # dbg(other)
-    # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # # {other, acc}
   end
 
   defp expand_expression(list, acc) when is_list(list) do
