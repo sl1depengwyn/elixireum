@@ -4,8 +4,9 @@ defmodule Elixireum.Variable do
   @type t :: %__MODULE__{
           name: atom(),
           type: Type.t(),
-          storage_pointer: non_neg_integer()
+          encoded_name: non_neg_integer(),
+          access_keys_types: [Type.t()]
         }
 
-  defstruct [:name, :type, :storage_pointer]
+  defstruct [:name, :type, :encoded_name, :access_keys_types]
 end

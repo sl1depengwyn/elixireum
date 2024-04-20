@@ -2,7 +2,7 @@ defmodule Elixireum.Compiler do
   @moduledoc """
   Elixireum Compiler
   """
-  alias Blockchain.{Storage, Type}
+  alias Blockchain.{Address, Storage, Type}
 
   alias Elixireum.{
     ABIGenerator,
@@ -42,6 +42,7 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
+           #  {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
            {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
@@ -52,7 +53,7 @@ defmodule Elixireum.Compiler do
                  private_functions: [],
                  aliases: %{},
                  variables: %{},
-                 storage_pointer: 0
+                 storage_vars_counter: 0
                },
                &ast_to_contract_fields/2
              ) do
@@ -101,7 +102,7 @@ defmodule Elixireum.Compiler do
     let method_id := shr(0xe0, calldataload(0x0))
     switch method_id
     #{for function <- functions do
-      <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower) |> dbg()
+      <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower)
       {extraction, usage} = typed_function_to_arguments(function)
       """
       case 0x#{method_id} {
@@ -322,9 +323,7 @@ defmodule Elixireum.Compiler do
   defp function_to_keccak_bytes(function) do
     "#{to_string(function.name)}(#{Enum.map_join(function.typespec.args, ",", &do_function_to_keccak_bytes/1)})"
     |> to_string()
-    |> dbg()
     |> ExKeccak.hash_256()
-    |> dbg()
   end
 
   defp do_function_to_keccak_bytes(%Type{encoded_type: 3, components: components}) do
@@ -512,7 +511,8 @@ defmodule Elixireum.Compiler do
         raise "#{var_name} has no type"
 
       true ->
-        type = process_arg_type(Keyword.fetch!(var_properties, :type), acc)
+        {type, access_keys_types} =
+          process_var_type(Keyword.fetch!(var_properties, :type), acc)
 
         {node,
          %{
@@ -521,9 +521,10 @@ defmodule Elixireum.Compiler do
                Map.put(acc.variables, var_name, %Variable{
                  name: var_name,
                  type: type,
-                 storage_pointer: acc.storage_pointer
+                 access_keys_types: access_keys_types,
+                 encoded_name: acc.storage_vars_counter
                }),
-             storage_pointer: acc.storage_pointer + type.size
+             storage_vars_counter: acc.storage_vars_counter + 1
          }}
     end
   end
@@ -598,6 +599,35 @@ defmodule Elixireum.Compiler do
 
   defp extract_args(args) do
     Enum.map(args, &elem(&1, 0))
+  end
+
+  defp process_var_type(
+         {:%{}, _,
+          [
+            {
+              key_type,
+              value_type
+            }
+          ]},
+         acc
+       ) do
+    key_type = process_arg_type(key_type, acc)
+
+    {type, access_keys} = process_var_type(value_type, acc)
+    {type, [key_type | access_keys]}
+  end
+
+  defp process_var_type(type, acc) do
+    type |> process_arg_type(acc) |> process_decoded_var_type()
+  end
+
+  defp process_decoded_var_type(%Type{encoded_type: 103, components: [component]}) do
+    {type, access_keys} = process_decoded_var_type(component)
+    {type, [%Type{size: 32, abi_name: "int256", encoded_type: 67} | access_keys]}
+  end
+
+  defp process_decoded_var_type(type) do
+    {type, []}
   end
 
   defp process_spec_body(
@@ -794,17 +824,23 @@ defmodule Elixireum.Compiler do
           [
             %Elixireum.AuxiliaryNode{
               type: :storage_variable,
-              value: variable
+              value: variable,
+              access_keys: access_keys
             },
             yul_node
           ]} = node,
          acc
        ) do
-    {%{yul_snippet_usage: yul_snippet, return_values_count: return_values_count}, acc} =
-      Storage.store(variable, yul_node, acc)
+    {%{
+       yul_snippet_usage: yul_snippet,
+       return_values_count: return_values_count,
+       yul_snippet_definition: yul_snippet_definition
+     },
+     acc} =
+      Storage.store(variable, access_keys, yul_node, acc)
 
     {%YulNode{
-       yul_snippet_definition: "",
+       yul_snippet_definition: yul_snippet_definition,
        yul_snippet_usage: yul_snippet,
        meta: meta,
        return_values_count: return_values_count,
@@ -817,18 +853,21 @@ defmodule Elixireum.Compiler do
           [
             %Elixireum.AuxiliaryNode{
               type: :storage_variable,
-              value: variable
+              value: variable,
+              access_keys: access_keys
             }
           ]} = node,
          acc
        ) do
+    dbg(node)
+
     {%{
        yul_snippet_usage: yul_snippet,
        return_values_count: return_values_count,
        yul_snippet_definition: yul_snippet_definition
      },
      acc} =
-      Storage.get(variable, acc)
+      Storage.get(variable, access_keys, acc)
 
     {%YulNode{
        yul_snippet_definition: yul_snippet_definition,
@@ -836,6 +875,17 @@ defmodule Elixireum.Compiler do
        meta: meta,
        return_values_count: return_values_count,
        elixir_initial: node
+     }, acc}
+  end
+
+  defp expand_expression(
+         {%AuxiliaryNode{type: :function_call, value: {[Access], :get}}, _meta,
+          [%AuxiliaryNode{type: :storage_variable} = storage_variable, index]},
+         acc
+       ) do
+    {%AuxiliaryNode{
+       storage_variable
+       | access_keys: [index | storage_variable.access_keys]
      }, acc}
   end
 
@@ -862,6 +912,16 @@ defmodule Elixireum.Compiler do
      }, acc}
   end
 
+  defp expand_expression(
+         {:., _meta, [module, function_name]},
+         acc
+       ) do
+    {%AuxiliaryNode{
+       type: :function_call,
+       value: {[module.elixir_initial], function_name.elixir_initial}
+     }, acc}
+  end
+
   defp expand_expression({:__aliases__, _meta, yul_nodes}, %CompilerState{aliases: aliases} = acc) do
     prepared = prepare_aliases(aliases, Enum.map(yul_nodes, & &1.elixir_initial))
     {%AuxiliaryNode{type: :__aliases__, value: prepared}, acc}
@@ -878,29 +938,12 @@ defmodule Elixireum.Compiler do
     {children, acc}
   end
 
-  defp expand_expression({function_name, meta, args} = node, acc)
-       when is_atom(function_name) and is_list(args) do
-    definition =
-      "#{Enum.map_join(args, "\n", fn yul_node -> yul_node.yul_snippet_definition end)}"
-
-    case Library.Utils.method_atom_to_yul(function_name) do
-      :error ->
-        {%YulNode{
-           yul_snippet_definition: definition,
-           yul_snippet_usage:
-             "#{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})",
-           meta: meta,
-           elixir_initial: node,
-           return_values_count: 1
-         }, acc}
-
-      library_fun when is_function(library_fun, length(args) + 2) ->
-        {yul_node, state} = apply(library_fun, args ++ [acc, node])
-        {%YulNode{yul_node | yul_snippet_definition: definition}, state}
-
-      _ ->
-        raise "#{function_name}/#{length(args)} is undefined"
-    end
+  defp expand_expression({:sigil_ADDRESS, [delimiter: "("], [yul_node, _]} = node, acc) do
+    {%YulNode{
+       value: Address.load(Enum.at(elem(yul_node.elixir_initial, 0), 0)),
+       return_values_count: 1,
+       elixir_initial: node
+     }, acc}
   end
 
   # variable
@@ -913,6 +956,46 @@ defmodule Elixireum.Compiler do
        elixir_initial: other,
        return_values_count: 1
      }, acc}
+  end
+
+  defp expand_expression(
+         {function_name, meta, args} = node,
+         %CompilerState{function_calls_counter: function_calls_counter} = acc
+       )
+       when is_atom(function_name) and is_list(args) do
+    result_var_name = "$result$#{function_name}$#{function_calls_counter}"
+
+    args_definition =
+      """
+      #{Enum.map_join(args, "\n", fn yul_node -> yul_node.yul_snippet_definition end)}
+      """
+
+    case Library.Utils.method_atom_to_yul(function_name) |> dbg() do
+      :error ->
+        {%YulNode{
+           yul_snippet_definition:
+             args_definition <>
+               """
+               let #{result_var_name} := #{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})
+               offset$ = msize()
+               """,
+           yul_snippet_usage: "#{result_var_name}",
+           meta: meta,
+           elixir_initial: node,
+           return_values_count: 1
+         }, acc}
+
+      library_fun when is_function(library_fun, length(args) + 2) ->
+        {yul_node, state} = apply(library_fun, args ++ [acc, node])
+
+        {%YulNode{
+           yul_node
+           | yul_snippet_definition: args_definition <> yul_node.yul_snippet_definition
+         }, state}
+
+      _ ->
+        raise "#{function_name}/#{length(args)} is undefined"
+    end
   end
 
   defp expand_expression({_node, _meta, _} = other, _acc) do
@@ -940,6 +1023,8 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(other, %CompilerState{offset: offset} = state) do
+    dbg(other)
+
     definition =
       """
       mstore8(add(#{offset}, offset$), #{Type.elixir_to_encoded_type(other)})
@@ -953,7 +1038,8 @@ defmodule Elixireum.Compiler do
        yul_snippet_usage: usage,
        meta: nil,
        elixir_initial: other,
-       return_values_count: 1
+       return_values_count: 1,
+       value: other
      }, %CompilerState{state | offset: offset + Type.elixir_to_size(other) + 1}}
   end
 
