@@ -1,111 +1,169 @@
 \chapter{Introduction}
 \label{chap:intro}
-\chaptermark{Optional running chapter heading}
-\section{Spacing \& Type}
-\label{sec:section}
 
-% This is a section. This is a citation without brackets. and this is one with brackets \cite{A}. Multiple \cite{A,B,C} Here's a reference to a subsection: \ref{sec:subsection}. Citation of an online article \cite{D}. Citation of an online proceeding \cite{F}. The body of the text and abstract must be double-spaced except for footnotes or long quotations. Fonts such as Times Roman, Bookman, New Century Schoolbook, Garamond, Palatine, and Courier are acceptable and commonly found on most computers. The same type must be used throughout the body of the text. The font size must be 10 point or larger and footnotes\footnote{This is a footnote.} must be two sizes smaller than the text\footnote{This is another footnote.} but no smaller than eight points. Chapter, section, or other headings should be of a consistent font and size throughout the ETD, as should labels for illustrations, charts, and figures.
+This chapter provides an introduction 
 
-\subsection{Creating a Subsection}
-\label{sec:subsection}
-
-\subsubsection{Creating a Subsubsection}
-\subsubsection{Creating a Subsubsection}
-\subsubsection{Creating a Subsubsection}
-
-\paragraph{This is a heading level below subsubsection}
-
-And this is a quote: 
-%
-\begin{quote}
-\blindtext
-\end{quote}
-
-\begin{figure}[hbt]
-\centering
-\includegraphics[]{figs/inno.png}
-\caption{One kernel at $x_s$ (\emph{dotted kernel}) or two kernels at
-$x_i$ and $x_j$ (\textit{left and right}) lead to the same summed estimate
-at $x_s$. This shows a figure consisting of different types of
-lines. Elements of the figure described in the caption should be set in
-italics, in parentheses, as shown in this sample caption.}
-\label{fig:example}
-\end{figure}
-
-This is a table:
-% currsize is not set in the long table environment, so we need to set it before we set it up.
-\makeatletter
-\let\@currsize\normalsize
-\makeatother
-
-% tabular environments are set to be single-spaced in the  thesis class,  but long tables do not use tabular
-% to get around this, set the spacing to single spacing at the start of the long table environment, and set it back to double-spacing at the end of it
-
-\begin{longtable}{c|c|c}
-\caption[This is the title I want to appear in the List of Tables]{This Is a Table Example} \label{tab:pfams} \\
-\hline
-A & B & C \\
-\hline
-\endfirsthead
-\multicolumn{3}{@{}l}{} \\
-\hline
-A & B & C\\
-\hline
-\endhead
-a1 & b1 & c1 \\
-a2 & b2 & c2\\
-a3 & b3 & c3\\
-a4 & b4 & c4\\
-\hline
-\end{longtable}
-
-The package ``upgreek'' allows us to use non-italicized lower-case greek letters. See for yourself: $\upbeta$, $\bm\upbeta$, $\beta$, $\bm\beta$. Next is a numbered equation:
-\begin{align}
-\label{eq:name}
-\|\bm{X}\|_{2,1}={\underbrace{\sum_{j=1}^nf_j(\bm{X})}_{\text{convex}}}=\sum_{j=1}^n\|\bm{X}_{.,j}\|_2
-\end{align}
-The reference to equation (\ref{eq:name}) is clickable. 
-\section[Theorems, Corollaries, Lemmas, Proofs, Remarks, Definitions and Examples]{Theorems, Corollaries, Lemmas, Proofs, Remarks, Definitions,and Examples}
-
-\begin{theorem}
-\label{thm:onlytheorem}
-\blindtext
-\end{theorem}
-
-\begin{proof}
-I'm a (very short) proof.
-\end{proof}
-
-\begin{lemma}
-I'm a lemma.
-\end{lemma}
-
-\begin{corollary}
-I include a reference to Thm. \ref{thm:onlytheorem}.
-\end{corollary}
-
-\begin{proposition}
-I'm a proposition.
-\end{proposition}
-
-\begin{remark}
-I'm a remark. 
-\end{remark}
-
-\begin{definition}
-I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. 
-\end{definition}
-
-\begin{example}
-I'm an example.
-\end{example}
+% 1. ethereum overview
+%   - a popular blockhain platform created by Buterin in +-2016 with a big community of developers and crypto enthusiasts (link to some researches to show it's actuality and popularity), mb show actuality via daily market cap and other finance indicators.
+%   - blockchain ecosystem, the core feature is dApps and smart contracts
+%   - currenlty there are only 2 popular languages: Solidity and Vyper. And more than 90\% contracts written in solidity
+%   - why it is important to write effective smart contracts (users pay for each EVM opcode)
+%   - raise of rollups (about L2 rollups, almost zero costs and possibility to don't mind about gas consumption)
+% 2. goal of the thesis (RQs hypoyhesis and blabla)
+% 3. why elixireum is needed and what problems it solves
+% 4. results
 
 
-\section[Optional table of contents heading]{Section with\\ linebreaks in\\the
-name}
+
+\section{Ethereum Overview}
+
+\subsection{Ethereum: An Innovative Blockchain Platform}
+Ethereum, launched by Vitalik Buterin in July of 2015, is a major blockchain platform recognized worldwide. It is supported by a large community of developers and cryptocurrency enthusiasts. To evaluate the importance and current popularity we can refer to CoinMarketCap\footnote{\href{https://coinmarketcap.com/}{CoinMarketCap - resources which provides analytics and prices for cryptocurrencies}}. Ethereum is places in 2nd place after Bitcoin, having the market cap more than \$380B and more than \$10B daily trading value. It shows the significant role of ETH in today’s digital economy.
+
+\subsection{Blockchain Ecosystem and Core Features}
+Ethereum is especially known for supporting decentralized applications (dApps) and smart contracts. These contracts automatically manage transactions and agreements without needing a middleman. This system encourages new ideas and has been essential in creating new types of applications in areas like finance and supply chain management.
+
+\subsection{Programming Languages on Ethereum}
+Solidity is the main programming language used on Ethereum, chosen for more than 99\% of all smart contracts[]. Vyper is the most popular alternative, however it shares a tiny part of the market. So, we can say that scope of programming languages that can be used to develop decentralized applications is limited.
+
+\subsection{Importance of Writing Effective Smart Contracts}
+Using smart contracts on Ethereum costs money, known as "gas fees," which users pay for each action a contract performs. These costs make it important to write efficient smart contracts to reduce expenses and improve performance.
+
+\subsection{The Rise of Layer 2 Rollups}
+With the increasing popularity and widespread adoption of Ethereum, the price of its native coin, ETH, has surged significantly. As the cost of ETH rises, even simple transactions like transferring coins can become prohibitively expensive, sometimes costing up to \$100 per transaction. Such high costs restrict the practical usability of the blockchain. Consequently, rollup blockchains have emerged to address these challenges. The concept behind rollup solutions can be described as a cheap blockchain (L2) on top of expensive blockchain (L1). L2 chain performs execution of hundreds of transactions and then stores the resulting state changes in the L1. Multiple operations conducted on the L2 blockchain are consolidated into a single transaction on the underlying (L1) blockchain. The fact that all the changes eventually is stored in L1 blockchain enables the L2 chain to retain all L1 blockchain characteristics such as immutability and decentralization, while significantly reducing gas costs and increasing throughput. It lets developers focus more on features and security, changing how dApps are made and used.
 
 
-\Blindtext[2]
+\section{Demand of a new language}
+
+1. it can be said that there is only one language for dapp development
+2. this language is imperative 
+3. it lacks feauteres like floats and smth
+4. it has ... learning curve (сложно вкатиться)
+5. functional alternative with dynamic typing built on the top of more or less popular language is great opportunity for web3
+
+\section{Goal of the Thesis}
+
+
+\subsection{Research Aims and Hypotheses}
+Our goal is to create a new smart contract language and bring the new paradigm to EVM. Investigate how it works, and how functional programming suits EVM. This way we want to achieve more flexible choice of the language for smart contract development.
+Our hypothesis is that functional paradigm is suitable for smart contract writing, also it could reduce gas consumption in comparison with imperative programming language like Solidity. Also we assume that functional features for example pattern matching will simplify contracts development.
+
+\subsection{Introduction of Elixireum}
+With the current languages available, there is a need for more flexible and secure options. Elixireum, a new proposed language for Ethereum, seeks to solve certain issues such as security risks, inefficient gas use, and making development easier. This section will talk about why Elixireum is being developed and the specific problems it is meant to solve within the Ethereum ecosystem.
+
+\subsection{Expected Results}
+The thesis will assess ability of Elixireum to cut gas costs, enhance security, and offer a more straightforward programming environment. The expected results include a comparison with existing languages, potential challenges in adoption.
+
+\section{Thesis overview}
+
+
+
+% \chaptermark{Optional running chapter heading}
+% \section{Spacing \& Type}
+% \label{sec:section}
+
+% % This is a section. This is a citation without brackets. and this is one with brackets \cite{A}. Multiple \cite{A,B,C} Here's a reference to a subsection: \ref{sec:subsection}. Citation of an online article \cite{D}. Citation of an online proceeding \cite{F}. The body of the text and abstract must be double-spaced except for footnotes or long quotations. Fonts such as Times Roman, Bookman, New Century Schoolbook, Garamond, Palatine, and Courier are acceptable and commonly found on most computers. The same type must be used throughout the body of the text. The font size must be 10 point or larger and footnotes\footnote{This is a footnote.} must be two sizes smaller than the text\footnote{This is another footnote.} but no smaller than eight points. Chapter, section, or other headings should be of a consistent font and size throughout the ETD, as should labels for illustrations, charts, and figures.
+
+% \subsection{Creating a Subsection}
+% \label{sec:subsection}
+
+% \subsubsection{Creating a Subsubsection}
+% \subsubsection{Creating a Subsubsection}
+% \subsubsection{Creating a Subsubsection}
+
+% \paragraph{This is a heading level below subsubsection}
+
+% And this is a quote: 
+% %
+% \begin{quote}
+% \blindtext
+% \end{quote}
+
+% \begin{figure}[hbt]
+% \centering
+% \includegraphics[]{figs/inno.png}
+% \caption{One kernel at $x_s$ (\emph{dotted kernel}) or two kernels at
+% $x_i$ and $x_j$ (\textit{left and right}) lead to the same summed estimate
+% at $x_s$. This shows a figure consisting of different types of
+% lines. Elements of the figure described in the caption should be set in
+% italics, in parentheses, as shown in this sample caption.}
+% \label{fig:example}
+% \end{figure}
+
+% This is a table:
+% % currsize is not set in the long table environment, so we need to set it before we set it up.
+% \makeatletter
+% \let\@currsize\normalsize
+% \makeatother
+
+% % tabular environments are set to be single-spaced in the  thesis class,  but long tables do not use tabular
+% % to get around this, set the spacing to single spacing at the start of the long table environment, and set it back to double-spacing at the end of it
+
+% \begin{longtable}{c|c|c}
+% \caption[This is the title I want to appear in the List of Tables]{This Is a Table Example} \label{tab:pfams} \\
+% \hline
+% A & B & C \\
+% \hline
+% \endfirsthead
+% \multicolumn{3}{@{}l}{} \\
+% \hline
+% A & B & C\\
+% \hline
+% \endhead
+% a1 & b1 & c1 \\
+% a2 & b2 & c2\\
+% a3 & b3 & c3\\
+% a4 & b4 & c4\\
+% \hline
+% \end{longtable}
+
+% The package ``upgreek'' allows us to use non-italicized lower-case greek letters. See for yourself: $\upbeta$, $\bm\upbeta$, $\beta$, $\bm\beta$. Next is a numbered equation:
+% \begin{align}
+% \label{eq:name}
+% \|\bm{X}\|_{2,1}={\underbrace{\sum_{j=1}^nf_j(\bm{X})}_{\text{convex}}}=\sum_{j=1}^n\|\bm{X}_{.,j}\|_2
+% \end{align}
+% The reference to equation (\ref{eq:name}) is clickable. 
+% \section[Theorems, Corollaries, Lemmas, Proofs, Remarks, Definitions and Examples]{Theorems, Corollaries, Lemmas, Proofs, Remarks, Definitions,and Examples}
+
+% \begin{theorem}
+% \label{thm:onlytheorem}
+% \blindtext
+% \end{theorem}
+
+% \begin{proof}
+% I'm a (very short) proof.
+% \end{proof}
+
+% \begin{lemma}
+% I'm a lemma.
+% \end{lemma}
+
+% \begin{corollary}
+% I include a reference to Thm. \ref{thm:onlytheorem}.
+% \end{corollary}
+
+% \begin{proposition}
+% I'm a proposition.
+% \end{proposition}
+
+% \begin{remark}
+% I'm a remark. 
+% \end{remark}
+
+% \begin{definition}
+% I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. I'm a definition. 
+% \end{definition}
+
+% \begin{example}
+% I'm an example.
+% \end{example}
+
+
+% \section[Optional table of contents heading]{Section with\\ linebreaks in\\the
+% name}
+
+
+% \Blindtext[2]
 
 
 

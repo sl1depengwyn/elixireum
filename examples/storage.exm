@@ -5,8 +5,11 @@ defmodule ETH.StorageA do
   alias Blockchain.EVM, as: BlockchainEVM
   alias Blockchain.Types
 
+  @event_name [event_inputs: []]
   @int_test [type: Types.Int256.t()]
   @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
+
+  Blockchain.emit_event(@event_name, hjj: 678, jk: 678)
 
   @spec increment_mapping(Types.Int256.t(), Types.Int256.t(), Types.Int256.t()) :: Types.Int256.t()
   def increment_mapping(a, b, c) do
