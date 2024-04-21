@@ -1,7 +1,7 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-This chapter provides an introduction 
+This chapter serves as an introduction to the Ethereum ecosystem, highlighting the platform's widespread popularity and its pivotal role in the crypto community. It includes a description of Layer 2 blockchains, which have been developed to address the challenges of scalability and cost associated with Ethereum. Also this chapter provides a rationale to create a new language for smart contract development and states the goal and expected result of the thesis.
 
 % 1. ethereum overview
 %   - a popular blockhain platform created by Buterin in +-2016 with a big community of developers and crypto enthusiasts (link to some researches to show it's actuality and popularity), mb show actuality via daily market cap and other finance indicators.
@@ -27,36 +27,30 @@ Ethereum is especially known for supporting decentralized applications (dApps) a
 Solidity is the main programming language used on Ethereum, chosen for more than 99\% of all smart contracts[]. Vyper is the most popular alternative, however it shares a tiny part of the market. So, we can say that scope of programming languages that can be used to develop decentralized applications is limited.
 
 \subsection{Importance of Writing Effective Smart Contracts}
-Using smart contracts on Ethereum costs money, known as "gas fees," which users pay for each action a contract performs. These costs make it important to write efficient smart contracts to reduce expenses and improve performance.
+Using smart contracts on Ethereum costs money, known as "gas fees" which users pay for each action a contract performs. These costs make it important to write efficient smart contracts to reduce expenses and improve performance.
 
 \subsection{The Rise of Layer 2 Rollups}
 With the increasing popularity and widespread adoption of Ethereum, the price of its native coin, ETH, has surged significantly. As the cost of ETH rises, even simple transactions like transferring coins can become prohibitively expensive, sometimes costing up to \$100 per transaction. Such high costs restrict the practical usability of the blockchain. Consequently, rollup blockchains have emerged to address these challenges. The concept behind rollup solutions can be described as a cheap blockchain (L2) on top of expensive blockchain (L1). L2 chain performs execution of hundreds of transactions and then stores the resulting state changes in the L1. Multiple operations conducted on the L2 blockchain are consolidated into a single transaction on the underlying (L1) blockchain. The fact that all the changes eventually is stored in L1 blockchain enables the L2 chain to retain all L1 blockchain characteristics such as immutability and decentralization, while significantly reducing gas costs and increasing throughput. It lets developers focus more on features and security, changing how dApps are made and used.
 
 
-\section{Demand of a new language}
+\section{Demand for a New Language}
 
-1. it can be said that there is only one language for dapp development
-2. this language is imperative 
-3. it lacks feauteres like floats and smth
-4. it has ... learning curve (сложно вкатиться)
-5. functional alternative with dynamic typing built on the top of more or less popular language is great opportunity for web3
+The development of dApps on Ethereum currently relies predominantly on one programming language Solidity. This language is imperative in nature. Monolingualism and monopardigmism potentially limiting developers' flexibility and creativity. Additionally, Solidity have no support for certain features such as floating-point numbers, which are crucial for handling decimal values in calculations, thereby restricting its utility for a range of applications. Moreover, the high entry threshold associated with this language can deter newcomers from entering the field. It often requires a substantial investment of time and effort to become proficient, which can slow down the development process.
+
+Given these constraints, there is a significant opportunity for a new language. A functional alternative, particularly one that supports dynamic typing and builds upon the foundations of a widely recognized programming language, could dramatically enhance the accessibility and efficiency of dApp development. Such a language would not only make it easier for new developers to adopt but also open up new possibilities for innovation in the Web3 space. This potential makes the development of a new language a promising avenue for expanding the capabilities and reach of Ethereum's programming environment.
 
 \section{Goal of the Thesis}
-
 
 \subsection{Research Aims and Hypotheses}
 Our goal is to create a new smart contract language and bring the new paradigm to EVM. Investigate how it works, and how functional programming suits EVM. This way we want to achieve more flexible choice of the language for smart contract development.
 Our hypothesis is that functional paradigm is suitable for smart contract writing, also it could reduce gas consumption in comparison with imperative programming language like Solidity. Also we assume that functional features for example pattern matching will simplify contracts development.
-
-\subsection{Introduction of Elixireum}
-With the current languages available, there is a need for more flexible and secure options. Elixireum, a new proposed language for Ethereum, seeks to solve certain issues such as security risks, inefficient gas use, and making development easier. This section will talk about why Elixireum is being developed and the specific problems it is meant to solve within the Ethereum ecosystem.
 
 \subsection{Expected Results}
 The thesis will assess ability of Elixireum to cut gas costs, enhance security, and offer a more straightforward programming environment. The expected results include a comparison with existing languages, potential challenges in adoption.
 
 \section{Thesis overview}
 
-
+This chapter overviews the thesis. Chapter 2 Literature Review contains introduction to an Ethereum and review of the existing related literature. Chapter 3 Methodology includes a theoretical description of approaches which was used during implementation phase. Chapter 4 Implementation provides a detailed description of the Elixireum implementation. Chapter 5 Results and Discussion shows the result we achieved and compare the Elixireum with other languages. Chapter 6 Conclusion concludes the research, states the limitations and future work scope.
 
 % \chaptermark{Optional running chapter heading}
 % \section{Spacing \& Type}
