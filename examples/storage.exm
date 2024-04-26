@@ -14,6 +14,11 @@ defmodule ETH.StorageA do
     ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
   end
 
+  @spec abc(Types.Int256.t()) :: Types.Int256.t()
+  def abc(num) do
+    num + (-10)
+  end
+
   # Blockchain.emit_event(@event_name, hjj: 678, jk: 678)
 
   # @spec increment_mapping(Types.Int256.t(), Types.Int256.t(), Types.Int256.t()) :: Types.Int256.t()

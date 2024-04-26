@@ -952,13 +952,13 @@ defmodule Elixireum.Compiler do
             %YulNode{elixir_initial: {:<<>>, _, [%YulNode{value: address}]}} = yul_node,
             %YulNode{elixir_initial: []}
           ]} = node,
-         acc
+         %CompilerState{uniqueness_provider: uniqueness_provider} = state
        ) do
     dbg()
 
     case Address.load(address) do
       {:ok, hash} ->
-        var_name = "address#{acc.uniqueness_provider}$"
+        var_name = "address#{state.uniqueness_provider}$"
 
         {%YulNode{
            value: hash,
@@ -973,7 +973,7 @@ defmodule Elixireum.Compiler do
            return_values_count: 1,
            elixir_initial: node
          }
-         |> dbg(), acc}
+         |> dbg(), %CompilerState{state | uniqueness_provider: uniqueness_provider + 1}}
 
       :error ->
         raise "Address hash is invalid"
@@ -1017,7 +1017,7 @@ defmodule Elixireum.Compiler do
            meta: meta,
            elixir_initial: node,
            return_values_count: 1
-         }, acc}
+         }, %CompilerState{acc | uniqueness_provider: uniqueness_provider + 1}}
 
       library_fun when is_function(library_fun, length(args) + 2) ->
         {yul_node, state} = apply(library_fun, args ++ [acc, node])
@@ -1056,25 +1056,28 @@ defmodule Elixireum.Compiler do
      }, state}
   end
 
-  defp expand_expression(other, %CompilerState{offset: offset} = state) do
+  defp expand_expression(other, %CompilerState{} = state) do
     dbg(other)
+
+    var_name = "var#{state.uniqueness_provider}$"
 
     definition =
       """
-      mstore8(add(#{offset}, offset$), #{Type.elixir_to_encoded_type(other)})
-      mstore(add(#{offset + 1}, offset$), shl(#{8 * (32 - Type.elixir_to_size(other))}, #{other}))
+      let #{var_name} := offset$
+      mstore8(offset$, #{Type.elixir_to_encoded_type(other)})
+      offset$ := add(offset$, 1)
+      mstore(offset$, shl(#{8 * (32 - Type.elixir_to_size(other))}, #{other}))
+      offset$ := add(offset$, #{Type.elixir_to_size(other)})
       """
-
-    usage = "add(#{offset}, offset$)"
 
     {%YulNode{
        yul_snippet_definition: definition,
-       yul_snippet_usage: usage,
+       yul_snippet_usage: var_name,
        meta: nil,
        elixir_initial: other,
        return_values_count: 1,
        value: other
-     }, %CompilerState{state | offset: offset + Type.elixir_to_size(other) + 1}}
+     }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
   defp prepare_aliases(aliases, [head | tail]) do
