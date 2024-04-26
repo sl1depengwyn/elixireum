@@ -102,10 +102,21 @@ defmodule Elixireum.Compiler do
   end
 
   defp generate_deployment(%Function{typespec: %Typespec{return: nil}} = constructor, contract) do
-    {extraction, usage} = typed_function_to_arguments(constructor, "datasize(\"runtime\")")
+    {extraction, usage} =
+      typed_function_to_arguments(
+        constructor,
+        "0",
+        "sub(codesize(), datasize(\"contract\"))",
+        "mload"
+      )
 
     """
     {
+      let programSize := datasize("contract")
+      let argSize := sub(codesize(), programSize)
+
+      codecopy(0, programSize, argSize)
+
       #{extraction}
       let _$ := #{constructor.name}(#{usage})
       let code_offset$ := msize()
@@ -128,7 +139,7 @@ defmodule Elixireum.Compiler do
     switch method_id
     #{for function <- functions do
       <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower)
-      {extraction, usage} = typed_function_to_arguments(function, 4, 0)
+      {extraction, usage} = typed_function_to_arguments(function, 4, 0, "calldataload")
       """
       case 0x#{method_id} {
         #{extraction}
@@ -369,7 +380,7 @@ defmodule Elixireum.Compiler do
     size
   end
 
-  defp typed_function_to_arguments(function, calldata_offset, memory_offset) do
+  defp typed_function_to_arguments(function, calldata_offset, memory_offset, calldata_load_fn) do
     functions_extraction =
       function.args
       |> Enum.zip(function.typespec.args)
@@ -379,7 +390,7 @@ defmodule Elixireum.Compiler do
         let init_calldata_offset$ := calldata_offset$
         let memory_offset$ := #{memory_offset}
         """,
-        &do_typed_function_to_arguments/2
+        &do_typed_function_to_arguments(&1, &2, calldata_load_fn)
       )
 
     {functions_extraction, function.args |> Enum.join(",")}
@@ -387,12 +398,13 @@ defmodule Elixireum.Compiler do
 
   defp do_typed_function_to_arguments(
          {arg_name, %Type{} = type},
-         yul
+         yul,
+         calldata_load_fn
        ) do
     yul <>
       """
         let #{arg_name} := memory_offset$
-        #{copy_type_from_calldata(to_string(arg_name), type, "calldata_offset$", "init_calldata_offset$")}
+        #{copy_type_from_calldata(to_string(arg_name), type, calldata_load_fn, "calldata_offset$", "init_calldata_offset$")}
       """
   end
 
@@ -403,6 +415,7 @@ defmodule Elixireum.Compiler do
            components: components,
            size: size
          } = type,
+         calldata_load_fn,
          calldata_var,
          init_calldata_var
        ) do
@@ -417,7 +430,7 @@ defmodule Elixireum.Compiler do
 
     #{if size == :dynamic do
       """
-      let #{tail_offset_var_name} := add(#{init_calldata_var}, calldataload(#{calldata_var}))
+      let #{tail_offset_var_name} := add(#{init_calldata_var}, #{calldata_load_fn}(#{calldata_var}))
       """
     else
       """
@@ -428,7 +441,7 @@ defmodule Elixireum.Compiler do
     let #{init_tail_offset_var_name} := #{tail_offset_var_name}
 
     #{for {component, index} <- Enum.with_index(components) do
-      copy_type_from_calldata(arg_name <> "#{index}", component, tail_offset_var_name, init_tail_offset_var_name)
+      copy_type_from_calldata(arg_name <> "#{index}", component, calldata_load_fn, tail_offset_var_name, init_tail_offset_var_name)
     end}
     """
   end
@@ -441,6 +454,7 @@ defmodule Elixireum.Compiler do
            components: [components],
            size: :dynamic
          } = type,
+         calldata_load_fn,
          calldata_var,
          init_calldata_var
        ) do
@@ -453,11 +467,11 @@ defmodule Elixireum.Compiler do
     mstore8(memory_offset$, #{type.encoded_type})
     memory_offset$ := add(memory_offset$, 1)
 
-    let #{tail_offset_var_name} := add(#{init_calldata_var}, calldataload(#{calldata_var}))
+    let #{tail_offset_var_name} := add(#{init_calldata_var}, #{calldata_load_fn}(#{calldata_var}))
 
     #{case items_count do
       :dynamic -> """
-        let #{list_length_var_name} := calldataload(#{tail_offset_var_name})
+        let #{list_length_var_name} := #{calldata_load_fn}(#{tail_offset_var_name})
         #{tail_offset_var_name} := add(#{tail_offset_var_name}, 32)
         """
       _ -> """
@@ -471,7 +485,7 @@ defmodule Elixireum.Compiler do
     let #{init_tail_offset_var_name} := #{tail_offset_var_name}
 
     for { let #{i} := 0 } lt(#{i}, #{list_length_var_name}) { #{i} := add(#{i}, 1) } {
-      #{copy_type_from_calldata(arg_name, components, tail_offset_var_name, init_tail_offset_var_name)}
+      #{copy_type_from_calldata(arg_name, components, calldata_load_fn, tail_offset_var_name, init_tail_offset_var_name)}
     }
 
     #{calldata_var} := add(#{calldata_var}, 32)
@@ -481,6 +495,7 @@ defmodule Elixireum.Compiler do
   defp copy_type_from_calldata(
          arg_name,
          %Type{encoded_type: 103, items_count: arr_size, components: [components]} = type,
+         calldata_load_fn,
          calldata_var,
          _init_calldata_var
        ) do
@@ -498,7 +513,7 @@ defmodule Elixireum.Compiler do
     let #{init_calldata_var} := #{calldata_var}
 
     for { let #{i} := 0 } lt(#{i}, #{arr_size}) { #{i} := add(#{i}, 1) } {
-      #{copy_type_from_calldata(arg_name, components, calldata_var, init_calldata_var)}
+      #{copy_type_from_calldata(arg_name, components, calldata_load_fn, calldata_var, init_calldata_var)}
     }
     """
   end
@@ -506,13 +521,14 @@ defmodule Elixireum.Compiler do
   defp copy_type_from_calldata(
          _arg_name,
          %Type{} = type,
+         calldata_load_fn,
          calldata_var,
          _init_calldata_var
        ) do
     """
     mstore8(memory_offset$, #{type.encoded_type})
     memory_offset$ := add(memory_offset$, 1)
-    mstore(memory_offset$, shl(#{8 * (32 - type.size)}, calldataload(#{calldata_var})))
+    mstore(memory_offset$, shl(#{8 * (32 - type.size)}, #{calldata_load_fn}(#{calldata_var})))
     memory_offset$ := add(memory_offset$, #{type.size})
     #{calldata_var} := add(#{calldata_var}, 32)
     """
