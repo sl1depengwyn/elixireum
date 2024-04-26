@@ -9,6 +9,11 @@ defmodule ETH.StorageA do
   @int_test [type: Types.Int256.t()]
   @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
 
+  @spec constructor(Types.Int256.t()) :: nil
+  def constructor(a) do
+    Storage.store(@int_test, a)
+  end
+
   @spec test_address() :: Types.Address.t()
   def test_address() do
     ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
@@ -16,7 +21,17 @@ defmodule ETH.StorageA do
 
   @spec abc(Types.Int256.t()) :: Types.Int256.t()
   def abc(num) do
-    num + (-10)
+    10 + num
+  end
+
+  @spec return_origin() :: Types.Address.t()
+  def return_origin() do
+    Blockchain.tx_origin()
+  end
+
+  @spec get_int_test() :: Types.Int256.t()
+  def get_int_test() do
+    Storage.get(@int_test)
   end
 
   # Blockchain.emit_event(@event_name, hjj: 678, jk: 678)

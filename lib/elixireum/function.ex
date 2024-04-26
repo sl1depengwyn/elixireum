@@ -1,4 +1,6 @@
 defmodule Elixireum.Function do
+  alias Elixireum.Typespec
+
   @type t :: %__MODULE__{
           name: atom(),
           typespec: Typespec.t(),

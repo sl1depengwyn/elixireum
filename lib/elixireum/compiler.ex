@@ -73,12 +73,11 @@ defmodule Elixireum.Compiler do
       """
       object "contract" {
         code {
-          datacopy(0, dataoffset("runtime"), datasize("runtime"))
-          return(0, datasize("runtime"))
+          #{generate_deployment(functions_map[:constructor], contract)}
         }
         object "runtime" {
           code {
-            #{generate_selector(Map.values(functions_map))}
+            #{generate_selector(functions_map |> Map.drop([:constructor]) |> Map.values())}
 
             #{generate_functions(Map.values(functions_map) ++ Map.values(private_functions_map), contract)}
           }
@@ -95,6 +94,32 @@ defmodule Elixireum.Compiler do
     end)
   end
 
+  defp generate_deployment(nil, _contract) do
+    """
+    datacopy(0, dataoffset("runtime"), datasize("runtime"))
+    return(0, datasize("runtime"))
+    """
+  end
+
+  defp generate_deployment(%Function{typespec: %Typespec{return: nil}} = constructor, contract) do
+    {extraction, usage} = typed_function_to_arguments(constructor, "datasize(\"runtime\")")
+
+    """
+    {
+      #{extraction}
+      let _$ := #{constructor.name}(#{usage})
+      let code_offset$ := msize()
+      datacopy(code_offset$, dataoffset("runtime"), datasize("runtime"))
+      return(code_offset$, datasize("runtime"))
+    }
+    #{generate_functions([constructor], contract)}
+    """
+  end
+
+  defp generate_deployment(_, _contract) do
+    raise "Constructor should not return anything"
+  end
+
   # TODO factor out elixir to yul code mapping
   # 224 / 8 = 28 = 0xe0
   defp generate_selector(functions) do
@@ -103,7 +128,7 @@ defmodule Elixireum.Compiler do
     switch method_id
     #{for function <- functions do
       <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower)
-      {extraction, usage} = typed_function_to_arguments(function)
+      {extraction, usage} = typed_function_to_arguments(function, 4, 0)
       """
       case 0x#{method_id} {
         #{extraction}
@@ -344,15 +369,15 @@ defmodule Elixireum.Compiler do
     size
   end
 
-  defp typed_function_to_arguments(function) do
+  defp typed_function_to_arguments(function, calldata_offset, memory_offset) do
     functions_extraction =
       function.args
       |> Enum.zip(function.typespec.args)
       |> Enum.reduce(
         """
-        let calldata_offset$ := 4
+        let calldata_offset$ := #{calldata_offset}
         let init_calldata_offset$ := calldata_offset$
-        let memory_offset$ := 0
+        let memory_offset$ := #{memory_offset}
         """,
         &do_typed_function_to_arguments/2
       )
@@ -822,7 +847,7 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :store}}, meta,
+         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :store}}, _meta,
           [
             %Elixireum.AuxiliaryNode{
               type: :storage_variable,
@@ -833,25 +858,11 @@ defmodule Elixireum.Compiler do
           ]} = node,
          acc
        ) do
-    {%{
-       yul_snippet_usage: yul_snippet,
-       return_values_count: return_values_count,
-       yul_snippet_definition: yul_snippet_definition
-     },
-     acc} =
-      Storage.store(variable, access_keys, yul_node, acc)
-
-    {%YulNode{
-       yul_snippet_definition: yul_snippet_definition,
-       yul_snippet_usage: yul_snippet,
-       meta: meta,
-       return_values_count: return_values_count,
-       elixir_initial: node
-     }, acc}
+    Storage.store(variable, access_keys, yul_node, acc, node)
   end
 
   defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :get}}, meta,
+         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :get}}, _meta,
           [
             %Elixireum.AuxiliaryNode{
               type: :storage_variable,
@@ -861,23 +872,7 @@ defmodule Elixireum.Compiler do
           ]} = node,
          acc
        ) do
-    dbg(node)
-
-    {%{
-       yul_snippet_usage: yul_snippet,
-       return_values_count: return_values_count,
-       yul_snippet_definition: yul_snippet_definition
-     },
-     acc} =
-      Storage.get(variable, access_keys, acc)
-
-    {%YulNode{
-       yul_snippet_definition: yul_snippet_definition,
-       yul_snippet_usage: yul_snippet,
-       meta: meta,
-       return_values_count: return_values_count,
-       elixir_initial: node
-     }, acc}
+    Storage.get(variable, access_keys, acc, node)
   end
 
   defp expand_expression(
@@ -889,6 +884,14 @@ defmodule Elixireum.Compiler do
        storage_variable
        | access_keys: [index | storage_variable.access_keys]
      }, acc}
+  end
+
+  defp expand_expression(
+         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain], :tx_origin}}, _meta, []} =
+           node,
+         acc
+       ) do
+    Blockchain.tx_origin(node, acc)
   end
 
   defp expand_expression(

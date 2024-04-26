@@ -6,7 +6,8 @@ defmodule Blockchain.Storage do
   def get(
         %Variable{} = variable,
         access_keys,
-        %CompilerState{uniqueness_provider: uniqueness_provider} = state
+        %CompilerState{uniqueness_provider: uniqueness_provider} = state,
+        node
       ) do
     # somehow check that variable + access_keys points to a single word in storage, i.e. if variable is string[][] access keys must be [uint, uint]
 
@@ -28,12 +29,18 @@ defmodule Blockchain.Storage do
     {%YulNode{
        yul_snippet_usage: var_name,
        return_values_count: 1,
-       elixir_initial: nil,
+       elixir_initial: node,
        yul_snippet_definition: definition
      }, %CompilerState{state | uniqueness_provider: uniqueness_provider + 1}}
   end
 
-  def store(%Variable{} = variable, access_keys, %YulNode{} = value, %CompilerState{} = state) do
+  def store(
+        %Variable{} = variable,
+        access_keys,
+        %YulNode{} = value,
+        %CompilerState{} = state,
+        node
+      ) do
     {definition, slot, keys_definition} = keccak_from_var_and_access_keys(variable, access_keys)
 
     definition =
@@ -44,7 +51,7 @@ defmodule Blockchain.Storage do
       """
 
     {%YulNode{
-       elixir_initial: value.elixir_initial,
+       elixir_initial: node,
        meta: value.meta,
        yul_snippet_definition: definition,
        yul_snippet_usage:
