@@ -1,4 +1,6 @@
 defmodule Blockchain.Type do
+  alias Blockchain.Address
+
   @type t :: %__MODULE__{
           size: non_neg_integer() | :dynamic,
           abi_name: String.t(),
@@ -11,6 +13,7 @@ defmodule Blockchain.Type do
 
   def elixir_to_encoded_type(t) do
     case t do
+      %Address{} -> 68
       t when is_binary(t) -> 1
       t when is_boolean(t) -> 2
       # t when is_float(t) -> 3
@@ -21,6 +24,7 @@ defmodule Blockchain.Type do
   end
 
   def elixir_to_size(t) when is_boolean(t), do: 1
+  def elixir_to_size(%Address{}), do: 20
   def elixir_to_size(_t), do: 32
 
   @spec from_module([module()], [atom() | tuple()]) :: {:ok, t()} | {:error, String.t()}
@@ -56,8 +60,14 @@ defmodule Blockchain.Type do
            String.split(type_with_size, splitter, include_captures: true, trim: true) do
       cond do
         not is_nil(simple_type_sizes[type_name]) and type_size == [] ->
+          abi_name = String.downcase(type_name)
+
           {:ok,
-           %__MODULE__{size: simple_type_sizes[type_name], abi_name: String.downcase(type_name)}}
+           %__MODULE__{
+             size: simple_type_sizes[type_name],
+             abi_name: String.downcase(type_name),
+             encoded_type: abi_name_to_encoded_type(abi_name)
+           }}
 
         type_name in ~w(UInt Int) and length(type_size) == 1 ->
           int_type(type_name, List.first(type_size))

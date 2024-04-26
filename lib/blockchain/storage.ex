@@ -6,13 +6,13 @@ defmodule Blockchain.Storage do
   def get(
         %Variable{} = variable,
         access_keys,
-        %CompilerState{function_calls_counter: function_calls_counter} = state
+        %CompilerState{uniqueness_provider: uniqueness_provider} = state
       ) do
     # somehow check that variable + access_keys points to a single word in storage, i.e. if variable is string[][] access keys must be [uint, uint]
 
     {definition, slot, keys_definition} = keccak_from_var_and_access_keys(variable, access_keys)
 
-    var_name = "$storage_get$#{function_calls_counter}$"
+    var_name = "$storage_get$#{uniqueness_provider}$"
 
     definition =
       """
@@ -20,7 +20,7 @@ defmodule Blockchain.Storage do
       #{definition}
       let #{var_name} := offset$
       mstore8(offset$, #{variable.type.encoded_type})
-      mstore(add(1, offset$), sload(#{slot}))
+      mstore(add(1, offset$), shr(#{8 * (32 - variable.type.size)}, sload(#{slot})))
       //offset$ := add(offset$, 1)
       offset$ := add(offset$, #{variable.type.size + 1})
       """
@@ -30,7 +30,7 @@ defmodule Blockchain.Storage do
        return_values_count: 1,
        elixir_initial: nil,
        yul_snippet_definition: definition
-     }, %CompilerState{state | function_calls_counter: function_calls_counter + 1}}
+     }, %CompilerState{state | uniqueness_provider: uniqueness_provider + 1}}
   end
 
   def store(%Variable{} = variable, access_keys, %YulNode{} = value, %CompilerState{} = state) do
@@ -48,18 +48,9 @@ defmodule Blockchain.Storage do
        meta: value.meta,
        yul_snippet_definition: definition,
        yul_snippet_usage:
-         "sstore(#{slot}, take_#{variable.type.size}_bytes$(mload(add(#{value.yul_snippet_usage}, 1))))",
+         "sstore(#{slot}, shl(#{8 * (32 - variable.type.size)}, mload(add(#{value.yul_snippet_usage}, 1))))",
        return_values_count: 0
-     },
-     %CompilerState{
-       state
-       | used_standard_functions:
-           Map.put_new(
-             state.used_standard_functions,
-             :"take_#{variable.type.size}_bytes$",
-             apply(Elixireum.Yul.Utils, String.to_atom("take_#{variable.type.size}_bytes"), [])
-           )
-     }}
+     }, state}
   end
 
   defp keccak_from_var_and_access_keys(variable, access_keys) do

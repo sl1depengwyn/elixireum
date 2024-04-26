@@ -5,26 +5,31 @@ defmodule ETH.StorageA do
   alias Blockchain.EVM, as: BlockchainEVM
   alias Blockchain.Types
 
-  @event_name [event_inputs: []]
+  # @event_name [event_inputs: []]
   @int_test [type: Types.Int256.t()]
   @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
 
-  Blockchain.emit_event(@event_name, hjj: 678, jk: 678)
-
-  @spec increment_mapping(Types.Int256.t(), Types.Int256.t(), Types.Int256.t()) :: Types.Int256.t()
-  def increment_mapping(a, b, c) do
-    Storage.store(@mapping_test[a][b], Storage.get(@mapping_test[a][b]) + c)
-
-    Storage.get(@mapping_test[a][b])
+  @spec test_address() :: Types.Address.t()
+  def test_address() do
+    ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
   end
 
-  @spec increment_int(Types.Int256.t()) :: Types.Int256.t()
-  def increment_int(a) do
-    # c = Storage.get(@int_test) + 1
-    Storage.store(@int_test, a)
+  # Blockchain.emit_event(@event_name, hjj: 678, jk: 678)
 
-    Storage.get(@int_test)
-  end
+  # @spec increment_mapping(Types.Int256.t(), Types.Int256.t(), Types.Int256.t()) :: Types.Int256.t()
+  # def increment_mapping(a, b, c) do
+  #   Storage.store(@mapping_test[a][b], Storage.get(@mapping_test[a][b]) + c)
+
+  #   Storage.get(@mapping_test[a][b])
+  # end
+
+  # @spec increment_int(Types.Int256.t()) :: Types.Int256.t()
+  # def increment_int(a) do
+  #   # c = Storage.get(@int_test) + 1
+  #   Storage.store(@int_test, a)
+
+  #   Storage.get(@int_test)
+  # end
 
   # @spec store(Types.Int256.t(), Types.Int256.t()) :: nil
   # def store(num, fake_num) do

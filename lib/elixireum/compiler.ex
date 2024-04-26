@@ -42,8 +42,8 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-           #  {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
-           {_, ast} <- :elixir_parser.parse(tokens),
+           {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
+           #  {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
@@ -96,10 +96,10 @@ defmodule Elixireum.Compiler do
   end
 
   # TODO factor out elixir to yul code mapping
-
+  # 224 / 8 = 28 = 0xe0
   defp generate_selector(functions) do
     """
-    let method_id := shr(0xe0, calldataload(0x0))
+    let method_id := shr(224, calldataload(0x0))
     switch method_id
     #{for function <- functions do
       <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower)
@@ -142,7 +142,7 @@ defmodule Elixireum.Compiler do
     let where_to_store_head$ := processed_return_value$
     let where_to_store_head_init$ := where_to_store_head$
     #{do_generate_return(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
-    processed_return_value$ := add(processed_return_value$, #{type.size})
+    processed_return_value$ := add(processed_return_value$, #{max(32, type.size)})
     return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
     """
   end
@@ -314,8 +314,8 @@ defmodule Elixireum.Compiler do
       }
 
     return_value$ := add(return_value$, 1)
-    mstore(#{where_to_store_head_var_name}, mload(return_value$))
-    return_value$ := add(return_value$, 32)
+    mstore(#{where_to_store_head_var_name}, shr(#{8 * (32 - type.size)}, mload(return_value$)))
+    return_value$ := add(return_value$, #{type.size})
     #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
     """
   end
@@ -375,7 +375,7 @@ defmodule Elixireum.Compiler do
            encoded_type: 3,
            components: components,
            size: size
-         },
+         } = type,
          calldata_var,
          init_calldata_var
        ) do
@@ -383,7 +383,7 @@ defmodule Elixireum.Compiler do
     init_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}_init"
 
     """
-    mstore8(memory_offset$, 3)
+    mstore8(memory_offset$, #{type.encoded_type})
     memory_offset$ := add(memory_offset$, 1)
     mstore(memory_offset$, #{Enum.count(components)})
     memory_offset$ := add(memory_offset$, 32)
@@ -485,7 +485,7 @@ defmodule Elixireum.Compiler do
     """
     mstore8(memory_offset$, #{type.encoded_type})
     memory_offset$ := add(memory_offset$, 1)
-    mstore(memory_offset$, calldataload(#{calldata_var}))
+    mstore(memory_offset$, shl(#{8 * (32 - type.size)}, calldataload(#{calldata_var})))
     memory_offset$ := add(memory_offset$, #{type.size})
     #{calldata_var} := add(#{calldata_var}, 32)
     """
@@ -938,12 +938,46 @@ defmodule Elixireum.Compiler do
     {children, acc}
   end
 
-  defp expand_expression({:sigil_ADDRESS, [delimiter: "("], [yul_node, _]} = node, acc) do
-    {%YulNode{
-       value: Address.load(Enum.at(elem(yul_node.elixir_initial, 0), 0)),
-       return_values_count: 1,
-       elixir_initial: node
-     }, acc}
+  #   defp expand_expression(
+  #     {:sigil_ADDRESS, meta,
+  #  _} = node,
+  #     acc
+  #   ) do
+  # dbg()
+  # end
+
+  defp expand_expression(
+         {:sigil_ADDRESS, meta,
+          [
+            %YulNode{elixir_initial: {:<<>>, _, [%YulNode{value: address}]}} = yul_node,
+            %YulNode{elixir_initial: []}
+          ]} = node,
+         acc
+       ) do
+    dbg()
+
+    case Address.load(address) do
+      {:ok, hash} ->
+        var_name = "address#{acc.uniqueness_provider}$"
+
+        {%YulNode{
+           value: hash,
+           yul_snippet_definition: """
+           let #{var_name} := offset$
+           mstore8(offset$, #{Type.elixir_to_encoded_type(hash)})
+           offset$ := add(offset$, 1)
+           mstore(offset$, shl(#{8 * (32 - Type.elixir_to_size(hash))}, #{hash.hash}))
+           offset$ := add(offset$, #{Type.elixir_to_size(hash)})
+           """,
+           yul_snippet_usage: var_name,
+           return_values_count: 1,
+           elixir_initial: node
+         }
+         |> dbg(), acc}
+
+      :error ->
+        raise "Address hash is invalid"
+    end
   end
 
   # variable
@@ -960,10 +994,10 @@ defmodule Elixireum.Compiler do
 
   defp expand_expression(
          {function_name, meta, args} = node,
-         %CompilerState{function_calls_counter: function_calls_counter} = acc
+         %CompilerState{uniqueness_provider: uniqueness_provider} = acc
        )
        when is_atom(function_name) and is_list(args) do
-    result_var_name = "$result$#{function_name}$#{function_calls_counter}"
+    result_var_name = "$result$#{function_name}$#{uniqueness_provider}"
 
     args_definition =
       """
@@ -1028,7 +1062,7 @@ defmodule Elixireum.Compiler do
     definition =
       """
       mstore8(add(#{offset}, offset$), #{Type.elixir_to_encoded_type(other)})
-      mstore(add(#{offset + 1}, offset$), #{to_string(other)})
+      mstore(add(#{offset + 1}, offset$), shl(#{8 * (32 - Type.elixir_to_size(other))}, #{other}))
       """
 
     usage = "add(#{offset}, offset$)"

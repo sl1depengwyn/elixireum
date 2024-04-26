@@ -7,7 +7,7 @@ defmodule Elixireum.Library.Arithmetic do
         %YulNode{} = b,
         %CompilerState{
           used_standard_functions: used_standard_functions,
-          function_calls_counter: function_calls_counter
+          uniqueness_provider: uniqueness_provider
         } = state,
         ast
       ) do
@@ -17,7 +17,7 @@ defmodule Elixireum.Library.Arithmetic do
         _ -> nil
       end
 
-    var_name = "add$#{function_calls_counter}"
+    var_name = "add$#{uniqueness_provider}"
 
     {%YulNode{
        yul_snippet_definition: """
@@ -32,7 +32,7 @@ defmodule Elixireum.Library.Arithmetic do
      %CompilerState{
        state
        | used_standard_functions: Map.put_new(used_standard_functions, :"add$", Arithmetic.add()),
-         function_calls_counter: function_calls_counter + 1
+         uniqueness_provider: uniqueness_provider + 1
      }}
   end
 end
