@@ -127,8 +127,12 @@ defmodule Blockchain.Type do
       {int_size, ""} when int_size > 0 and int_size <= 32 ->
         abi_name = "bytes#{size}"
 
-        {:ok, %__MODULE__{size: int_size, abi_name: abi_name},
-         encoded_type: abi_name_to_encoded_type(abi_name)}
+        {:ok,
+         %__MODULE__{
+           size: int_size,
+           abi_name: abi_name,
+           encoded_type: abi_name_to_encoded_type(abi_name)
+         }}
 
       _ ->
         {:error, "invalid size for bytes type: #{size}"}

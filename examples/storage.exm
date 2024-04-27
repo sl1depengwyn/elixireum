@@ -9,6 +9,7 @@ defmodule ETH.StorageA do
   @int_test [type: Types.Int256.t()]
   @address [type: Types.Address.t()]
   @owner [type: Types.Address.t()]
+  @contract_symbol [type: Types.String.t()]
   @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
 
   # @spec constructor(Types.Int256.t(), Types.Address.t()) :: nil
@@ -17,6 +18,31 @@ defmodule ETH.StorageA do
   #   Storage.store(@int_test, a)
   #   Storage.store(@address, addr)
   # end
+
+  @spec qwe() :: Types.String.t()
+  def qwe() do
+    "return 123123123123123123"
+  end
+
+  @spec store_name(Types.String.t()) :: nil
+  def store_name(contract_symbol) do
+    Storage.store(@contract_symbol, contract_symbol)
+  end
+
+  @spec retrieve_name() :: Types.String.t()
+  def retrieve_name() do
+    Storage.get(@contract_symbol)
+  end
+
+  @spec test_bytes15(Types.Bytes15.t) :: Types.Bytes15.t()
+  def test_bytes15(a) do
+    a
+  end
+
+  @spec test_string(Types.String.t) :: Types.String.t()
+  def test_string(a) do
+    a
+  end
 
   @spec test_address() :: Types.Address.t()
   def test_address() do

@@ -4,6 +4,53 @@ defmodule Blockchain.Storage do
   alias Elixireum.Library.Utils
 
   def get(
+        %Variable{type: %Type{encoded_type: 1}} = variable,
+        [] = _access_keys,
+        %CompilerState{uniqueness_provider: uniqueness_provider} = state,
+        node
+      ) do
+    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [])
+
+    slot_end_var_name = "storage_i_#{state.uniqueness_provider}$end"
+    size_var_name = "str_size$#{state.uniqueness_provider}$"
+    slot_var_name = "slot_storage#{state.uniqueness_provider}$"
+
+    var_name = "$storage_get$#{uniqueness_provider}$"
+
+    definition =
+      """
+      let #{var_name} := offset$
+
+      mstore8(offset$, #{variable.type.encoded_type})
+      offset$ := add(offset$, 1)
+
+      let #{slot_var_name} := #{slot}
+      let #{size_var_name} := sload(#{slot_var_name})
+      #{slot_var_name} := add(#{slot_var_name}, 1)
+      let #{slot_end_var_name} := add(#{slot_var_name}, add(1, div(sub(#{size_var_name}, 1), 32)))
+
+      mstore(offset$, #{size_var_name})
+      offset$ := add(offset$, 32)
+
+       for { } lt(#{slot_var_name}, #{slot_end_var_name})
+       {
+         offset$ := add(offset$, 32)
+         #{slot_var_name} := add(#{slot_var_name}, 1)
+       }
+       {
+        mstore(offset$, sload(#{slot_var_name}))
+       }
+      """
+
+    {%YulNode{
+       elixir_initial: node,
+       yul_snippet_definition: definition,
+       yul_snippet_usage: var_name,
+       return_values_count: 1
+     }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
+  end
+
+  def get(
         %Variable{} = variable,
         access_keys,
         %CompilerState{uniqueness_provider: uniqueness_provider} = state,
@@ -32,6 +79,59 @@ defmodule Blockchain.Storage do
        elixir_initial: node,
        yul_snippet_definition: definition
      }, %CompilerState{state | uniqueness_provider: uniqueness_provider + 1}}
+  end
+
+  # String case
+  def store(
+        %Variable{type: %Type{encoded_type: 1}} = variable,
+        [] = _access_keys,
+        %YulNode{} = value,
+        %CompilerState{} = state,
+        node
+      ) do
+    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [])
+
+    i_var_name = "storage_i_#{state.uniqueness_provider}$"
+    i_end_var_name = "storage_i_#{state.uniqueness_provider}$end"
+    size_var_name = "str_size$#{state.uniqueness_provider}$"
+    slot_var_name = "slot_storage#{state.uniqueness_provider}$"
+
+    usage =
+      """
+      let #{i_var_name} := #{value.yul_snippet_usage}
+      switch byte(0, mload(#{i_var_name}))
+      case #{variable.type.encoded_type} {}
+      default {
+        // Return type mismatch
+        revert(0, 0)
+      }
+      #{i_var_name} := add(#{i_var_name}, 1)
+      let #{slot_var_name} := #{slot}
+
+      let #{size_var_name} := mload(#{i_var_name})
+      #{i_var_name} := add(#{i_var_name}, 32)
+      let #{i_end_var_name} := add(#{i_var_name}, #{size_var_name})
+
+      sstore(#{slot_var_name}, #{size_var_name})
+      #{slot_var_name} := add(#{slot_var_name}, 1)
+
+       for { } lt(#{i_var_name}, #{i_end_var_name})
+       {
+         #{i_var_name} := add(#{i_var_name}, 32)
+         #{slot_var_name} := add(#{slot_var_name}, 1)
+       }
+       {
+        sstore(#{slot_var_name}, mload(#{i_var_name}))
+       }
+      """
+
+    {%YulNode{
+       elixir_initial: node,
+       meta: value.meta,
+       yul_snippet_definition: value.yul_snippet_definition,
+       yul_snippet_usage: usage,
+       return_values_count: 0
+     }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
   def store(
