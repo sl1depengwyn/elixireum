@@ -21,7 +21,7 @@ defmodule Blockchain.Storage do
       #{definition}
       let #{var_name} := offset$
       mstore8(offset$, #{variable.type.encoded_type})
-      mstore(add(1, offset$), shr(#{8 * (32 - variable.type.size)}, sload(#{slot})))
+      mstore(add(1, offset$), sload(#{slot}))
       //offset$ := add(offset$, 1)
       offset$ := add(offset$, #{variable.type.size + 1})
       """
@@ -54,8 +54,7 @@ defmodule Blockchain.Storage do
        elixir_initial: node,
        meta: value.meta,
        yul_snippet_definition: definition,
-       yul_snippet_usage:
-         "sstore(#{slot}, shl(#{8 * (32 - variable.type.size)}, mload(add(#{value.yul_snippet_usage}, 1))))",
+       yul_snippet_usage: "sstore(#{slot}, mload(add(#{value.yul_snippet_usage}, 1)))",
        return_values_count: 0
      }, state}
   end

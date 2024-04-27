@@ -9,13 +9,13 @@ defmodule Elixireum.Yul.Arithmetic do
         let a$, a_type$ := load_integer$(a)
         let b$, b_type$ := load_integer$(b)
         b$ := add(a$, b$)
-        let c := a_type$
+        let max_type := a_type$
         if gt(b_type$, a_type$) {
-          c := b_type$
+          max_type := b_type$
         }
         let offset$ := msize()
-        mstore8(offset$, c)
-        mstore(add(offset$, 1), shl(mul(8, sub(32, type_to_byte_size$(c))), b$))
+        mstore8(offset$, max_type)
+        mstore(add(offset$, 1), shl(mul(8, sub(32, type_to_byte_size$(max_type))), b$))
         return_value$ := offset$
       }
       """

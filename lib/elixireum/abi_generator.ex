@@ -11,6 +11,13 @@ defmodule Elixireum.ABIGenerator do
     Enum.map(contract.functions, &generate_abi_for_elementary/1)
   end
 
+  def generate_abi_for_elementary({:constructor = name, %Function{} = function}) do
+    %{
+      type: name,
+      inputs: Enum.zip_with(function.args, function.typespec.args, &arg_to_abi/2)
+    }
+  end
+
   def generate_abi_for_elementary({name, %Function{} = function}) do
     %{
       name: name,
@@ -18,7 +25,8 @@ defmodule Elixireum.ABIGenerator do
       inputs: Enum.zip_with(function.args, function.typespec.args, &arg_to_abi/2),
       outputs:
         (function.typespec.return &&
-           Enum.map([function.typespec.return], &arg_to_abi(:output, &1))) || []
+           Enum.map([function.typespec.return], &arg_to_abi(:output, &1))) || [],
+      stateMutability: :view
     }
   end
 

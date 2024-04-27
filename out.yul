@@ -1,43 +1,40 @@
 object "contract" {
   code {
-    {
-  let programSize := datasize("contract")
-  let argSize := sub(codesize(), programSize)
-
-  codecopy(0, programSize, argSize)
-
-  let calldata_offset$ := 0
-let init_calldata_offset$ := calldata_offset$
-let memory_offset$ := sub(codesize(), datasize("contract"))
-  let a := memory_offset$
-  mstore8(memory_offset$, 67)
-memory_offset$ := add(memory_offset$, 1)
-mstore(memory_offset$, shl(0, mload(calldata_offset$)))
-memory_offset$ := add(memory_offset$, 32)
-calldata_offset$ := add(calldata_offset$, 32)
-
-
-  let _$ := constructor(a)
-  let code_offset$ := msize()
-  datacopy(code_offset$, dataoffset("runtime"), datasize("runtime"))
-  return(code_offset$, datasize("runtime"))
-}
-function constructor(a) -> return_value$ {
-  let offset$ := msize()
-  
-  
-
-
-
-  sstore(0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a, shl(0, mload(add(a, 1))))
-}
-
+    datacopy(0, dataoffset("runtime"), datasize("runtime"))
+return(0, datasize("runtime"))
 
   }
   object "runtime" {
     code {
       let method_id := shr(224, calldataload(0x0))
 switch method_id
+case 0x0ac298dc {
+  let calldata_offset$ := 4
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+
+  let return_value$ := get_owner()
+
+  let processed_return_value$ := msize()
+let processed_return_value_init$ := processed_return_value$
+let where_to_store_head$ := processed_return_value$
+let where_to_store_head_init$ := where_to_store_head$
+switch byte(0, mload(return_value$))
+  case 68 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+
+return_value$ := add(return_value$, 1)
+mstore(where_to_store_head$, shr(96, mload(return_value$)))
+return_value$ := add(return_value$, 20)
+where_to_store_head$ := add(where_to_store_head$, 32)
+
+processed_return_value$ := add(processed_return_value$, 32)
+return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+
+}
 case 0xea54e440 {
   let calldata_offset$ := 4
 let init_calldata_offset$ := calldata_offset$
@@ -153,18 +150,59 @@ processed_return_value$ := add(processed_return_value$, 32)
 return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
 
 }
+case 0x0131222f {
+  let calldata_offset$ := 4
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+
+  let return_value$ := get_address()
+
+  let processed_return_value$ := msize()
+let processed_return_value_init$ := processed_return_value$
+let where_to_store_head$ := processed_return_value$
+let where_to_store_head_init$ := where_to_store_head$
+switch byte(0, mload(return_value$))
+  case 68 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+
+return_value$ := add(return_value$, 1)
+mstore(where_to_store_head$, shr(96, mload(return_value$)))
+return_value$ := add(return_value$, 20)
+where_to_store_head$ := add(where_to_store_head$, 32)
+
+processed_return_value$ := add(processed_return_value$, 32)
+return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+
+}
+case 0x957592d6 {
+  let calldata_offset$ := 4
+let init_calldata_offset$ := calldata_offset$
+let memory_offset$ := 0
+
+  let return_value$ := test_address_storage()
+
+  return(0, 0)
+
+}
 
 default {revert(0, 0)}
 
 
-      function constructor(a) -> return_value$ {
+      function get_owner() -> return_value$ {
   let offset$ := msize()
   
   
 
+let $storage_get$0$ := offset$
+mstore8(offset$, 68)
+mstore(add(1, offset$), sload(0xf2ee15ea639b73fa3db9b34a245bdfa015c260c598b211bf05a1ecc4b3e3b4f2))
+//offset$ := add(offset$, 1)
+offset$ := add(offset$, 21)
 
-
-  sstore(0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a, shl(0, mload(add(a, 1))))
+  return_value$ := $storage_get$0$
 }
 function test_address() -> return_value$ {
   let offset$ := msize()
@@ -210,31 +248,44 @@ function get_int_test() -> return_value$ {
 
 let $storage_get$0$ := offset$
 mstore8(offset$, 67)
-mstore(add(1, offset$), shr(0, sload(0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a)))
+mstore(add(1, offset$), sload(0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a))
 //offset$ := add(offset$, 1)
 offset$ := add(offset$, 33)
 
   return_value$ := $storage_get$0$
 }
-function add$(a, b) -> return_value$ {
-  let a$, a_type$ := load_integer$(a)
-  let b$, b_type$ := load_integer$(b)
-  b$ := add(a$, b$)
-  let c := a_type$
-  if gt(b_type$, a_type$) {
-    c := b_type$
-  }
+function get_address() -> return_value$ {
   let offset$ := msize()
-  mstore8(offset$, c)
-  mstore(add(offset$, 1), shl(mul(8, sub(32, type_to_byte_size$(c))), b$))
-  return_value$ := offset$
-}
+  
+  
 
+let $storage_get$0$ := offset$
+mstore8(offset$, 68)
+mstore(add(1, offset$), sload(0x5fe7f977e71dba2ea1a68e21057beebb9be2ac30c6410aa38d4f3fbe41dcffd2))
+//offset$ := add(offset$, 1)
+offset$ := add(offset$, 21)
+
+  return_value$ := $storage_get$0$
+}
+function test_address_storage() -> return_value$ {
+  let offset$ := msize()
+  
+  let tx_origin$0 := offset$
+mstore8(offset$, 68)
+offset$ := add(offset$, 1)
+mstore(offset$, shl(96, origin()))
+offset$ := add(offset$, 20)
+
+
+
+
+  sstore(0xf2ee15ea639b73fa3db9b34a245bdfa015c260c598b211bf05a1ecc4b3e3b4f2, mload(add(tx_origin$0, 1)))
+}
   function load_integer$(ptr) -> return_value, type {
     type := byte(0, mload(ptr))
     let value := mload(add(ptr, 1))
     let size := type_to_byte_size$(type)
-    return_value := shl(mul(sub(32, size), 8), value)
+    return_value := shr(mul(sub(32, size), 8), value)
   }
 
 function type_to_byte_size$(type) -> size {
@@ -258,6 +309,20 @@ function type_to_byte_size$(type) -> size {
       leave
     }
   }
+}
+
+function add$(a, b) -> return_value$ {
+  let a$, a_type$ := load_integer$(a)
+  let b$, b_type$ := load_integer$(b)
+  b$ := add(a$, b$)
+  let max_type := a_type$
+  if gt(b_type$, a_type$) {
+    max_type := b_type$
+  }
+  let offset$ := msize()
+  mstore8(offset$, max_type)
+  mstore(add(offset$, 1), shl(mul(8, sub(32, type_to_byte_size$(max_type))), b$))
+  return_value$ := offset$
 }
 
     }

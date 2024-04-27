@@ -8,7 +8,7 @@ defmodule Elixireum.Yul.Utils do
           type := byte(0, mload(ptr))
           let value := mload(add(ptr, 1))
           let size := type_to_byte_size$(type)
-          return_value := shl(mul(sub(32, size), 8), value)
+          return_value := shr(mul(sub(32, size), 8), value)
         }
       """,
       deps: %{type_to_byte_size: type_to_byte_size()}
