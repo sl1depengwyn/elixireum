@@ -19,9 +19,9 @@ defmodule ETH.StorageA do
   #   Storage.store(@address, addr)
   # end
 
-  @spec qwe() :: Types.String.t()
+  @spec qwe() :: Types.Array.t(Types.Int256.t(), :dynamic)
   def qwe() do
-    "return 123123123123123123"
+    [1,2,3]
   end
 
   @spec store_name(Types.String.t()) :: nil

@@ -1189,12 +1189,12 @@ defmodule Elixireum.Compiler do
     mstore(offset$, #{Enum.count(list)})
     offset$ := add(offset$, 32)
     #{for i <- list do
-      type = Type.elixir_to_encoded_type(i)
+      type = Type.elixir_to_encoded_type(i.value)
       """
-      mstore(offset$, #{type})
+      mstore8(offset$, #{type})
       offset$ := add(offset$, 1)
-      mstore(offset$, #{i})
-      offset$ := add(offset$, #{Type.elixir_to_size(i)})
+      mstore(offset$, #{i.value})
+      offset$ := add(offset$, #{Type.elixir_to_size(i.value)})
       """
     end}
     """
@@ -1203,6 +1203,7 @@ defmodule Elixireum.Compiler do
        yul_snippet_definition: definition,
        yul_snippet_usage: var_name,
        meta: nil,
+       value: list,
        elixir_initial: list,
        return_values_count: 1
      }, %CompilerState{acc | uniqueness_provider: acc.uniqueness_provider + 1}}

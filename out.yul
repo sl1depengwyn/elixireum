@@ -48,25 +48,45 @@ let where_to_store_head$ := processed_return_value$
 let where_to_store_head_init$ := where_to_store_head$
 processed_return_value$ := add(processed_return_value$, 32)
 switch byte(0, mload(return_value$))
-  case 1 {}
+  case 103 {}
   default {
     // Return type mismatch abi
     revert(0, 0)
   }
 return_value$ := add(return_value$, 1)
 
-mstore(where_to_store_head$, sub(processed_return_value$, where_to_store_head_init$))
-where_to_store_head$ := add(where_to_store_head$, 32)
-
 let size$ := mload(return_value$)
 return_value$ := add(return_value$, 32)
+
+
+
+mstore(where_to_store_head$, sub(processed_return_value$, where_to_store_head_init$))
+where_to_store_head$ := add(where_to_store_head$, 32)
 
 mstore(processed_return_value$, size$)
 processed_return_value$ := add(processed_return_value$, 32)
 
-mcopy(processed_return_value$, return_value$, size$)
-processed_return_value$ := add(processed_return_value$, mul(32, add(1, div(sub(size$, 1), 32))))
-return_value$ := add(return_value$, size$)
+
+let where_to_store_head$i$_$ := processed_return_value$
+let where_to_store_head_init$i$_$ := where_to_store_head$i$_$
+
+processed_return_value$ := add(processed_return_value$, mul(size$, 32))
+
+for { let i$ := 0 } lt(i$, size$) { i$ := add(i$, 1) } {
+// for { let i$ := 0 } lt(i$, 2) { i$ := add(i$, 1) } {
+  switch byte(0, mload(return_value$))
+  case 67 {}
+  default {
+    // Return type mismatch abi
+    revert(0, 0)
+  }
+
+return_value$ := add(return_value$, 1)
+mstore(where_to_store_head$i$_$, shr(0, mload(return_value$)))
+return_value$ := add(return_value$, 32)
+where_to_store_head$i$_$ := add(where_to_store_head$i$_$, 32)
+
+}
 
 return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
 
@@ -390,17 +410,26 @@ offset$ := add(offset$, 21)
 function qwe() -> return_value$ {
   let offset$ := msize()
   
-  let str0$ := offset$
-mstore8(offset$, 1)
+  let list3$ := offset$
+mstore8(offset$, 103)
 offset$ := add(offset$, 1)
-mstore(offset$, 25)
+mstore(offset$, 3)
 offset$ := add(offset$, 32)
-mstore(offset$, 0x72657475726e2031323331323331323331323331323331323300000000000000)
-offset$ := add(offset$, 25)
+mstore8(offset$, 67)
+offset$ := add(offset$, 1)
+mstore(offset$, 1)
+offset$ := add(offset$, 32)
+mstore8(offset$, 67)
+offset$ := add(offset$, 1)
+mstore(offset$, 2)
+offset$ := add(offset$, 32)
+mstore8(offset$, 67)
+offset$ := add(offset$, 1)
+mstore(offset$, 3)
+offset$ := add(offset$, 32)
 
 
-
-  return_value$ := str0$
+  return_value$ := list3$
 }
 function store_name(contract_symbol) -> return_value$ {
   let offset$ := msize()
