@@ -4,9 +4,9 @@ defmodule Elixireum.CompilerState do
           declared_variables: MapSet.t(),
           aliases: %{atom() => list()},
           storage_variables: %{atom() => Variable.t()},
-          offset: non_neg_integer(),
           variables: %{atom() => Variable.t()},
-          used_standard_functions: %{atom: (-> t())}
+          used_standard_functions: %{atom() => t()},
+          uniqueness_provider: non_neg_integer()
         }
 
   @enforce_keys [:aliases]
@@ -16,8 +16,8 @@ defmodule Elixireum.CompilerState do
     last_return_count: nil,
     declared_variables: MapSet.new(),
     storage_variables: %{},
-    offset: 0,
     variables: %{},
-    used_standard_functions: MapSet.new()
+    used_standard_functions: %{},
+    uniqueness_provider: 0
   ]
 end

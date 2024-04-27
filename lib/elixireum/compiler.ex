@@ -2,7 +2,7 @@ defmodule Elixireum.Compiler do
   @moduledoc """
   Elixireum Compiler
   """
-  alias Blockchain.{Storage, Type}
+  alias Blockchain.{Address, Storage, Type}
 
   alias Elixireum.{
     ABIGenerator,
@@ -42,7 +42,8 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-           {_, ast} <- :elixir_parser.parse(tokens),
+           {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
+           #  {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
@@ -52,12 +53,10 @@ defmodule Elixireum.Compiler do
                  private_functions: [],
                  aliases: %{},
                  variables: %{},
-                 storage_pointer: 0
+                 storage_vars_counter: 0
                },
                &ast_to_contract_fields/2
              ) do
-        dbg(ast)
-
         functions_map = functions_list_to_functions_map(acc.functions)
         private_functions_map = functions_list_to_functions_map(acc.private_functions)
 
@@ -68,19 +67,17 @@ defmodule Elixireum.Compiler do
           variables: acc.variables,
           aliases: acc.aliases
         }
-        |> dbg()
       end
 
     yul =
       """
       object "contract" {
         code {
-          datacopy(0, dataoffset("runtime"), datasize("runtime"))
-          return(0, datasize("runtime"))
+          #{generate_deployment(functions_map[:constructor], contract)}
         }
         object "runtime" {
           code {
-            #{generate_selector(Map.values(functions_map))}
+            #{generate_selector(functions_map |> Map.drop([:constructor]) |> Map.values())}
 
             #{generate_functions(Map.values(functions_map) ++ Map.values(private_functions_map), contract)}
           }
@@ -97,211 +94,566 @@ defmodule Elixireum.Compiler do
     end)
   end
 
-  # TODO factor out elixir to yul code mapping
+  defp generate_deployment(nil, _contract) do
+    """
+    datacopy(0, dataoffset("runtime"), datasize("runtime"))
+    return(0, datasize("runtime"))
+    """
+  end
 
+  defp generate_deployment(%Function{typespec: %Typespec{return: nil}} = constructor, contract) do
+    {extraction, usage} =
+      typed_function_to_arguments(
+        constructor,
+        "0",
+        "sub(codesize(), datasize(\"contract\"))",
+        :memory
+      )
+
+    """
+    {
+      let programSize := datasize("contract")
+      let argSize := sub(codesize(), programSize)
+
+      codecopy(0, programSize, argSize)
+
+      #{extraction}
+      let _$ := #{constructor.name}(#{usage})
+      let code_offset$ := msize()
+      datacopy(code_offset$, dataoffset("runtime"), datasize("runtime"))
+      return(code_offset$, datasize("runtime"))
+    }
+    #{generate_functions([constructor], contract)}
+    """
+  end
+
+  defp generate_deployment(_, _contract) do
+    raise "Constructor should not return anything"
+  end
+
+  # TODO factor out elixir to yul code mapping
+  # 224 / 8 = 28 = 0xe0
   defp generate_selector(functions) do
     """
-    let method_id := shr(0xe0, calldataload(0x0))
+    let method_id := shr(224, calldataload(0x0))
     switch method_id
     #{for function <- functions do
       <<method_id::binary-size(8), _::binary>> = function |> function_to_keccak_bytes() |> Base.encode16(case: :lower)
-      {extraction, usage} = typed_function_to_arguments(function)
+      {extraction, usage} = typed_function_to_arguments(function, 4, 0, :calldata)
       """
       case 0x#{method_id} {
         #{extraction}
-        let return_value := #{function.name}(#{usage})
-        #{generate_function_call_and_return(function.typespec.return)}
+        let return_value$ := #{function.name}(#{usage})
+
+        #{generate_return(function.typespec.return)}
       }
       """
     end}
+    default {revert(0, 0)}
     """
   end
 
-  defp generate_function_call_and_return(nil) do
-    "return(0, 0)"
+  defp generate_return(nil) do
+    """
+    return(0, 0)
+    """
   end
 
-  defp generate_function_call_and_return(%Type{
-         encoded_type: 103 = encoded_type,
-         size: size,
-         components: [components]
-       })
-       when is_integer(size) do
+  defp generate_return(%Type{size: :dynamic} = type) do
     """
-    switch byte(0, mload(return_value))
+    let processed_return_value$ := msize()
+    let processed_return_value_init$ := processed_return_value$
+    let where_to_store_head$ := processed_return_value$
+    let where_to_store_head_init$ := where_to_store_head$
+    processed_return_value$ := add(processed_return_value$, 32)
+    #{do_generate_return(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
+    return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+    """
+  end
+
+  defp generate_return(type) do
+    size = (type.items_count || 1) * 32
+
+    """
+    let processed_return_value$ := msize()
+    let processed_return_value_init$ := processed_return_value$
+    let where_to_store_head$ := processed_return_value$
+    let where_to_store_head_init$ := where_to_store_head$
+    #{do_generate_return(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
+    processed_return_value$ := add(processed_return_value$, #{size})
+    return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
+    """
+  end
+
+  defp do_generate_return(
+         %Type{encoded_type: 3 = encoded_type, components: components} = type,
+         i_var_name,
+         _size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       ) do
+    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}#{i_var_name}_$"
+
+    where_to_store_children_heads_init_var_name =
+      "#{where_to_store_head_init_var_name}#{i_var_name}_$"
+
+    dbg(components)
+
+    """
+    switch byte(0, mload(return_value$))
       case #{encoded_type} {}
       default {
         // Return type mismatch abi
         revert(0, 0)
       }
 
-    let ptr := add(return_value, 1)
-    let size := mload(ptr)
+    return_value$ := add(return_value$, 1)
+    switch mload(return_value$)
+      case #{Enum.count(components)} {}
+      default {
+        // Return type mismatch length tuple
+        revert(0, 0)
+      }
 
-    switch size
-      case #{div(size, components.size)} {}
+    return_value$ := add(return_value$, 32)
+
+    let #{where_to_store_children_heads_var_name} := processed_return_value$
+    let #{where_to_store_children_heads_init_var_name} := #{where_to_store_children_heads_var_name}
+
+    #{if type.size == :dynamic do
+      """
+      mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
+      #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
+      processed_return_value$ := add(processed_return_value$, #{components |> Enum.map(&type_to_head_size/1) |> Enum.sum()})
+      """
+    end}
+
+    #{for {component, index} <- Enum.with_index(components) do
+      do_generate_return(component, "i$#{index}", "size$#{index}", where_to_store_children_heads_var_name, where_to_store_children_heads_init_var_name)
+    end}
+    """
+  end
+
+  defp do_generate_return(
+         %Type{
+           encoded_type: 103 = encoded_type,
+           items_count: items_count,
+           size: :dynamic,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       ) do
+    where_to_store_children_heads_var_name = "#{where_to_store_head_var_name}#{i_var_name}_$"
+
+    where_to_store_children_heads_init_var_name =
+      "#{where_to_store_head_init_var_name}#{i_var_name}_$"
+
+    """
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+    return_value$ := add(return_value$, 1)
+
+    let #{size_var_name} := mload(return_value$)
+    return_value$ := add(return_value$, 32)
+
+    #{if items_count != :dynamic do
+      """
+      switch #{size_var_name}
+        case #{items_count} {}
+        default {
+          // Array size mismatch
+          revert(0, 0)
+        }
+      """
+    end}
+
+    mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
+
+    #{if items_count == :dynamic do
+      """
+      mstore(processed_return_value$, #{size_var_name})
+      processed_return_value$ := add(processed_return_value$, 32)
+      """
+    end}
+
+    let #{where_to_store_children_heads_var_name} := processed_return_value$
+    let #{where_to_store_children_heads_init_var_name} := #{where_to_store_children_heads_var_name}
+
+    processed_return_value$ := add(processed_return_value$, mul(#{size_var_name}, #{type_to_head_size(components)}))
+
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    // for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_children_heads_var_name, where_to_store_children_heads_init_var_name)}
+    }
+    """
+  end
+
+  defp do_generate_return(
+         %Type{
+           encoded_type: 103 = encoded_type,
+           items_count: size,
+           components: [components]
+         },
+         i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       )
+       when is_integer(size) do
+    """
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+    return_value$ := add(return_value$, 1)
+    let #{size_var_name} := mload(return_value$)
+
+    switch #{size_var_name}
+      case #{size} {}
       default {
         // Array size mismatch
         revert(0, 0)
       }
 
-    ptr := add(ptr, 32)
-    let offset := msize()
+    return_value$ := add(return_value$, 32)
 
-    for { let i := 0 } lt(i, size) { i := add(i, 1) } {
-      let type := byte(0, mload(ptr))
+    for { let #{i_var_name} := 0 } lt(#{i_var_name}, #{size_var_name}) { #{i_var_name} := add(#{i_var_name}, 1) } {
+    //for { let #{i_var_name} := 0 } lt(#{i_var_name}, 2) { #{i_var_name} := add(#{i_var_name}, 1) } {
 
-      switch type
-        case #{components.encoded_type} {}
-        default {
-          // Array item's type mismatch
-          revert(0, 0)
-        }
-
-      let value := mload(add(ptr, 1))
-
-      ptr := add(ptr, 33)
-
-      mstore(add(offset, mul(i, 32)), value)
+      #{do_generate_return(components, i_var_name <> "_", size_var_name <> "_", where_to_store_head_var_name, where_to_store_head_init_var_name)}
     }
-
-    return(offset, mul(size, 32))
     """
   end
 
-  defp generate_function_call_and_return(%Type{
-         encoded_type: 103 = encoded_type,
-         size: :dynamic,
-         components: [components]
-       }) do
+  # Bytes, String
+  defp do_generate_return(
+         %Type{encoded_type: encoded_type},
+         _i_var_name,
+         size_var_name,
+         where_to_store_head_var_name,
+         where_to_store_head_init_var_name
+       )
+       when encoded_type in [1, 102] do
     """
-    switch byte(0, mload(return_value))
-     case #{encoded_type} {}
-     default {
-       // Return type mismatch abi
-       revert(0, 0)
-     }
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+    return_value$ := add(return_value$, 1)
 
-    let ptr := add(return_value, 1)
-    let size := mload(ptr)
+    mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
 
-    ptr := add(ptr, 32)
+    let #{size_var_name} := mload(return_value$)
+    return_value$ := add(return_value$, 32)
 
-    let offset := msize()
-    let init_offset := offset
-    mstore(offset, 32)
-    mstore(add(offset, 32), size)
-    offset := add(offset, 64)
+    mstore(processed_return_value$, #{size_var_name})
+    processed_return_value$ := add(processed_return_value$, 32)
 
-    for { let i := 0 } lt(i, size) { i := add(i, 1) } {
-     let type := byte(0, mload(ptr))
-
-     switch type
-       case #{components.encoded_type} {}
-       default {
-         // Array item's type mismatch
-         revert(0, 0)
-       }
-
-     let value := mload(add(ptr, 1))
-
-     ptr := add(ptr, 33)
-
-     mstore(add(offset, mul(i, 32)), value)
-    }
-
-    return(init_offset, mul(add(size, 2), 32))
+    mcopy(processed_return_value$, return_value$, #{size_var_name})
+    processed_return_value$ := add(processed_return_value$, mul(32, add(1, div(sub(#{size_var_name}, 1), 32))))
+    return_value$ := add(return_value$, #{size_var_name})
     """
   end
 
-  defp generate_function_call_and_return(type) do
-    """
-    if not(eq(byte(0, mload(return_value)), #{type.encoded_type})) {
-      // Return type mismatch abi
-      revert (0, 0)
-    }
+  # BytesN
+  defp do_generate_return(
+         %Type{encoded_type: encoded_type, size: byte_size},
+         _i_var_name,
+         _size_var_name,
+         where_to_store_head_var_name,
+         _where_to_store_head_init_var_name
+       )
+       when encoded_type > 69 and encoded_type < 102 do
+    offset = 8 * (32 - byte_size)
 
-    return(add(return_value, 1), 32)
+    """
+    switch byte(0, mload(return_value$))
+      case #{encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+    return_value$ := add(return_value$, 1)
+
+    mstore(#{where_to_store_head_var_name}, shl(#{offset}, shr(#{offset}, mload(return_value$))))
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
+
+    return_value$ := add(return_value$, #{byte_size})
+    """
+  end
+
+  defp do_generate_return(
+         type,
+         _i_var_name,
+         _size_var_name,
+         where_to_store_head_var_name,
+         _where_to_store_head_init_var_name
+       ) do
+    """
+    switch byte(0, mload(return_value$))
+      case #{type.encoded_type} {}
+      default {
+        // Return type mismatch abi
+        revert(0, 0)
+      }
+
+    return_value$ := add(return_value$, 1)
+    mstore(#{where_to_store_head_var_name}, shr(#{8 * (32 - type.size)}, mload(return_value$)))
+    return_value$ := add(return_value$, #{type.size})
+    #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
     """
   end
 
   defp function_to_keccak_bytes(function) do
-    "#{to_string(function.name)}(#{Enum.map_join(function.typespec.args, ",", & &1.abi_name)})"
+    "#{to_string(function.name)}(#{Enum.map_join(function.typespec.args, ",", &do_function_to_keccak_bytes/1)})"
     |> to_string()
     |> ExKeccak.hash_256()
   end
 
-  defp typed_function_to_arguments(function) do
-    {functions_extraction, _} =
+  defp do_function_to_keccak_bytes(%Type{encoded_type: 3, components: components}) do
+    "(#{Enum.map_join(components, ",", &do_function_to_keccak_bytes/1)})"
+  end
+
+  defp do_function_to_keccak_bytes(arg) do
+    arg.abi_name
+  end
+
+  defp type_to_head_size(%Type{size: :dynamic}) do
+    32
+  end
+
+  defp type_to_head_size(%Type{size: size}) do
+    size
+  end
+
+  defp typed_function_to_arguments(function, calldata_offset, memory_offset, data_origin) do
+    {load_fn, copy_fn} =
+      case data_origin do
+        :memory ->
+          {"mload", "mcopy"}
+
+        :calldata ->
+          {"calldataload", "calldatacopy"}
+      end
+
+    functions_extraction =
       function.args
       |> Enum.zip(function.typespec.args)
-      |> Enum.reduce({"", 0}, &do_typed_function_to_arguments/2)
+      |> Enum.reduce(
+        """
+        let calldata_offset$ := #{calldata_offset}
+        let init_calldata_offset$ := calldata_offset$
+        let memory_offset$ := #{memory_offset}
+        """,
+        &do_typed_function_to_arguments(&1, &2, load_fn, copy_fn)
+      )
 
     {functions_extraction, function.args |> Enum.join(",")}
   end
 
   defp do_typed_function_to_arguments(
-         {arg_name, %Type{encoded_type: 103, size: :dynamic, components: [components]} = type},
-         {yul, calldata_offset}
-       ) do
-    {
-      yul <>
-        """
-        let #{arg_name}_offset := msize()
-        let #{arg_name} := #{arg_name}_offset
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-
-        let #{arg_name}_calldata_offset := add(4, calldataload(#{4 + calldata_offset}))
-        let #{arg_name}_size := calldataload(#{arg_name}_calldata_offset)
-        mstore(add(1, #{arg_name}_offset), #{arg_name}_size)
-
-        for { let i := 1 } lt(i, add(1, #{arg_name}_size)) { i := add(i, 1) } {
-          mstore8(add(#{arg_name}_offset, mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(add(1, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(#{arg_name}_calldata_offset, mul(i, 32))))
-        }
-        """,
-      calldata_offset + 32
-    }
-  end
-
-  defp do_typed_function_to_arguments(
-         {arg_name, %Type{encoded_type: 103, size: byte_size, components: [components]} = type},
-         {yul, calldata_offset}
-       ) do
-    arr_size = div(byte_size, components.size)
-
-    {
-      yul <>
-        """
-        let #{arg_name}_offset := msize()
-        let #{arg_name} := #{arg_name}_offset
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-        mstore(add(1, #{arg_name}_offset), #{arr_size})
-        """ <>
-        """
-        for { let i := 0 } lt(i, #{arr_size}) { i := add(i, 1) } {
-          mstore8(add(add(33, #{arg_name}_offset), mul(i, #{1 + components.size})), #{components.encoded_type})
-          mstore(add(add(34, #{arg_name}_offset), mul(i, #{1 + components.size})), calldataload(add(4, add(#{calldata_offset}, mul(i, 32)))))
-        }
-        """,
-      calldata_offset + arr_size * 32
-    }
-  end
-
-  defp do_typed_function_to_arguments(
          {arg_name, %Type{} = type},
-         {yul, calldata_offset}
+         yul,
+         data_load_fn,
+         data_copy_fn
        ) do
-    {
-      yul <>
+    yul <>
+      """
+        let #{arg_name} := memory_offset$
+        #{copy_type_from_calldata(to_string(arg_name), type, data_load_fn, data_copy_fn, "calldata_offset$", "init_calldata_offset$")}
+      """
+  end
+
+  defp copy_type_from_calldata(
+         arg_name,
+         %Type{
+           encoded_type: 3,
+           components: components,
+           size: size
+         } = type,
+         data_load_fn,
+         data_copy_fn,
+         calldata_var,
+         init_calldata_var
+       ) do
+    tail_offset_var_name = "#{calldata_var}$#{arg_name}"
+    init_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}_init"
+
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+    mstore(memory_offset$, #{Enum.count(components)})
+    memory_offset$ := add(memory_offset$, 32)
+
+    #{if size == :dynamic do
+      """
+      let #{tail_offset_var_name} := add(#{init_calldata_var}, #{data_load_fn}(#{calldata_var}))
+      """
+    else
+      """
+      let #{tail_offset_var_name} := #{calldata_var}
+      """
+    end}
+
+    let #{init_tail_offset_var_name} := #{tail_offset_var_name}
+
+    #{for {component, index} <- Enum.with_index(components) do
+      copy_type_from_calldata(arg_name <> "#{index}", component, data_load_fn, data_copy_fn, tail_offset_var_name, init_tail_offset_var_name)
+    end}
+    """
+  end
+
+  defp copy_type_from_calldata(
+         arg_name,
+         %Type{
+           encoded_type: 103,
+           items_count: items_count,
+           components: [components],
+           size: :dynamic
+         } = type,
+         data_load_fn,
+         data_copy_fn,
+         calldata_var,
+         init_calldata_var
+       ) do
+    tail_offset_var_name = "#{calldata_var}$#{arg_name}"
+    init_tail_offset_var_name = "#{init_calldata_var}$#{arg_name}init"
+    list_length_var_name = "#{calldata_var}$#{arg_name}length"
+    i = "#{arg_name}$#{init_calldata_var}i"
+
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+
+    let #{tail_offset_var_name} := add(#{init_calldata_var}, #{data_load_fn}(#{calldata_var}))
+
+    #{case items_count do
+      :dynamic -> """
+        let #{list_length_var_name} := #{data_load_fn}(#{tail_offset_var_name})
+        #{tail_offset_var_name} := add(#{tail_offset_var_name}, 32)
         """
-        let #{arg_name}_offset := msize()
-        mstore8(#{arg_name}_offset, #{type.encoded_type})
-        mstore(add(1, #{arg_name}_offset), calldataload(add(4, #{calldata_offset})))
-        let #{arg_name} := #{arg_name}_offset
-        """,
-      calldata_offset + 32
+      _ -> """
+        let #{list_length_var_name} := #{items_count}
+        """
+    end}
+
+    mstore(memory_offset$, #{list_length_var_name})
+    memory_offset$ := add(memory_offset$, 32)
+
+    let #{init_tail_offset_var_name} := #{tail_offset_var_name}
+
+    for { let #{i} := 0 } lt(#{i}, #{list_length_var_name}) { #{i} := add(#{i}, 1) } {
+      #{copy_type_from_calldata(arg_name, components, data_load_fn, data_copy_fn, tail_offset_var_name, init_tail_offset_var_name)}
     }
+
+    #{calldata_var} := add(#{calldata_var}, 32)
+    """
+  end
+
+  defp copy_type_from_calldata(
+         arg_name,
+         %Type{encoded_type: 103, items_count: arr_size, components: [components]} = type,
+         data_load_fn,
+         data_copy_fn,
+         calldata_var,
+         _init_calldata_var
+       ) do
+    i = "#{arg_name}$#{calldata_var}i"
+
+    init_calldata_var = "#{calldata_var}$#{arg_name}init"
+
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+
+    mstore(memory_offset$, #{arr_size})
+    memory_offset$ := add(memory_offset$, 32)
+
+    let #{init_calldata_var} := #{calldata_var}
+
+    for { let #{i} := 0 } lt(#{i}, #{arr_size}) { #{i} := add(#{i}, 1) } {
+      #{copy_type_from_calldata(arg_name, components, data_load_fn, data_copy_fn, calldata_var, init_calldata_var)}
+    }
+    """
+  end
+
+  # Bytes, String
+  defp copy_type_from_calldata(
+         arg_name,
+         %Type{encoded_type: encoded_type} = type,
+         data_load_fn,
+         data_copy_fn,
+         calldata_var,
+         init_calldata_var
+       )
+       when encoded_type in [1, 102] do
+    tail_offset_var_name = "#{calldata_var}$#{arg_name}offset"
+    length_var_name = "#{calldata_var}$#{arg_name}length"
+
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+
+    let #{tail_offset_var_name} := add(#{init_calldata_var}, #{data_load_fn}(#{calldata_var}))
+    #{calldata_var} := add(#{calldata_var}, 32)
+
+    let #{length_var_name} := #{data_load_fn}(#{tail_offset_var_name})
+    #{tail_offset_var_name} := add(#{tail_offset_var_name}, 32)
+    mstore(memory_offset$, #{length_var_name})
+    memory_offset$ := add(memory_offset$, 32)
+
+    #{data_copy_fn}(memory_offset$, #{tail_offset_var_name}, #{length_var_name})
+    memory_offset$ := add(memory_offset$, #{length_var_name})
+    """
+  end
+
+  # BytesN
+  defp copy_type_from_calldata(
+         _arg_name,
+         %Type{encoded_type: encoded_type} = type,
+         data_load_fn,
+         _data_copy_fn,
+         calldata_var,
+         _init_calldata_var
+       )
+       when encoded_type > 69 and encoded_type < 102 do
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+    mstore(memory_offset$, #{data_load_fn}(#{calldata_var}))
+    memory_offset$ := add(memory_offset$, #{type.size})
+    #{calldata_var} := add(#{calldata_var}, 32)
+    """
+  end
+
+  defp copy_type_from_calldata(
+         _arg_name,
+         %Type{} = type,
+         data_load_fn,
+         _data_copy_fn,
+         calldata_var,
+         _init_calldata_var
+       ) do
+    """
+    mstore8(memory_offset$, #{type.encoded_type})
+    memory_offset$ := add(memory_offset$, 1)
+    mstore(memory_offset$, shl(#{8 * (32 - type.size)}, #{data_load_fn}(#{calldata_var})))
+    memory_offset$ := add(memory_offset$, #{type.size})
+    #{calldata_var} := add(#{calldata_var}, 32)
+    """
   end
 
   defp functions_list_to_functions_map(functions) do
@@ -324,7 +676,8 @@ defmodule Elixireum.Compiler do
         raise "#{var_name} has no type"
 
       true ->
-        type = process_arg_type(Keyword.fetch!(var_properties, :type), acc)
+        {type, access_keys_types} =
+          process_var_type(Keyword.fetch!(var_properties, :type), acc)
 
         {node,
          %{
@@ -333,9 +686,10 @@ defmodule Elixireum.Compiler do
                Map.put(acc.variables, var_name, %Variable{
                  name: var_name,
                  type: type,
-                 storage_pointer: acc.storage_pointer
+                 access_keys_types: access_keys_types,
+                 encoded_name: acc.storage_vars_counter
                }),
-             storage_pointer: acc.storage_pointer + type.size
+             storage_vars_counter: acc.storage_vars_counter + 1
          }}
     end
   end
@@ -412,6 +766,35 @@ defmodule Elixireum.Compiler do
     Enum.map(args, &elem(&1, 0))
   end
 
+  defp process_var_type(
+         {:%{}, _,
+          [
+            {
+              key_type,
+              value_type
+            }
+          ]},
+         acc
+       ) do
+    key_type = process_arg_type(key_type, acc)
+
+    {type, access_keys} = process_var_type(value_type, acc)
+    {type, [key_type | access_keys]}
+  end
+
+  defp process_var_type(type, acc) do
+    type |> process_arg_type(acc) |> process_decoded_var_type()
+  end
+
+  defp process_decoded_var_type(%Type{encoded_type: 103, components: [component]}) do
+    {type, access_keys} = process_decoded_var_type(component)
+    {type, [%Type{size: 32, abi_name: "int256", encoded_type: 67} | access_keys]}
+  end
+
+  defp process_decoded_var_type(type) do
+    {type, []}
+  end
+
   defp process_spec_body(
          [{:"::", _meta, [{function_name, _meta_args, args} = _left, right]}],
          acc
@@ -460,9 +843,9 @@ defmodule Elixireum.Compiler do
         {yul_acc <> yul, updated_compiler_state}
       end)
 
-    {_, std_functions} = generate_std_functions(compiler_state.used_standard_functions)
+    std_functions = generate_std_functions(compiler_state.used_standard_functions)
 
-    user_defined_functions <> Enum.join(std_functions, "\n")
+    user_defined_functions <> Enum.join(Map.values(std_functions), "\n")
   end
 
   defp generate_function(function, contract, compiler_state) do
@@ -481,8 +864,6 @@ defmodule Elixireum.Compiler do
 
     {ast_last, acc} =
       Macro.postwalk(last, acc, &expand_expression/2)
-
-    dbg(function)
 
     user_defined_functions =
       cond do
@@ -554,14 +935,13 @@ defmodule Elixireum.Compiler do
     {child, {:__block__, nil, []}}
   end
 
-  defp generate_std_functions(used_std_functions, definitions \\ []) do
-    Enum.reduce(used_std_functions, {%{}, definitions}, fn function,
-                                                           {used_functions_acc, definitions_acc} ->
-      %StdFunction{yul: yul, deps: deps} = function.()
+  defp generate_std_functions(used_std_functions, definitions \\ %{}) do
+    Enum.reduce(used_std_functions, definitions, fn {function_name,
+                                                     %StdFunction{yul: yul, deps: deps}},
+                                                    definitions_acc ->
+      {_, not_defined_deps} = Map.split(deps, Map.keys(definitions_acc))
 
-      {_, not_defined_deps} = Map.split(deps, Map.keys(used_functions_acc))
-
-      generate_std_functions(not_defined_deps, [yul | definitions_acc])
+      generate_std_functions(not_defined_deps, Map.put_new(definitions_acc, function_name, yul))
     end)
   end
 
@@ -605,53 +985,51 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :store}}, meta,
+         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :store}}, _meta,
           [
             %Elixireum.AuxiliaryNode{
               type: :storage_variable,
-              value: variable
+              value: variable,
+              access_keys: access_keys
             },
             yul_node
           ]} = node,
          acc
        ) do
-    {%{yul_snippet_usage: yul_snippet, return_values_count: return_values_count}, acc} =
-      Storage.store(variable, yul_node, acc)
-
-    {%YulNode{
-       yul_snippet_definition: "",
-       yul_snippet_usage: yul_snippet,
-       meta: meta,
-       return_values_count: return_values_count,
-       elixir_initial: node
-     }, acc}
+    Storage.store(variable, access_keys, yul_node, acc, node)
   end
 
   defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :get}}, meta,
+         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :get}}, _meta,
           [
             %Elixireum.AuxiliaryNode{
               type: :storage_variable,
-              value: variable
+              value: variable,
+              access_keys: access_keys
             }
           ]} = node,
          acc
        ) do
-    {%{
-       yul_snippet_usage: yul_snippet,
-       return_values_count: return_values_count,
-       yul_snippet_definition: yul_snippet_definition
-     },
-     acc} =
-      Storage.get(variable, acc)
+    Storage.get(variable, access_keys, acc, node)
+  end
 
-    {%YulNode{
-       yul_snippet_definition: yul_snippet_definition,
-       yul_snippet_usage: yul_snippet,
-       meta: meta,
-       return_values_count: return_values_count,
-       elixir_initial: node
+  defp expand_expression(
+         {%AuxiliaryNode{type: :function_call, value: {[Access], :get}}, _meta,
+          [%AuxiliaryNode{type: :storage_variable} = storage_variable, index]},
+         acc
+       ) do
+    {%AuxiliaryNode{
+       storage_variable
+       | access_keys: [index | storage_variable.access_keys]
      }, acc}
+  end
+
+  defp expand_expression(
+         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain], :tx_origin}}, _meta, []} =
+           node,
+         acc
+       ) do
+    Blockchain.tx_origin(node, acc)
   end
 
   defp expand_expression(
@@ -677,6 +1055,16 @@ defmodule Elixireum.Compiler do
      }, acc}
   end
 
+  defp expand_expression(
+         {:., _meta, [module, function_name]},
+         acc
+       ) do
+    {%AuxiliaryNode{
+       type: :function_call,
+       value: {[module.elixir_initial], function_name.elixir_initial}
+     }, acc}
+  end
+
   defp expand_expression({:__aliases__, _meta, yul_nodes}, %CompilerState{aliases: aliases} = acc) do
     prepared = prepare_aliases(aliases, Enum.map(yul_nodes, & &1.elixir_initial))
     {%AuxiliaryNode{type: :__aliases__, value: prepared}, acc}
@@ -693,44 +1081,51 @@ defmodule Elixireum.Compiler do
     {children, acc}
   end
 
-  defp expand_expression({function_name, meta, args} = node, acc)
-       when is_atom(function_name) and is_list(args) do
-    # dbg(other)
-    # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # # {other, acc}
+  #   defp expand_expression(
+  #     {:sigil_ADDRESS, meta,
+  #  _} = node,
+  #     acc
+  #   ) do
+  # dbg()
+  # end
 
-    definition =
-      "#{Enum.map_join(args, "\n", fn yul_node -> yul_node.yul_snippet_definition end)}"
+  defp expand_expression(
+         {:sigil_ADDRESS, meta,
+          [
+            %YulNode{elixir_initial: {:<<>>, _, [%YulNode{value: address}]}} = yul_node,
+            %YulNode{elixir_initial: []}
+          ]} = node,
+         %CompilerState{uniqueness_provider: uniqueness_provider} = state
+       ) do
+    dbg()
 
-    case Library.Utils.method_atom_to_yul(function_name) do
-      :error ->
+    case Address.load(address) do
+      {:ok, hash} ->
+        var_name = "address#{state.uniqueness_provider}$"
+
         {%YulNode{
-           yul_snippet_definition: definition,
-           yul_snippet_usage:
-             "#{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})",
-           meta: meta,
-           elixir_initial: node,
-           return_values_count: 1
-         }, acc}
+           value: hash,
+           yul_snippet_definition: """
+           let #{var_name} := offset$
+           mstore8(offset$, #{Type.elixir_to_encoded_type(hash)})
+           offset$ := add(offset$, 1)
+           mstore(offset$, shl(#{8 * (32 - Type.elixir_to_size(hash))}, #{hash.hash}))
+           offset$ := add(offset$, #{Type.elixir_to_size(hash)})
+           """,
+           yul_snippet_usage: var_name,
+           return_values_count: 1,
+           elixir_initial: node
+         }
+         |> dbg(), %CompilerState{state | uniqueness_provider: uniqueness_provider + 1}}
 
-      library_fun when is_function(library_fun, length(args) + 2) ->
-        {yul_node, state} = apply(library_fun, args ++ [acc, node])
-        {%YulNode{yul_node | yul_snippet_definition: definition}, state}
-
-      _ ->
-        raise "#{function_name}/#{length(args)} is undefined"
+      :error ->
+        raise "Address hash is invalid"
     end
   end
 
   # variable
   defp expand_expression({var, meta, nil} = other, %CompilerState{variables: _variables} = acc)
        when is_atom(var) do
-    dbg(other)
-    # dbg(other)
-    # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # # {other, acc}
     {%YulNode{
        yul_snippet_definition: "",
        yul_snippet_usage: to_string(var),
@@ -740,22 +1135,109 @@ defmodule Elixireum.Compiler do
      }, acc}
   end
 
+  defp expand_expression(
+         {function_name, meta, args} = node,
+         %CompilerState{uniqueness_provider: uniqueness_provider} = acc
+       )
+       when is_atom(function_name) and is_list(args) do
+    result_var_name = "$result$#{function_name}$#{uniqueness_provider}"
+
+    args_definition =
+      """
+      #{Enum.map_join(args, "\n", fn yul_node -> yul_node.yul_snippet_definition end)}
+      """
+
+    case Library.Utils.method_atom_to_yul(function_name) |> dbg() do
+      :error ->
+        {%YulNode{
+           yul_snippet_definition:
+             args_definition <>
+               """
+               let #{result_var_name} := #{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})
+               offset$ = msize()
+               """,
+           yul_snippet_usage: "#{result_var_name}",
+           meta: meta,
+           elixir_initial: node,
+           return_values_count: 1
+         }, %CompilerState{acc | uniqueness_provider: uniqueness_provider + 1}}
+
+      library_fun when is_function(library_fun, length(args) + 2) ->
+        {yul_node, state} = apply(library_fun, args ++ [acc, node])
+
+        {%YulNode{
+           yul_node
+           | yul_snippet_definition: args_definition <> yul_node.yul_snippet_definition
+         }, state}
+
+      _ ->
+        raise "#{function_name}/#{length(args)} is undefined"
+    end
+  end
+
   defp expand_expression({_node, _meta, _} = other, _acc) do
     raise "Not implemented: #{inspect(other)}"
-    # dbg(other)
-    # # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # {%YulNode{yul_snippet: "IGNORED111", meta: meta}, acc}
-    # # {other, acc}
   end
 
   defp expand_expression(list, acc) when is_list(list) do
+    var_name = "list#{acc.uniqueness_provider}$"
+
+    definition = """
+    let #{var_name} := offset$
+    mstore8(offset$, 103)
+    offset$ := add(offset$, 1)
+    mstore(offset$, #{Enum.count(list)})
+    offset$ := add(offset$, 32)
+    #{for i <- list do
+      type = Type.elixir_to_encoded_type(i.value)
+      """
+      mstore8(offset$, #{type})
+      offset$ := add(offset$, 1)
+      mstore(offset$, #{i.value})
+      offset$ := add(offset$, #{Type.elixir_to_size(i.value)})
+      """
+    end}
+    """
+
     {%YulNode{
-       yul_snippet_definition: "",
-       yul_snippet_usage: "LIST_TO_IMPLEMENT",
+       yul_snippet_definition: definition,
+       yul_snippet_usage: var_name,
        meta: nil,
+       value: list,
        elixir_initial: list,
        return_values_count: 1
-     }, acc}
+     }, %CompilerState{acc | uniqueness_provider: acc.uniqueness_provider + 1}}
+  end
+
+  defp expand_expression(str, acc) when is_binary(str) do
+    var_name = "str#{acc.uniqueness_provider}$"
+
+    words =
+      str |> :binary.encode_hex() |> String.downcase() |> slice_string()
+
+    definition = """
+    let #{var_name} := offset$
+    mstore8(offset$, 1)
+    offset$ := add(offset$, 1)
+    mstore(offset$, #{byte_size(str)})
+    offset$ := add(offset$, 32)
+    #{for {word, size} <- words do
+      """
+      mstore(offset$, #{word})
+      offset$ := add(offset$, #{size})
+      """
+    end}
+
+    """
+
+    {%YulNode{
+       yul_snippet_definition: definition,
+       yul_snippet_usage: var_name,
+       meta: nil,
+       value: str,
+       elixir_initial: str,
+       return_values_count: 1
+     }, %CompilerState{acc | uniqueness_provider: acc.uniqueness_provider + 1}}
   end
 
   defp expand_expression(atom, state) when is_atom(atom) do
@@ -768,25 +1250,39 @@ defmodule Elixireum.Compiler do
      }, state}
   end
 
-  defp expand_expression(other, %CompilerState{offset: offset} = state) do
+  defp expand_expression(other, %CompilerState{} = state) do
+    dbg(other)
+
+    var_name = "var#{state.uniqueness_provider}$"
+
     definition =
       """
-      mstore8(add(#{offset}, offset$), #{Type.elixir_to_encoded_type(other)})
-      mstore(add(#{offset + 1}, offset$), #{to_string(other)})
+      let #{var_name} := offset$
+      mstore8(offset$, #{Type.elixir_to_encoded_type(other)})
+      offset$ := add(offset$, 1)
+      mstore(offset$, shl(#{8 * (32 - Type.elixir_to_size(other))}, #{other}))
+      offset$ := add(offset$, #{Type.elixir_to_size(other)})
       """
-
-    usage = "add(#{offset}, offset$)"
 
     {%YulNode{
        yul_snippet_definition: definition,
-       yul_snippet_usage: usage,
+       yul_snippet_usage: var_name,
        meta: nil,
        elixir_initial: other,
-       return_values_count: 1
-     }, %CompilerState{state | offset: offset + Type.elixir_to_size(other) + 1}}
+       return_values_count: 1,
+       value: other
+     }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
   defp prepare_aliases(aliases, [head | tail]) do
     (aliases[head] || [head]) ++ tail
+  end
+
+  defp slice_string(<<left::binary-size(64), remain::binary>>) do
+    [{"0x" <> left, 32} | slice_string(remain)]
+  end
+
+  defp slice_string(str) do
+    [{"0x" <> String.pad_trailing(str, 64, "0"), div(String.length(str), 2)}]
   end
 end

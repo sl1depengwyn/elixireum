@@ -5,7 +5,10 @@ defmodule Elixireum.Library.Arithmetic do
   def add(
         %YulNode{} = a,
         %YulNode{} = b,
-        %CompilerState{used_standard_functions: used_standard_functions} = state,
+        %CompilerState{
+          used_standard_functions: used_standard_functions,
+          uniqueness_provider: uniqueness_provider
+        } = state,
         ast
       ) do
     meta =
@@ -14,15 +17,22 @@ defmodule Elixireum.Library.Arithmetic do
         _ -> nil
       end
 
+    var_name = "add$#{uniqueness_provider}"
+
     {%YulNode{
-       yul_snippet_usage: "add$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})",
+       yul_snippet_definition: """
+       let #{var_name} := add$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})
+       offset$ := msize()
+       """,
+       yul_snippet_usage: var_name,
        return_values_count: 1,
        elixir_initial: ast,
        meta: meta
      },
      %CompilerState{
        state
-       | used_standard_functions: MapSet.put(used_standard_functions, &Arithmetic.add/0)
+       | used_standard_functions: Map.put_new(used_standard_functions, :"add$", Arithmetic.add()),
+         uniqueness_provider: uniqueness_provider + 1
      }}
   end
 end

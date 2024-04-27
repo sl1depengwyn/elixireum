@@ -4,42 +4,55 @@ defmodule Elixireum.Yul.Utils do
   def load_integer do
     %StdFunction{
       yul: """
-        function load_integer$(ptr) -> return_value$, size$ {
-          size$ := byte(0, mload(ptr))
+        function load_integer$(ptr) -> return_value, type {
+          type := byte(0, mload(ptr))
           let value := mload(add(ptr, 1))
-          switch size$
-            #{for i <- 36..67 do
-        """
-        case #{i} {
-          return_value$ := take_#{i - 35}_bytes$(value)
-        }
-        """
-      end}
-            default {
-              // TypeError
-              revert(0, 0)
-            }
+          let size := type_to_byte_size$(type)
+          return_value := shr(mul(sub(32, size), 8), value)
         }
       """,
-      deps:
-        MapSet.new(
-          for i <- 1..32 do
-            fn -> apply(__MODULE__, String.to_atom("take_#{i}_bytes"), []) end
-          end
-        )
+      deps: %{type_to_byte_size: type_to_byte_size()}
     }
   end
 
-  # TODO implement via mult and for
-  for i <- 1..32 do
-    def unquote(:"take_#{i}_bytes")() do
-      %StdFunction{
-        yul: """
-        function take_#{unquote(i)}_bytes$(value) -> return_value$ {
-          return_value$ := and(value, 0x#{String.duplicate("FF", unquote(i))})
-        }
-        """
+  def address_to_byte_size() do
+    %StdFunction{
+      yul: """
+      function address_to_byte_size$(ptr) -> size {
+        let type := byte(0, mload(ptr))
+        size := type_to_byte_size$(type)
       }
-    end
+      """,
+      deps: %{type_to_byte_size: type_to_byte_size()}
+    }
+  end
+
+  def type_to_byte_size() do
+    %StdFunction{
+      yul: """
+      function type_to_byte_size$(type) -> size {
+        switch type
+        case 1 {size := 32}
+        case 2 {size := 1}
+        case 3 {size := 32}
+        case 68 {size := 20}
+        case 102 {size := 32}
+        default {
+          if lt(type, 36) {
+            size := sub(type, 3)
+            leave
+          }
+          if lt(type, 68) {
+            size := sub(type, 35)
+            leave
+          }
+          if lt(type, 102) {
+            size := sub(type, 69)
+            leave
+          }
+        }
+      }
+      """
+    }
   end
 end
