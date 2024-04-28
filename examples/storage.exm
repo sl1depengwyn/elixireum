@@ -6,7 +6,7 @@ defmodule ETH.StorageA do
   alias Blockchain.Types
 
 
-  # @event_name [event_inputs: []]
+  @event_name [indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], arguments: [[a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)]]]
   @int_test [type: Types.Int256.t()]
   @address [type: Types.Address.t()]
   @owner [type: Types.Address.t()]
