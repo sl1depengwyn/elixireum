@@ -1,7 +1,7 @@
 defmodule Elixireum.Library.Utils do
   require Integer
 
-  alias Blockchain.{Address, Storage}
+  alias Blockchain.{Address, Event, Storage}
   alias Elixireum.Library.Arithmetic
   alias Elixireum.YulNode
 
@@ -11,7 +11,8 @@ defmodule Elixireum.Library.Utils do
     {[:Blockchain, :Storage], :store} => &Storage.store/4,
     {[:Blockchain, :Storage], :get} => &Storage.get/3,
     {[:Blockchain], :tx_origin} => &Blockchain.tx_origin/2,
-    {[:Blockchain], :caller} => &Blockchain.caller/2
+    {[:Blockchain], :caller} => &Blockchain.caller/2,
+    {[:Blockchain, :Event], :emit} => &Event.emit/4
   }
 
   def function_call_to_yul(method) do

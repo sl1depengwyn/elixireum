@@ -6,7 +6,8 @@ defmodule Elixireum.CompilerState do
           storage_variables: %{atom() => Variable.t()},
           variables: %{atom() => Variable.t()},
           used_standard_functions: %{atom() => t()},
-          uniqueness_provider: non_neg_integer()
+          uniqueness_provider: non_neg_integer(),
+          events: %{atom() => Keyword.t()}
         }
 
   @enforce_keys [:aliases]
@@ -18,6 +19,7 @@ defmodule Elixireum.CompilerState do
     storage_variables: %{},
     variables: %{},
     used_standard_functions: %{},
-    uniqueness_provider: 0
+    uniqueness_provider: 0,
+    events: %{}
   ]
 end

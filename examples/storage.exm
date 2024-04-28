@@ -6,7 +6,7 @@ defmodule ETH.StorageA do
   alias Blockchain.Types
 
 
-  @event_name [indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], arguments: [[a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)]]]
+  @event_name indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
   @int_test [type: Types.Int256.t()]
   @address [type: Types.Address.t()]
   @owner [type: Types.Address.t()]
@@ -15,7 +15,7 @@ defmodule ETH.StorageA do
 
   # @spec constructor(Types.Int256.t(), Types.Address.t()) :: nil
   # def constructor(a, addr) do
-  #   Storage.store(@owner, Blockchain.tx_origin())
+  #   Storage.store(@owner, Blockchain.tx_origin())f
   #   Storage.store(@int_test, a)
   #   Storage.store(@address, addr)
   # end
@@ -50,9 +50,9 @@ defmodule ETH.StorageA do
   #   ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
   # end
 
-  @spec abc(Types.Int256.t()) :: Types.Int256.t()
-  def abc(num) do
-    10 + num
+@spec event() :: nil
+  def event() do
+    Blockchain.Event.emit(@event_name, a: 1, b: [1,2,3], c: 2, d: [1,2,3])
   end
 
   # @spec return_origin() :: Types.Address.t()

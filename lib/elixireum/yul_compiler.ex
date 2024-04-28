@@ -6,9 +6,9 @@ defmodule Elixireum.YulCompiler do
       content =
         System.cmd(path, [
           "--strict-assembly",
-          # "--optimize",
-          # "--optimize-runs",
-          # "1",
+          "--optimize",
+          "--optimize-runs",
+          "1",
           yul_file
         ])
         |> elem(0)
