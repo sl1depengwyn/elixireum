@@ -21,6 +21,8 @@ defmodule Elixireum.Library.Arithmetic do
 
     {%YulNode{
        yul_snippet_definition: """
+       #{a.yul_snippet_definition}
+       #{b.yul_snippet_definition}
        let #{var_name} := add$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})
        offset$ := msize()
        """,

@@ -5,6 +5,7 @@ defmodule ETH.StorageA do
   alias Blockchain.EVM, as: BlockchainEVM
   alias Blockchain.Types
 
+
   # @event_name [event_inputs: []]
   @int_test [type: Types.Int256.t()]
   @address [type: Types.Address.t()]
@@ -19,55 +20,55 @@ defmodule ETH.StorageA do
   #   Storage.store(@address, addr)
   # end
 
-  @spec qwe() :: Types.Array.t(Types.Int256.t(), :dynamic)
-  def qwe() do
-    [1,2,3]
-  end
+  # @spec qwe() :: Types.Array.t(Types.Int256.t(), :dynamic)
+  # def qwe() do
+  #   [1,2,3]
+  # end
 
-  @spec store_name(Types.String.t()) :: nil
-  def store_name(contract_symbol) do
-    Storage.store(@contract_symbol, contract_symbol)
-  end
+  # @spec store_name(Types.String.t()) :: nil
+  # def store_name(contract_symbol) do
+  #   Storage.store(@contract_symbol, contract_symbol)
+  # end
 
-  @spec retrieve_name() :: Types.String.t()
-  def retrieve_name() do
-    Storage.get(@contract_symbol)
-  end
+  # @spec retrieve_name() :: Types.String.t()
+  # def retrieve_name() do
+  #   Storage.get(@contract_symbol)
+  # end
 
-  @spec test_bytes15(Types.Bytes15.t) :: Types.Bytes15.t()
-  def test_bytes15(a) do
-    a
-  end
+  # @spec test_bytes15(Types.Bytes15.t) :: Types.Bytes15.t()
+  # def test_bytes15(a) do
+  #   a
+  # end
 
-  @spec test_string(Types.String.t) :: Types.String.t()
-  def test_string(a) do
-    a
-  end
+  # @spec test_string(Types.String.t) :: Types.String.t()
+  # def test_string(a) do
+  #   a
+  # end
 
-  @spec test_address() :: Types.Address.t()
-  def test_address() do
-    ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
-  end
+  # @spec test_address() :: Types.Address.t()
+  # def test_address() do
+  #   ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
+  # end
 
   @spec abc(Types.Int256.t()) :: Types.Int256.t()
   def abc(num) do
     10 + num
   end
 
-  @spec return_origin() :: Types.Address.t()
-  def return_origin() do
-    Blockchain.tx_origin()
-  end
+  # @spec return_origin() :: Types.Address.t()
+  # def return_origin() do
+  #   Blockchain.tx_origin()
+  # end
 
-  @spec get_int_test() :: Types.Int256.t()
-  def get_int_test() do
-    Storage.get(@int_test)
-  end
+  # @spec get_int_test() :: Types.Int256.t()
+  # def get_int_test() do
+  #   Storage.get(@int_test)
+  # end
 
-  @spec get_address() :: Types.Address.t()
-  def get_address() do
-    Storage.get(@address)
-  end
+  # @spec get_address() :: Types.Address.t()
+  # def get_address() do
+  #   Storage.get(@address)
+  # end
 
   @spec get_owner() :: Types.Address.t()
   def get_owner() do
