@@ -985,35 +985,6 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :store}}, _meta,
-          [
-            %Elixireum.AuxiliaryNode{
-              type: :storage_variable,
-              value: variable,
-              access_keys: access_keys
-            },
-            yul_node
-          ]} = node,
-         acc
-       ) do
-    Storage.store(variable, access_keys, yul_node, acc, node)
-  end
-
-  defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain, :Storage], :get}}, _meta,
-          [
-            %Elixireum.AuxiliaryNode{
-              type: :storage_variable,
-              value: variable,
-              access_keys: access_keys
-            }
-          ]} = node,
-         acc
-       ) do
-    Storage.get(variable, access_keys, acc, node)
-  end
-
-  defp expand_expression(
          {%AuxiliaryNode{type: :function_call, value: {[Access], :get}}, _meta,
           [%AuxiliaryNode{type: :storage_variable} = storage_variable, index]},
          acc
@@ -1025,11 +996,45 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[:Blockchain], :tx_origin}}, _meta, []} =
-           node,
-         acc
-       ) do
-    Blockchain.tx_origin(node, acc)
+         {%AuxiliaryNode{type: :function_call, value: value}, meta, args} = node,
+         %CompilerState{uniqueness_provider: uniqueness_provider} = acc
+       )
+       when is_list(args) do
+    case {value, Library.Utils.function_call_to_yul(value) |> dbg()} do
+      {{modules, function_name}, :not_found} ->
+        Module.concat(modules)
+        raise "#{Module.concat(modules)}.#{function_name}/#{length(args)} is undefined"
+
+      {function_name, :not_found} ->
+        result_var_name = "$result$#{function_name}$#{uniqueness_provider}"
+
+        args_definition =
+          """
+          #{Enum.map_join(args, "\n", fn yul_node -> yul_node.yul_snippet_definition end)}
+          """
+
+        {%YulNode{
+           yul_snippet_definition:
+             args_definition <>
+               """
+               let #{result_var_name} := #{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})
+               offset$ = msize()
+               """,
+           yul_snippet_usage: "#{result_var_name}",
+           meta: meta,
+           elixir_initial: node,
+           return_values_count: 1
+         }, %CompilerState{acc | uniqueness_provider: uniqueness_provider + 1}}
+
+      {_, library_fun} when is_function(library_fun, length(args) + 2) ->
+        apply(library_fun, args ++ [acc, node])
+
+      {{modules, function_name}, _} ->
+        raise "#{Module.concat(modules)}.#{function_name}/#{length(args)} is undefined"
+
+      {function_name, _} ->
+        raise "#{function_name}/#{length(args)} is undefined"
+    end
   end
 
   defp expand_expression(
@@ -1135,44 +1140,12 @@ defmodule Elixireum.Compiler do
      }, acc}
   end
 
-  defp expand_expression(
-         {function_name, meta, args} = node,
-         %CompilerState{uniqueness_provider: uniqueness_provider} = acc
-       )
+  defp expand_expression({function_name, meta, args}, acc)
        when is_atom(function_name) and is_list(args) do
-    result_var_name = "$result$#{function_name}$#{uniqueness_provider}"
-
-    args_definition =
-      """
-      #{Enum.map_join(args, "\n", fn yul_node -> yul_node.yul_snippet_definition end)}
-      """
-
-    case Library.Utils.method_atom_to_yul(function_name) |> dbg() do
-      :error ->
-        {%YulNode{
-           yul_snippet_definition:
-             args_definition <>
-               """
-               let #{result_var_name} := #{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})
-               offset$ = msize()
-               """,
-           yul_snippet_usage: "#{result_var_name}",
-           meta: meta,
-           elixir_initial: node,
-           return_values_count: 1
-         }, %CompilerState{acc | uniqueness_provider: uniqueness_provider + 1}}
-
-      library_fun when is_function(library_fun, length(args) + 2) ->
-        {yul_node, state} = apply(library_fun, args ++ [acc, node])
-
-        {%YulNode{
-           yul_node
-           | yul_snippet_definition: args_definition <> yul_node.yul_snippet_definition
-         }, state}
-
-      _ ->
-        raise "#{function_name}/#{length(args)} is undefined"
-    end
+    expand_expression(
+      {%AuxiliaryNode{type: :function_call, value: function_name}, meta, args},
+      acc
+    )
   end
 
   defp expand_expression({_node, _meta, _} = other, _acc) do

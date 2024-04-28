@@ -1,22 +1,26 @@
 defmodule Elixireum.Library.Utils do
   require Integer
 
-  alias Blockchain.Address
+  alias Blockchain.{Address, Storage}
   alias Elixireum.Library.Arithmetic
   alias Elixireum.YulNode
 
   @methods %{
     {Kernel, :+} => &Arithmetic.add/4,
-    :+ => &Arithmetic.add/4
+    :+ => &Arithmetic.add/4,
+    {[:Blockchain, :Storage], :store} => &Storage.store/4,
+    {[:Blockchain, :Storage], :get} => &Storage.get/3,
+    {[:Blockchain], :tx_origin} => &Blockchain.tx_origin/2,
+    {[:Blockchain], :caller} => &Blockchain.caller/2
   }
 
-  def method_atom_to_yul(method) do
+  def function_call_to_yul(method) do
     case Map.fetch(@methods, method) do
       {:ok, fun} ->
         fun
 
       :error ->
-        :error
+        :not_found
     end
   end
 

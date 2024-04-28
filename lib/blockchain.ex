@@ -2,7 +2,7 @@ defmodule Blockchain do
   alias Elixireum.YulNode
   alias Elixireum.CompilerState
 
-  def tx_origin(node, compiler_state) do
+  def tx_origin(compiler_state, node) do
     var_name = "tx_origin$#{compiler_state.uniqueness_provider}"
 
     {%YulNode{
@@ -20,7 +20,7 @@ defmodule Blockchain do
      %CompilerState{compiler_state | uniqueness_provider: compiler_state.uniqueness_provider + 1}}
   end
 
-  def caller(node, compiler_state) do
+  def caller(compiler_state, node) do
     var_name = "caller$#{compiler_state.uniqueness_provider}"
 
     {%YulNode{

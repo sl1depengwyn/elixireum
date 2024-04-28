@@ -1,11 +1,14 @@
 defmodule Blockchain.Storage do
   alias Blockchain.Type
-  alias Elixireum.{CompilerState, Variable, YulNode}
+  alias Elixireum.{AuxiliaryNode, CompilerState, Variable, YulNode}
   alias Elixireum.Library.Utils
 
   def get(
-        %Variable{type: %Type{encoded_type: 1}} = variable,
-        [] = _access_keys,
+        %AuxiliaryNode{
+          type: :storage_variable,
+          value: %Variable{type: %Type{encoded_type: 1}} = variable,
+          access_keys: []
+        },
         %CompilerState{uniqueness_provider: uniqueness_provider} = state,
         node
       ) do
@@ -51,8 +54,11 @@ defmodule Blockchain.Storage do
   end
 
   def get(
-        %Variable{} = variable,
-        access_keys,
+        %AuxiliaryNode{
+          type: :storage_variable,
+          value: variable,
+          access_keys: access_keys
+        },
         %CompilerState{uniqueness_provider: uniqueness_provider} = state,
         node
       ) do
@@ -83,8 +89,11 @@ defmodule Blockchain.Storage do
 
   # String case
   def store(
-        %Variable{type: %Type{encoded_type: 1}} = variable,
-        [] = _access_keys,
+        %AuxiliaryNode{
+          type: :storage_variable,
+          value: %Variable{type: %Type{encoded_type: 1}} = variable,
+          access_keys: []
+        },
         %YulNode{} = value,
         %CompilerState{} = state,
         node
@@ -135,8 +144,11 @@ defmodule Blockchain.Storage do
   end
 
   def store(
-        %Variable{} = variable,
-        access_keys,
+        %AuxiliaryNode{
+          type: :storage_variable,
+          value: variable,
+          access_keys: access_keys
+        },
         %YulNode{} = value,
         %CompilerState{} = state,
         node
