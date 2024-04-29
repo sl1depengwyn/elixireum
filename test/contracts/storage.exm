@@ -48,7 +48,7 @@ defmodule Test.Storage do
 
   @spec get_mapping_test_int16(Types.Bytes16.t(), Types.Int256.t()) :: Types.Int16.t()
   def get_mapping_test_int16(key_a, key_b) do
-    Storage.get(@mapping_test_int16[key_a][key_b], value)
+    Storage.get(@mapping_test_int16[key_a][key_b])
   end
 
   @spec store_mapping_test_bytes16(Types.Int16.t(), Types.Bytes16.t(), Types.Bytes16.t()) :: nil
@@ -58,6 +58,6 @@ defmodule Test.Storage do
 
   @spec get_mapping_test_bytes16(Types.Int16.t(), Types.Bytes16.t()) :: Types.Bytes16.t()
   def get_mapping_test_bytes16(key_a, key_b) do
-    Storage.get(@mapping_test_bytes16[key_a][key_b], value)
+    Storage.get(@mapping_test_bytes16[key_a][key_b])
   end
 end
