@@ -1,0 +1,63 @@
+defmodule Test.Storage do
+  alias Blockchain.Storage
+  alias Blockchain.Types
+
+  @int_test [type: Types.Int256.t()]
+  @address [type: Types.Address.t()]
+  @contract_symbol [type: Types.String.t()]
+  @mapping_test_int16 [type: %{Types.Bytes16.t() => %{Types.Int256.t() => Types.Int16.t()}}]
+  @mapping_test_bytes16 [type: %{Types.Int16.t() => %{Types.Bytes16.t() => Types.Bytes16.t()}}]
+
+
+  @spec store_int_test(Types.Int256.t()) :: nil
+  def store_int_test(int_test) do
+    Storage.store(@int_test, int_test)
+  end
+
+  @spec get_int_test() :: Types.Int256.t()
+  def get_int_test() do
+    Storage.get(@int_test)
+  end
+
+
+  @spec store_address(Types.Address.t()) :: nil
+  def store_address(address) do
+    Storage.store(@address, address)
+  end
+
+  @spec get_address() :: Types.Address.t()
+  def get_address() do
+    Storage.get(@address)
+  end
+
+  @spec store_contract_symbol(Types.String.t()) :: nil
+  def store_contract_symbol(contract_symbol) do
+    Storage.store(@contract_symbol, contract_symbol)
+  end
+
+  @spec get_contract_symbol() :: Types.String.t()
+  def get_contract_symbol() do
+    Storage.get(@contract_symbol)
+  end
+
+
+  @spec store_mapping_test_int16(Types.Bytes16.t(), Types.Int256.t(), Types.Int16.t()) :: nil
+  def store_mapping_test_int16(key_a, key_b, value) do
+    Storage.store(@mapping_test_int16[key_a][key_b], value)
+  end
+
+  @spec get_mapping_test_int16(Types.Bytes16.t(), Types.Int256.t()) :: Types.Int16.t()
+  def get_mapping_test_int16(key_a, key_b) do
+    Storage.get(@mapping_test_int16[key_a][key_b], value)
+  end
+
+  @spec store_mapping_test_bytes16(Types.Int16.t(), Types.Bytes16.t(), Types.Bytes16.t()) :: nil
+  def store_mapping_test_bytes16(key_a, key_b, value) do
+    Storage.store(@mapping_test_bytes16[key_a][key_b], value)
+  end
+
+  @spec get_mapping_test_bytes16(Types.Int16.t(), Types.Bytes16.t()) :: Types.Bytes16.t()
+  def get_mapping_test_bytes16(key_a, key_b) do
+    Storage.get(@mapping_test_bytes16[key_a][key_b], value)
+  end
+end

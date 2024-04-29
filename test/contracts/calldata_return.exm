@@ -1,0 +1,81 @@
+defmodule Test.CalldataReturn do
+  alias
+  alias Blockchain.Types
+
+
+  @spec test_bytes15(Types.Bytes15.t) :: Types.Bytes15.t()
+  def test_bytes15(a) do
+    a
+  end
+
+  @spec test_string(Types.String.t) :: Types.String.t()
+  def test_string(a) do
+    a
+  end
+
+  @spec test_address() :: Types.Address.t()
+  def test_address() do
+    ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
+  end
+
+  @spec get_int_test() :: Types.Int256.t()
+  def get_int_test() do
+    Storage.get(@int_test)
+  end
+
+  @spec simple_arr_test(Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)
+  def simple_arr_test(_, arr) do
+    arr
+  end
+
+  @spec dyn_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)
+  def dyn_dyn_arr_test(_, arr) do
+    arr
+  end
+
+
+  @spec dyn_dyn_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic)
+  def dyn_dyn_arr_test_non_word(_, arr) do
+    arr
+  end
+
+  @spec dyn_st_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)
+  def dyn_st_arr_test_non_word(_, arr) do
+    arr
+  end
+
+  @spec st_dyn_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic)
+  def st_dyn_arr_test_non_word(_, arr) do
+    arr
+  end
+
+  @spec st_st_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)
+  def st_st_arr_test_non_word(_, arr) do
+    arr
+  end
+
+  @spec dyn_arr_test_string(Types.Array.t(Types.Array.t(Types.String.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.String.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.String.t(), :dynamic), :dynamic)
+  def dyn_arr_test_string(_, arr) do
+    arr
+  end
+
+  @spec dyn_st_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)
+  def dyn_st_arr_test(_, arr) do
+    arr
+  end
+
+  @spec st_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)
+  def st_dyn_arr_test(_, arr) do
+    arr
+  end
+
+  @spec simple_tuple(Types.Int256.t(), Types.Tuple.t(Types.Int256.t(), Types.Int256.t())) :: Types.Tuple.t(Types.Int256.t(), Types.Int256.t())
+  def simple_tuple(_, tuple) do
+    tuple
+  end
+
+  @spec hard_tuple(Types.Tuple.t(Types.Int256.t(), Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), 2), Types.Array.t(Types.Int256.t(), :dynamic))) :: Types.Tuple.t(Types.Int256.t(), Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), 2), Types.Array.t(Types.Int256.t(), :dynamic))
+  def hard_tuple(tuple) do
+    tuple
+  end
+end

@@ -5,14 +5,20 @@ defmodule ETH.StorageA do
   alias Blockchain.EVM, as: BlockchainEVM
   alias Blockchain.Types
 
+  @event_simple name: :Event, indexed_arguments: [], data_arguments: []
 
-  @event_name indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
-  @event_simple indexed_arguments: [a: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [b: Types.Array.t(Types.Int256.t(), :dynamic)]
-  @int_test [type: Types.Int256.t()]
-  @address [type: Types.Address.t()]
-  @owner [type: Types.Address.t()]
-  @contract_symbol [type: Types.String.t()]
-  @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
+  # @event_name indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
+  # @event_simple indexed_arguments: [a: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [b: Types.Array.t(Types.Int256.t(), :dynamic)]
+  # @int_test [type: Types.Int256.t()]
+  # @address [type: Types.Address.t()]
+  # @owner [type: Types.Address.t()]
+  # @contract_symbol [type: Types.String.t()]
+  # @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
+
+  @spec test() :: nil
+  def test() do
+    Blockchain.Event.emit(@event_simple, [])
+  end
 
   # @spec constructor(Types.Int256.t(), Types.Address.t()) :: nil
   # def constructor(a, addr) do

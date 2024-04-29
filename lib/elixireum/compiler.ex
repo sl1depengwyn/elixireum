@@ -2,6 +2,7 @@ defmodule Elixireum.Compiler do
   @moduledoc """
   Elixireum Compiler
   """
+
   alias Blockchain.{Address, Event, Type}
 
   alias Elixireum.{
@@ -660,11 +661,13 @@ defmodule Elixireum.Compiler do
   end
 
   def ast_to_contract_fields(
-        {:@, _meta, [{event_name, _meta_, [[_, _] = args]}]} = node,
+        {:@, _meta, [{internal_event_name, _meta_, [[_, _, _] = args]}]} = node,
         acc
       ) do
     data_arguments = Keyword.get(args, :data_arguments)
     indexed_arguments = Keyword.get(args, :indexed_arguments)
+
+    event_name = Keyword.get(args, :name)
 
     prepared_data_arguments =
       for {var_name, var_type} <- data_arguments do
@@ -682,7 +685,7 @@ defmodule Elixireum.Compiler do
        :events,
        Map.put(
          acc[:events],
-         event_name,
+         internal_event_name,
          Event.new(%{
            name: event_name,
            data_arguments: prepared_data_arguments,

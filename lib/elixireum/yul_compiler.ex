@@ -1,15 +1,15 @@
 defmodule Elixireum.YulCompiler do
   @version "v0.8.25+commit.b61c2a91"
 
-  def compile(yul_file) do
+  def compile(std_json) do
     with path <- download_compiler() do
       content =
         System.cmd(path, [
-          "--strict-assembly",
-          # "--optimize",
-          # "--optimize-runs",
-          # "1",
-          yul_file
+          "--standard-json",
+          "--pretty-json",
+          # "\"" <>
+          std_json
+          # <> "\""
         ])
         |> elem(0)
 

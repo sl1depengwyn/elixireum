@@ -1,0 +1,92 @@
+defmodule Test.ERC20 do
+
+  alias Blockchain.{Event, Storage, Types}
+
+  @transfer name: "Transfer", indexed_arguments: [from: Types.Address.t(), to: Types.Address.t()], data_arguments: [value: Types.UInt256.t()]
+  @approval name: "Approval", indexed_arguments: [owner: Types.Address.t(), spender: Types.Address.t()], data_arguments: [value: Types.UInt256.t()]
+
+  @totalSupply type: Types.UInt256.t()
+  @balanceOf type: %{Types.Address.t() => Types.UInt256.t()}
+  @allowance type: %{Types.Address.t() => %{Types.Address.t() => Types.UInt256.t()}}
+  @name type: Types.String.t()
+  @symbol type: Types.String.t()
+  @decimals type: Types.UInt8.t()
+
+  @spec totalSupply() :: Types.UInt256.t()
+  def totalSupply() do
+    Storage.get(@totalSupply)
+  end
+
+  @spec balanceOf(Types.Address.t()) :: Types.UInt256.t()
+  def balanceOf(address) do
+    Storage.get(@balanceOf[address])
+  end
+
+  @spec allowance(Types.Address.t(), Types.Address.t()) :: Types.UInt256.t()
+  def allowance(owner, spender) do
+    Storage.get(@allowance[owner][spender])
+  end
+
+  @spec name() :: Types.String.t()
+  def name() do
+    Storage.get(@name)
+  end
+
+  @spec symbol() :: Types.String.t()
+  def symbol() do
+    Storage.get(@symbol)
+  end
+
+  @spec decimals() :: Types.UInt8.t()
+  def decimals() do
+    Storage.get(@decimals)
+  end
+
+  @spec constructor(Types.String.t(), Types.String.t(), Types.UInt8.t()) :: nil
+  def constructor(name, symbol, decimals) do
+    Storage.store(@name, name)
+    Storage.store(@symbol, symbol)
+    Storage.store(@decimals, decimals)
+  end
+
+  @spec transfer(Types.Address.t(), Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  def transfer(recipient, amount) do
+    caller = Blockchain.caller()
+    Storage.store(@balanceOf[caller], Storage.get(@balanceOf[caller]) - amount)
+    Storage.store(@balanceOf[recipient], Storage.get(@balanceOf[recipient]) + amount)
+    Event.emit(@transfer, [from: caller, to: recipient, value: amount])
+    true
+  end
+
+  @spec approve(Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  def approve(spender, amount) do
+    caller = Blockchain.caller()
+    Storage.store(@allowance[caller][spender], amount)
+    Event.emit(@approval, [owner: caller, spender: spender, value: amount])
+    true
+  end
+
+  @spec transferFrom(Types.Address.t(), Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  def transferFrom(sender, recipient, amount) do
+    caller = Blockchain.caller()
+    Storage.store(@allowance[sender][caller], Storage.get(@allowance[sender][caller]) - amount)
+    Storage.store(@balanceOf[caller], Storage.get(@balanceOf[caller]) - amount)
+    Storage.store(@balanceOf[recipient], Storage.get(@balanceOf[recipient]) + amount)
+    Event.emit(@transfer, [from: sender, to: recipient, value: amount])
+    true
+  end
+
+  @spec mint(Types.Address.t(), Types.UInt256.t()) :: nil
+  def mint(to, amount) do
+    Storage.store(@balanceOf[to], Storage.get(@balanceOf[to]) + amount)
+    Storage.store(@totalSupply, Storage.get(@totalSupply) + amount)
+    Event.emit(@transfer, [from: ~ADDRESS(0x0000000000000000000000000000000000000000), to: to, value: amount])
+  end
+
+  @spec burn(Types.Address.t(), Types.UInt256.t()) :: nil
+  def burn(from, amount) do
+    Storage.store(@balanceOf[from], Storage.get(@balanceOf[from]) - amount)
+    Storage.store(@totalSupply, Storage.get(@totalSupply) - amount)
+    Event.emit(@transfer, [from: from, to: ~ADDRESS(0x0000000000000000000000000000000000000000), value: amount])
+  end
+end

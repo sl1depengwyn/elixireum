@@ -1,0 +1,30 @@
+defmodule Test.Events do
+  alias Blockchain.Event
+  alias Blockchain.Types
+
+
+  @no_indexed_args indexed_arguments: [], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
+  @no_data_args indexed_arguments: [a: Types.Int256.t()], data_arguments: []
+  @with_complex_data indexed_arguments: [a: Types.Int256.t()], data_arguments: [b: Types.Array.t(Types.String.t(), :dynamic)]
+  @with_complex_indexed indexed_arguments: [a: Types.Int256.t(), c: Types.Array.t(Types.String.t(), :dynamic)], data_arguments: [b: Types.Int256.t()]
+
+  @spec no_indexed_args() :: nil
+  def no_indexed_args() do
+    Blockchain.Event.emit(@no_indexed_args, c: 1, d: [1,2,3])
+  end
+
+  @spec no_data_args() :: nil
+  def no_data_args() do
+    Blockchain.Event.emit(@no_data_args, a: 1)
+  end
+
+  @spec with_complex_data() :: nil
+  def with_complex_data() do
+    Blockchain.Event.emit(@with_complex_data, a: 1, b: ["1", "2", "3"])
+  end
+
+  @spec with_complex_indexed() :: nil
+  def with_complex_indexed() do
+    Blockchain.Event.emit(@with_complex_indexed, a: 1, b: 1, c: ["1", "2", "3"])
+  end
+end
