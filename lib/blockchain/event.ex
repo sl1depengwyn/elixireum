@@ -25,14 +25,10 @@ defmodule Blockchain.Event do
         %CompilerState{} = state,
         node
       ) do
-    dbg(values)
-
     values =
       for %YulNode{elixir_initial: {key, value}} <- values do
         {key.elixir_initial, value}
       end
-
-    dbg(values)
 
     indexed_topics =
       for {key, type} <- indexed_arguments do
@@ -43,21 +39,21 @@ defmodule Blockchain.Event do
       end
 
     definition =
-      """
-      //let indexed_data_init$ := msize()
-      //let indexed_data$ := indexed_data_init$
-      //indexed_data$ := add(indexed_data$, #{Enum.count(data_arguments) * 32})
-      let return_value$ := 0
-      let processed_return_value$ := msize()
-      let processed_return_value_init$ := processed_return_value$
-      processed_return_value$ := add(processed_return_value$, #{Enum.count(data_arguments) * 32})
-      """ <>
-        (data_arguments
-         |> Enum.reduce("", fn {key, _type}, acc ->
-           value = Keyword.fetch!(values, key)
+      (data_arguments
+       |> Enum.reduce("", fn {key, _type}, acc ->
+         value = Keyword.fetch!(values, key)
 
-           acc <> value.yul_snippet_definition
-         end))
+         acc <> value.yul_snippet_definition
+       end)) <>
+        """
+        //let indexed_data_init$ := msize()
+        //let indexed_data$ := indexed_data_init$
+        //indexed_data$ := add(indexed_data$, #{Enum.count(data_arguments) * 32})
+        let return_value$ := 0
+        let processed_return_value$ := msize()
+        let processed_return_value_init$ := processed_return_value$
+        processed_return_value$ := add(processed_return_value$, #{Enum.count(data_arguments) * 32})
+        """
 
     data_args_definition =
       data_arguments
@@ -74,12 +70,12 @@ defmodule Blockchain.Event do
       case indexed_topics do
         [] ->
           {"""
-           log1(processed_return_value_init$, sub(processed_return_value_init$, processed_return_value$), #{event_keccak256})
+           log1(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$), #{event_keccak256})
            """, data_args_definition}
 
         [{t1_def, t1_usage}] ->
           {"""
-           log2(processed_return_value_init$, sub(processed_return_value_init$, processed_return_value$), #{event_keccak256}, #{t1_usage})
+           log2(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$), #{event_keccak256}, #{t1_usage})
            """,
            """
            #{t1_def}
@@ -88,7 +84,7 @@ defmodule Blockchain.Event do
 
         [{t1_def, t1_usage}, {t2_def, t2_usage}] ->
           {"""
-           log3(processed_return_value_init$, sub(processed_return_value_init$, processed_return_value$), #{event_keccak256}, #{t1_usage}, #{t2_usage})
+           log3(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$), #{event_keccak256}, #{t1_usage}, #{t2_usage})
            """,
            """
            #{t1_def}
@@ -98,7 +94,7 @@ defmodule Blockchain.Event do
 
         [{t1_def, t1_usage}, {t2_def, t2_usage}, {t3_def, t3_usage}] ->
           {"""
-           log4(processed_return_value_init$, sub(processed_return_value_init$, processed_return_value$), #{event_keccak256}, #{t1_usage}, #{t2_usage}, #{t3_usage})
+           log4(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$), #{event_keccak256}, #{t1_usage}, #{t2_usage}, #{t3_usage})
            """,
            """
            #{t1_def}
@@ -282,7 +278,7 @@ defmodule Blockchain.Event do
         default {revert(0, 0)}
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
-      mstore(offset$, shl(#{offset}, shr(#{offset}}, #{arg_name_pointer})))
+      mstore(offset$, shl(#{offset}, shr(#{offset}}, mload(#{arg_name_pointer}))))
       offset$ := add(offset$, 32)
       #{arg_name_pointer} := add(#{arg_name_pointer}, #{type.size})
     """
@@ -300,7 +296,7 @@ defmodule Blockchain.Event do
         default {revert(0, 0)}
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
-      mstore(offset$, shr(#{8 * (32 - type.size)}, #{arg_name_pointer}))
+      mstore(offset$, shr(#{8 * (32 - type.size)}, mload(#{arg_name_pointer})))
       offset$ := add(offset$, 32)
       #{arg_name_pointer} := add(#{arg_name_pointer}, #{type.size})
     """

@@ -4,11 +4,26 @@ defmodule Elixireum.ABIGenerator do
   """
 
   alias Elixireum.{Contract, Function}
-  alias Blockchain.Type
+  alias Blockchain.{Event, Type}
 
   @spec generate(Contract.t()) :: map()
   def generate(%Contract{} = contract) do
-    Enum.map(contract.functions, &generate_abi_for_elementary/1)
+    Enum.map(Map.merge(contract.functions, contract.events), &generate_abi_for_elementary/1)
+  end
+
+  def generate_abi_for_elementary({name, %Event{} = event}) do
+    %{
+      anonymous: false,
+      type: :event,
+      name: name,
+      inputs:
+        Enum.map(event.indexed_arguments, fn {arg, type} ->
+          arg |> arg_to_abi(type) |> Map.put(:indexed, true)
+        end) ++
+          Enum.map(event.data_arguments, fn {arg, type} ->
+            arg |> arg_to_abi(type) |> Map.put(:indexed, false)
+          end)
+    }
   end
 
   def generate_abi_for_elementary({:constructor = name, %Function{} = function}) do

@@ -2,7 +2,7 @@ defmodule Elixireum.Compiler do
   @moduledoc """
   Elixireum Compiler
   """
-  alias Blockchain.{Address, Event, Storage, Type}
+  alias Blockchain.{Address, Event, Type}
 
   alias Elixireum.{
     ABIGenerator,
@@ -18,12 +18,13 @@ defmodule Elixireum.Compiler do
 
   alias Elixireum.Yul.StdFunction
 
-  def compile(_args) do
+  def compile(args) do
     :erlang.put(:elixir_parser_columns, true)
     :erlang.put(:elixir_token_metadata, true)
     :erlang.put(:elixir_literal_encoder, false)
 
-    file_name = "./examples/storage.exm"
+    # "./examples/storage.exm"
+    file_name = args[:source]
 
     code =
       file_name
@@ -42,8 +43,8 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-           {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
-           #  {_, ast} <- :elixir_parser.parse(tokens),
+           #  {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
+           {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
@@ -58,7 +59,7 @@ defmodule Elixireum.Compiler do
                },
                &ast_to_contract_fields/2
              ) do
-        dbg(acc)
+        # dbg(acc)
         functions_map = functions_list_to_functions_map(acc.functions)
         private_functions_map = functions_list_to_functions_map(acc.private_functions)
 
@@ -88,13 +89,7 @@ defmodule Elixireum.Compiler do
       }
       """
 
-    File.open!("./out.yul", [:write], fn file ->
-      IO.write(file, yul)
-    end)
-
-    File.open!("./abi.json", [:write], fn file ->
-      IO.write(file, ABIGenerator.generate(contract) |> Jason.encode_to_iodata!())
-    end)
+    %{yul: yul, abi: ABIGenerator.generate(contract)}
   end
 
   defp generate_deployment(nil, _contract) do
@@ -199,8 +194,6 @@ defmodule Elixireum.Compiler do
 
     where_to_store_children_heads_init_var_name =
       "#{where_to_store_head_init_var_name}#{i_var_name}_$"
-
-    dbg(components)
 
     """
     switch byte(0, mload(return_value$))
@@ -1033,7 +1026,7 @@ defmodule Elixireum.Compiler do
          %CompilerState{uniqueness_provider: uniqueness_provider} = acc
        )
        when is_list(args) do
-    case {value, Library.Utils.function_call_to_yul(value) |> dbg()} do
+    case {value, Library.Utils.function_call_to_yul(value)} do
       {{modules, function_name}, :not_found} ->
         Module.concat(modules)
         raise "#{Module.concat(modules)}.#{function_name}/#{length(args)} is undefined"
@@ -1141,8 +1134,6 @@ defmodule Elixireum.Compiler do
           ]} = node,
          %CompilerState{uniqueness_provider: uniqueness_provider} = state
        ) do
-    dbg()
-
     case Address.load(address) do
       {:ok, hash} ->
         var_name = "address#{state.uniqueness_provider}$"
@@ -1159,8 +1150,7 @@ defmodule Elixireum.Compiler do
            yul_snippet_usage: var_name,
            return_values_count: 1,
            elixir_initial: node
-         }
-         |> dbg(), %CompilerState{state | uniqueness_provider: uniqueness_provider + 1}}
+         }, %CompilerState{state | uniqueness_provider: uniqueness_provider + 1}}
 
       :error ->
         raise "Address hash is invalid"
@@ -1275,8 +1265,6 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(other, %CompilerState{} = state) do
-    dbg(other)
-
     var_name = "var#{state.uniqueness_provider}$"
 
     definition =

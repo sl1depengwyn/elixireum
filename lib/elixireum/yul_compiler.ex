@@ -2,23 +2,23 @@ defmodule Elixireum.YulCompiler do
   @version "v0.8.25+commit.b61c2a91"
 
   def compile(yul_file) do
-    with path <- download_compiler() |> dbg() do
+    with path <- download_compiler() do
       content =
         System.cmd(path, [
           "--strict-assembly",
-          "--optimize",
-          "--optimize-runs",
-          "1",
+          # "--optimize",
+          # "--optimize-runs",
+          # "1",
           yul_file
         ])
         |> elem(0)
 
-      File.write!("./out.txt", content)
+      content
     end
   end
 
   def download_compiler() do
-    File.mkdir(compiler_dir() |> dbg()) |> dbg()
+    File.mkdir(compiler_dir())
     ensure_exists(@version)
   end
 
@@ -82,7 +82,6 @@ defmodule Elixireum.YulCompiler do
     download_path = "https://binaries.soliditylang.org/#{os_type()}/solc-#{os_type()}-#{version}"
 
     download_path
-    |> dbg()
     |> HTTPoison.get!([], timeout: :infinity, recv_timeout: :infinity)
     |> Map.get(:body)
   end

@@ -7,6 +7,7 @@ defmodule ETH.StorageA do
 
 
   @event_name indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
+  @event_simple indexed_arguments: [a: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [b: Types.Array.t(Types.Int256.t(), :dynamic)]
   @int_test [type: Types.Int256.t()]
   @address [type: Types.Address.t()]
   @owner [type: Types.Address.t()]
@@ -50,10 +51,15 @@ defmodule ETH.StorageA do
   #   ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
   # end
 
-@spec event() :: nil
-  def event() do
-    Blockchain.Event.emit(@event_name, a: 1, b: [1,2,3], c: 2, d: [1,2,3])
+  @spec simple_event() :: nil
+  def simple_event() do
+    Blockchain.Event.emit(@event_simple, a: [1,2,3], b: [1,2,3])
   end
+
+  # @spec event() :: nil
+  # def event() do
+  #   Blockchain.Event.emit(@event_name, a: 1, b: [1,2,3], c: 2, d: [1,2,3])
+  # end
 
   # @spec return_origin() :: Types.Address.t()
   # def return_origin() do
@@ -70,15 +76,15 @@ defmodule ETH.StorageA do
   #   Storage.get(@address)
   # end
 
-  @spec get_owner() :: Types.Address.t()
-  def get_owner() do
-    Storage.get(@owner)
-  end
+  # @spec get_owner() :: Types.Address.t()
+  # def get_owner() do
+  #   Storage.get(@owner)
+  # end
 
-  @spec test_address_storage() :: nil
-  def test_address_storage() do
-    Storage.store(@owner, Blockchain.tx_origin())
-  end
+  # @spec test_address_storage() :: nil
+  # def test_address_storage() do
+  #   Storage.store(@owner, Blockchain.tx_origin())
+  # end
 
   # Blockchain.emit_event(@event_name, hjj: 678, jk: 678)
 
