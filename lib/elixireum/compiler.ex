@@ -454,7 +454,7 @@ defmodule Elixireum.Compiler do
         &do_typed_function_to_arguments(&1, &2, load_fn, copy_fn)
       )
 
-    {functions_extraction, function.args |> Enum.join(",")}
+    {functions_extraction, function.args |> Enum.map_join(",", &"_#{&1}")}
   end
 
   defp do_typed_function_to_arguments(
@@ -465,7 +465,7 @@ defmodule Elixireum.Compiler do
        ) do
     yul <>
       """
-        let #{arg_name} := memory_offset$
+        let _#{arg_name} := memory_offset$
         #{copy_type_from_calldata(to_string(arg_name), type, data_load_fn, data_copy_fn, "calldata_offset$", "init_calldata_offset$")}
       """
   end
@@ -904,7 +904,7 @@ defmodule Elixireum.Compiler do
         (function.typespec && function.typespec.return && ast_last.return_values_count == 1) ||
           (!function.typespec && ast_last.return_values_count == 1) || true ->
           """
-          function #{function.name}(#{Enum.join(function.args, ", ")}) -> return_value_1$ {
+          function #{function.name}(#{Enum.map_join(function.args, ", ", &"_#{&1}")}) -> return_value_1$ {
             let offset$ := msize()
             #{Enum.map_join(ast, "\n", fn yul_node -> if yul_node.return_values_count > 0 do
               """
@@ -995,11 +995,13 @@ defmodule Elixireum.Compiler do
           ]} = node,
          %CompilerState{declared_variables: declared_variables, variables: _variables} = state
        ) do
+    yul_var_name = "_#{var_name}"
+
     {yul_snippet_left, declared_variables} =
       if MapSet.member?(declared_variables, var_name) do
-        {"#{var_name}", declared_variables}
+        {"#{yul_var_name}", declared_variables}
       else
-        {"let #{var_name}", MapSet.put(declared_variables, var_name)}
+        {"let #{yul_var_name}", MapSet.put(declared_variables, var_name)}
       end
 
     yul_snippet_final = "#{yul_snippet_left} := #{yul_snippet_right}"
@@ -1165,7 +1167,7 @@ defmodule Elixireum.Compiler do
        when is_atom(var) do
     {%YulNode{
        yul_snippet_definition: "",
-       yul_snippet_usage: to_string(var),
+       yul_snippet_usage: "_#{var}",
        meta: meta,
        elixir_initial: other,
        return_values_count: 1
@@ -1249,7 +1251,7 @@ defmodule Elixireum.Compiler do
   defp expand_expression(atom, state) when is_atom(atom) do
     {%YulNode{
        yul_snippet_definition: "",
-       yul_snippet_usage: to_string(atom),
+       yul_snippet_usage: "_#{atom}",
        meta: nil,
        elixir_initial: atom,
        return_values_count: 1

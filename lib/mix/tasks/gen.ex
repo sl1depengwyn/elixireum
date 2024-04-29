@@ -51,11 +51,9 @@ defmodule Mix.Tasks.Gen do
         }
         |> Jason.encode_to_iodata!()
 
-      if Map.has_key?(args, :out) do
-        File.open!("std.json", [:write], fn file ->
-          IO.write(file, std_json)
-        end)
-      end
+      File.open!("std.json", [:write], fn file ->
+        IO.write(file, std_json)
+      end)
 
       result =
         "std.json"
