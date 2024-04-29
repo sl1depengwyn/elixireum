@@ -8,6 +8,7 @@ defmodule Elixireum.Library.Utils do
   @methods %{
     {Kernel, :+} => &Arithmetic.add/4,
     :+ => &Arithmetic.add/4,
+    :- => &Arithmetic.sub/4,
     {[:Blockchain, :Storage], :store} => &Storage.store/4,
     {[:Blockchain, :Storage], :get} => &Storage.get/3,
     {[:Blockchain], :tx_origin} => &Blockchain.tx_origin/2,
