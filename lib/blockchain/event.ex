@@ -53,6 +53,7 @@ defmodule Blockchain.Event do
         let return_value$ := 0
         let processed_return_value$ := msize()
         let processed_return_value_init$ := processed_return_value$
+        let where_to_store_head_init$ := processed_return_value$
         processed_return_value$ := add(processed_return_value$, #{Enum.count(data_arguments) * 32})
         """
 
@@ -312,9 +313,8 @@ defmodule Blockchain.Event do
     let #{arg_name}_$ := processed_return_value$
     let #{arg_name}_init$ := #{arg_name}_$
     let #{arg_name}_where_to_store_head$ := add(processed_return_value_init$, #{index * 32})
-    let #{arg_name}_where_to_store_head_init$ := #{arg_name}_where_to_store_head$
     return_value$ := #{yul_snippet_usage}
-    #{Return.encode(type, "i$", "size$", "#{arg_name}_where_to_store_head$", "#{arg_name}_where_to_store_head_init$")}
+    #{Return.encode(type, "i$", "size$", "#{arg_name}_where_to_store_head$", "where_to_store_head_init$")}
     // processed_return_value$ := add(processed_return_value$, 32)
     // return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
     """
