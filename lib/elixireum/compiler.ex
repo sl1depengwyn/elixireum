@@ -44,8 +44,8 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-            {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
-          #  {_, ast} <- :elixir_parser.parse(tokens),
+           {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
+           #  {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
@@ -1134,7 +1134,9 @@ defmodule Elixireum.Compiler do
   defp expand_expression(
          {:sigil_ADDRESS, meta,
           [
-            %YulNode{elixir_initial: {%AuxiliaryNode{value: :<<>>}, _, [%YulNode{value: address}]}} = yul_node,
+            %YulNode{
+              elixir_initial: {%AuxiliaryNode{value: :<<>>}, _, [%YulNode{value: address}]}
+            } = yul_node,
             %YulNode{elixir_initial: []}
           ]} = node,
          %CompilerState{uniqueness_provider: uniqueness_provider} = state
@@ -1249,13 +1251,24 @@ defmodule Elixireum.Compiler do
   end
 
   defp expand_expression(atom, state) when is_boolean(atom) do
+    var_name = "bool_var#{state.uniqueness_provider}$"
+
+    definition = """
+    let #{var_name} := offset$
+    mstore8(offset$, #{Type.elixir_to_encoded_type(atom)})
+    offset$ := add(offset$, 1)
+    mstore(offset$, #{atom})
+    offset$ := add(offset$, #{Type.elixir_to_size(atom)})
+    """
+
     {%YulNode{
-       yul_snippet_definition: "",
-       yul_snippet_usage: "#{atom}",
+       yul_snippet_definition: definition,
+       yul_snippet_usage: var_name,
        meta: nil,
        elixir_initial: atom,
+       value: atom,
        return_values_count: 1
-     }, state}
+     }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
   defp expand_expression(atom, state) when is_atom(atom) do

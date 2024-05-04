@@ -64,7 +64,8 @@ defmodule Blockchain.Storage do
       ) do
     # somehow check that variable + access_keys points to a single word in storage, i.e. if variable is string[][] access keys must be [uint, uint]
 
-    {definition, slot, keys_definition} = keccak_from_var_and_access_keys(variable, access_keys)
+    {definition, slot, keys_definition} =
+      keccak_from_var_and_access_keys(variable, Enum.reverse(access_keys))
 
     var_name = "$storage_get$#{uniqueness_provider}$"
 
@@ -153,7 +154,8 @@ defmodule Blockchain.Storage do
         %CompilerState{} = state,
         node
       ) do
-    {definition, slot, keys_definition} = keccak_from_var_and_access_keys(variable, access_keys)
+    {definition, slot, keys_definition} =
+      keccak_from_var_and_access_keys(variable, Enum.reverse(access_keys))
 
     definition =
       """
