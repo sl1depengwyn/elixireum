@@ -213,6 +213,13 @@ defmodule Elixireum.Compiler.Return do
         where_to_store_head_var_name,
         _where_to_store_head_init_var_name
       ) do
+    shift_func =
+      if type.encoded_type > 35 and type.encoded_type < 68 do
+        "sar"
+      else
+        "shr"
+      end
+
     """
     switch byte(0, mload(return_value$))
       case #{type.encoded_type} {}
@@ -222,7 +229,7 @@ defmodule Elixireum.Compiler.Return do
       }
 
     return_value$ := add(return_value$, 1)
-    mstore(#{where_to_store_head_var_name}, shr(#{8 * (32 - type.size)}, mload(return_value$)))
+    mstore(#{where_to_store_head_var_name}, #{shift_func}(#{8 * (32 - type.size)}, mload(return_value$)))
     return_value$ := add(return_value$, #{type.size})
     #{where_to_store_head_var_name} := add(#{where_to_store_head_var_name}, 32)
     """
