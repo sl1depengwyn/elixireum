@@ -191,11 +191,12 @@ defmodule Elixireum.Compiler do
 
   defp function_to_keccak_bytes(function) do
     "#{function.name}(#{Enum.map_join(function.typespec.args, ",", &do_function_to_keccak_bytes/1)})"
+    |> dbg()
     |> ExKeccak.hash_256()
   end
 
   def do_function_to_keccak_bytes(%Type{encoded_type: 3, components: components}) do
-    "#{Enum.map_join(components, ",", &do_function_to_keccak_bytes/1)})"
+    "(#{Enum.map_join(components, ",", &do_function_to_keccak_bytes/1)})"
   end
 
   def do_function_to_keccak_bytes(arg) do
