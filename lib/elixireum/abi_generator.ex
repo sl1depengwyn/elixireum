@@ -8,7 +8,8 @@ defmodule Elixireum.ABIGenerator do
 
   @spec generate(Contract.t()) :: map()
   def generate(%Contract{} = contract) do
-    Enum.map(Map.merge(contract.functions, contract.events), &generate_abi_for_elementary/1)
+    Enum.map(contract.functions, &generate_abi_for_elementary/1) ++
+      Enum.map(contract.events, &generate_abi_for_elementary/1)
   end
 
   def generate_abi_for_elementary({name, %Event{} = event}) do

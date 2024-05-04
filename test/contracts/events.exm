@@ -3,10 +3,10 @@ defmodule Test.Events do
   alias Blockchain.Types
 
 
-  @no_indexed_args indexed_arguments: [], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
-  @no_data_args indexed_arguments: [a: Types.Int256.t()], data_arguments: []
-  @with_complex_data indexed_arguments: [a: Types.Int256.t()], data_arguments: [b: Types.Array.t(Types.String.t(), :dynamic)]
-  @with_complex_indexed indexed_arguments: [a: Types.Int256.t(), c: Types.Array.t(Types.String.t(), :dynamic)], data_arguments: [b: Types.Int256.t()]
+  @no_indexed_args name: "no_indexed_args", indexed_arguments: [], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
+  @no_data_args name: "no_data_args", indexed_arguments: [a: Types.Int256.t()], data_arguments: []
+  @with_complex_data name: "with_complex_data", indexed_arguments: [a: Types.Int256.t()], data_arguments: [b: Types.Array.t(Types.String.t(), :dynamic)]
+  @with_complex_indexed name: "with_complex_indexed", indexed_arguments: [a: Types.Int256.t(), c: Types.Array.t(Types.String.t(), :dynamic)], data_arguments: [b: Types.Int256.t()]
 
   @spec no_indexed_args() :: nil
   def no_indexed_args() do

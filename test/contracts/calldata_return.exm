@@ -1,7 +1,5 @@
 defmodule Test.CalldataReturn do
-  alias
   alias Blockchain.Types
-
 
   @spec test_bytes15(Types.Bytes15.t) :: Types.Bytes15.t()
   def test_bytes15(a) do
@@ -16,11 +14,6 @@ defmodule Test.CalldataReturn do
   @spec test_address() :: Types.Address.t()
   def test_address() do
     ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
-  end
-
-  @spec get_int_test() :: Types.Int256.t()
-  def get_int_test() do
-    Storage.get(@int_test)
   end
 
   @spec simple_arr_test(Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)

@@ -245,7 +245,7 @@ defmodule Blockchain.Event do
          uniqueness_provider
        )
        when encoded_type in [1, 102] do
-    size = "size_of_#{arg_name_pointer}#_#{uniqueness_provider}$"
+    size = "size_of_#{arg_name_pointer}_#{uniqueness_provider}$"
 
     """
       switch byte(0, mload(#{arg_name_pointer}))
@@ -253,7 +253,7 @@ defmodule Blockchain.Event do
         default {revert(0, 0)}
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
-      let #{size} = mload(#{arg_name_pointer})
+      let #{size} := mload(#{arg_name_pointer})
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 32)
 
