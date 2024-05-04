@@ -1,5 +1,6 @@
 defmodule Blockchain.Event do
   alias Elixireum.{AuxiliaryNode, Compiler, CompilerState, YulNode}
+  alias Elixireum.Compiler.Return
   alias Blockchain.Type
 
   @type t :: %__MODULE__{
@@ -164,7 +165,7 @@ defmodule Blockchain.Event do
 
   defp encode_indexed_argument(
          arg_name,
-         %Type{encoded_type: encoded_type} = type,
+         %Type{} = type,
          %YulNode{yul_snippet_usage: yul_snippet_usage}
        ) do
     init_var_name = "indexed_#{arg_name}_keccak_init$"
@@ -215,7 +216,6 @@ defmodule Blockchain.Event do
          uniqueness_provider
        ) do
     size = "size_of_#{arg_name_pointer}#_#{uniqueness_provider}$"
-    i = "i_#{arg_name_pointer}#{uniqueness_provider}#$"
 
     """
       switch byte(0, mload(#{arg_name_pointer}))
@@ -304,8 +304,8 @@ defmodule Blockchain.Event do
 
   defp encode_data_argument(
          arg_name,
-         %Type{encoded_type: encoded_type} = type,
-         %YulNode{yul_snippet_usage: yul_snippet_usage} = typed_node,
+         %Type{} = type,
+         %YulNode{yul_snippet_usage: yul_snippet_usage},
          index
        ) do
     """
@@ -314,7 +314,7 @@ defmodule Blockchain.Event do
     let #{arg_name}_where_to_store_head$ := add(processed_return_value_init$, #{index * 32})
     let #{arg_name}_where_to_store_head_init$ := #{arg_name}_where_to_store_head$
     return_value$ := #{yul_snippet_usage}
-    #{Compiler.do_generate_return(type, "i$", "size$", "#{arg_name}_where_to_store_head$", "#{arg_name}_where_to_store_head_init$")}
+    #{Return.encode(type, "i$", "size$", "#{arg_name}_where_to_store_head$", "#{arg_name}_where_to_store_head_init$")}
     // processed_return_value$ := add(processed_return_value$, 32)
     // return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
     """
