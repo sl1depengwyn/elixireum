@@ -233,6 +233,6 @@ defmodule Elixireum.Compiler.Return do
   end
 
   defp type_to_head_size(%Type{size: size}) do
-    size
+    max(32, size)
   end
 end

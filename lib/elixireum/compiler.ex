@@ -41,12 +41,16 @@ defmodule Elixireum.Compiler do
       variables: _
     } =
       contract =
+        # elixir_env:new())#{line := 1, file := File, tracers := elixir_config:get(tracers)
+        # Code.string_to_quoted
+        # :elixir_expand.expand(ast, __ENV__, __ENV__)
+
       with {_, _, _, _, tokens} <-
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-           {_, ast} <- :elixir_parser.parse(tokens) |> dbg(),
-           #  {_, ast} <- :elixir_parser.parse(tokens),
+          #  {_, ast} <- :elixir_parser.parse(tokens) |> dbg(limit: :infinity, printable_limit: :infinity),
+            {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
