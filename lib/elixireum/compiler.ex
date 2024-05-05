@@ -3,6 +3,7 @@ defmodule Elixireum.Compiler do
   Elixireum Compiler
   """
 
+  alias Elixireum.Yul.Utils, as: YulUtils
   alias Blockchain.{Address, Event, Type}
 
   alias Elixireum.{
@@ -779,23 +780,21 @@ defmodule Elixireum.Compiler do
     raise "Not implemented: #{inspect(other)}"
   end
 
-  # todo: take care of not only literals
   defp expand_expression(list, acc) when is_list(list) do
     var_name = "list#{acc.uniqueness_provider}$"
 
     definition = """
+    #{list |> Enum.map(& &1.yul_snippet_definition) |> Enum.join("\n")}
+
     let #{var_name} := offset$
     mstore8(offset$, 103)
     offset$ := add(offset$, 1)
     mstore(offset$, #{Enum.count(list)})
     offset$ := add(offset$, 32)
+    let ignored_
     #{for i <- list do
-      type = Type.elixir_to_encoded_type(i.value)
       """
-      mstore8(offset$, #{type})
-      offset$ := add(offset$, 1)
-      mstore(offset$, #{i.value})
-      offset$ := add(offset$, #{Type.elixir_to_size(i.value)})
+      ignored_, offset$ := copy_from_pointer_to$(#{i.yul_snippet_usage}, offset$)
       """
     end}
     """
@@ -807,7 +806,13 @@ defmodule Elixireum.Compiler do
        value: list,
        elixir_initial: list,
        return_values_count: 1
-     }, %CompilerState{acc | uniqueness_provider: acc.uniqueness_provider + 1}}
+     },
+     %CompilerState{
+       acc
+       | uniqueness_provider: acc.uniqueness_provider + 1,
+         used_standard_functions:
+           Map.put(acc.used_standard_functions, :copy_var, YulUtils.copy_var())
+     }}
   end
 
   defp expand_expression(str, acc) when is_binary(str) do
