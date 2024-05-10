@@ -239,7 +239,7 @@ defmodule Elixireum.Compiler.Return do
     32
   end
 
-  defp type_to_head_size(%Type{size: size}) do
-    max(32, size)
+  defp type_to_head_size(%Type{calldata_size: calldata_size}) do
+    calldata_size
   end
 end
