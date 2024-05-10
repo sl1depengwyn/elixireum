@@ -32,17 +32,17 @@ defmodule Test.CalldataReturn do
     arr
   end
 
-  @spec dyn_st_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)
+  @spec dyn_st_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Bytes16.t(), 3), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Bytes16.t(), 3), :dynamic)
   def dyn_st_arr_test_non_word(_, arr) do
     arr
   end
 
-  @spec st_dyn_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic)
+  @spec st_dyn_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), 3)) :: Types.Array.t(Types.Array.t(Types.Int16.t(), :dynamic), 3)
   def st_dyn_arr_test_non_word(_, arr) do
     arr
   end
 
-  @spec st_st_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic)
+  @spec st_st_arr_test_non_word(Types.Array.t(Types.Array.t(Types.Bytes16.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Bytes16.t(), 3), 3)) :: Types.Array.t(Types.Array.t(Types.Bytes16.t(), 3), 3)
   def st_st_arr_test_non_word(_, arr) do
     arr
   end
