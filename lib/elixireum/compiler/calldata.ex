@@ -93,11 +93,11 @@ defmodule Elixireum.Compiler.Calldata do
         data_load_fn,
         data_copy_fn,
         calldata_var,
-        _init_calldata_var
+        init_calldata_var
       ) do
-    i = "#{arg_name}$#{calldata_var}i"
+    i = "static_#{arg_name}$#{init_calldata_var}i"
 
-    init_calldata_var = "#{calldata_var}$#{arg_name}init"
+    init_calldata_var = "static_#{init_calldata_var}$#{arg_name}init"
 
     """
     mstore8(memory_offset$, #{type.encoded_type})
