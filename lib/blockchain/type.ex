@@ -3,13 +3,14 @@ defmodule Blockchain.Type do
 
   @type t :: %__MODULE__{
           size: non_neg_integer() | :dynamic,
+          calldata_size: non_neg_integer() | :dynamic,
           abi_name: String.t(),
           encoded_type: pos_integer(),
           components: [t()],
           items_count: non_neg_integer() | :dynamic
         }
 
-  defstruct [:size, :abi_name, :encoded_type, :components, :items_count]
+  defstruct [:size, :abi_name, :encoded_type, :components, :items_count, calldata_size: 32]
 
   def elixir_to_encoded_type(t) do
     case t do
@@ -145,6 +146,7 @@ defmodule Blockchain.Type do
         {:ok,
          %__MODULE__{
            size: :dynamic,
+           calldata_size: :dynamic,
            abi_name: component.abi_name <> "[]",
            components: [component],
            encoded_type: 103,
@@ -155,6 +157,11 @@ defmodule Blockchain.Type do
         {:ok,
          %__MODULE__{
            size: if(is_integer(component.size), do: component.size * size, else: component.size),
+           calldata_size:
+             if(is_integer(component.calldata_size),
+               do: component.calldata_size * size,
+               else: component.calldata_size
+             ),
            abi_name: component.abi_name <> "[#{size}]",
            components: [component],
            encoded_type: 103,
@@ -169,21 +176,22 @@ defmodule Blockchain.Type do
   end
 
   defp tuple_type(args) do
-    size =
-      Enum.reduce(args, 0, fn
+    {calldata_size, size} =
+      Enum.reduce(args, {0, 0}, fn
         arg, acc ->
           case {arg.size, acc} do
             {arg_size, acc_size} when is_integer(arg_size) and is_integer(acc_size) ->
-              arg_size + acc_size
+              {32 + acc_size, arg_size + acc_size}
 
             _ ->
-              :dynamic
+              {:dynamic, :dynamic}
           end
       end)
 
     {:ok,
      %__MODULE__{
        size: size,
+       calldata_size: calldata_size,
        abi_name: "tuple",
        components: args,
        encoded_type: 3,
