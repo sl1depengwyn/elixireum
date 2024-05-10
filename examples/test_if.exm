@@ -1,0 +1,14 @@
+defmodule Test1 do
+  alias Blockchain.Types
+
+
+  @spec if_revert(Types.Int256.t()) :: Types.String.t()
+  def if_revert(a) do
+    if a == 1 do
+      "if do"
+    else
+      "if else"
+    end
+  end
+
+end

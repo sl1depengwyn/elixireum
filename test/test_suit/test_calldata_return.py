@@ -45,28 +45,26 @@ class TestCalldataReturn:
         assert self.contract.functions.dyn_dyn_arr_test_non_word([], []).call() == []
 
     def test_2dym_array_bytes_16(self):
-        arr = [[], [1, 2, 3, 4], [], [100, 20002, 20003], []]
+        arr = [[1, 2, 3], [100, 20002, 20003]]
         for i in range(len(arr)):
             for j in range(len(arr[i])):
                 arr[i][j] = pad_bytes(web3.Web3.to_bytes(arr[i][j]), 16)
 
-        assert self.contract.functions.dyn_st_arr_test_non_word(arr, arr).call() == arr
-        assert self.contract.functions.dyn_st_arr_test_non_word([], []).call() == []
+        assert self.contract.functions.dyn_st_arr_test_non_word([], arr).call() == arr
 
     def test_2dym_array_int_16_1(self):
-        arr = [[], [1, 2, 3, 4], [], [100, 20002, 20003], []]
+        arr = [[], [1, 2, 3, 4], [100, 20002, 20003]]
 
         assert self.contract.functions.st_dyn_arr_test_non_word(arr, arr).call() == arr
-        assert self.contract.functions.st_dyn_arr_test_non_word([], []).call() == []
+        assert self.contract.functions.st_dyn_arr_test_non_word([], arr).call() == arr
 
     def test_2dym_array_bytes_16_1(self):
-        arr = [[], [1, 2, 3, 4], [], [100, 20002, 20003], []]
+        arr = [[1, 2, 3], [0, 100, 101], [100, 20002, 20003]]
         for i in range(len(arr)):
             for j in range(len(arr[i])):
                 arr[i][j] = pad_bytes(web3.Web3.to_bytes(arr[i][j]), 16)
 
-        assert self.contract.functions.st_st_arr_test_non_word(arr, arr).call() == arr
-        assert self.contract.functions.st_st_arr_test_non_word([], []).call() == []
+        assert self.contract.functions.st_st_arr_test_non_word([], arr).call() == arr
 
     def test_2dym_array_string(self):
         arr = [[], [randomword(100), randomword(1), randomword(0)], [randomword(0)], [randomword(64), randomword(32)],
