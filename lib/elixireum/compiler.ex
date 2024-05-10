@@ -49,8 +49,9 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-           #  {_, ast} <- :elixir_parser.parse(tokens) |> dbg(limit: :infinity, printable_limit: :infinity),
-           {_, ast} <- :elixir_parser.parse(tokens),
+           {_, ast} <-
+             :elixir_parser.parse(tokens) |> dbg(limit: :infinity, printable_limit: :infinity),
+           #  {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
@@ -176,15 +177,13 @@ defmodule Elixireum.Compiler do
   end
 
   defp generate_return(type) do
-    size = (type.items_count || 1) * 32
-
     """
     let processed_return_value$ := msize()
     let processed_return_value_init$ := processed_return_value$
     let where_to_store_head$ := processed_return_value$
     let where_to_store_head_init$ := where_to_store_head$
     #{Return.encode(type, "i$", "size$", "where_to_store_head$", "where_to_store_head_init$")}
-    processed_return_value$ := add(processed_return_value$, #{size})
+    processed_return_value$ := add(processed_return_value$, #{type.calldata_size})
     return(processed_return_value_init$, sub(processed_return_value$, processed_return_value_init$))
     """
   end
@@ -722,6 +721,24 @@ defmodule Elixireum.Compiler do
   #   ) do
   # dbg()
   # end
+
+  defp expand_expression({:if, meta, children} = node, state) do
+    [condition, do_else] = children
+
+    do_else =
+      Enum.map(do_else.elixir_initial, fn %YulNode{elixir_initial: {key, value}} ->
+        {key.elixir_initial, value}
+      end)
+
+    do_clause = Keyword.fetch(do_else, :do)
+    else_clause = Keyword.fetch(do_else, :else)
+
+    dbg(condition)
+    dbg(do_clause)
+    dbg(else_clause)
+
+    {node, state}
+  end
 
   defp expand_expression(
          {:sigil_ADDRESS, _meta,
