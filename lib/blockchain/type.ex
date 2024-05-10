@@ -180,8 +180,8 @@ defmodule Blockchain.Type do
       Enum.reduce(args, {0, 0}, fn
         arg, acc ->
           case {arg.size, acc} do
-            {arg_size, acc_size} when is_integer(arg_size) and is_integer(acc_size) ->
-              {32 + acc_size, arg_size + acc_size}
+            {arg_size, {calldata_size_acc, size_acc}} when is_integer(arg_size) and is_integer(size_acc) and is_integer(calldata_size_acc) ->
+              {32 + calldata_size_acc, arg_size + size_acc}
 
             _ ->
               {:dynamic, :dynamic}
@@ -196,7 +196,7 @@ defmodule Blockchain.Type do
        components: args,
        encoded_type: 3,
        items_count: Enum.count(args)
-     }}
+     }} |> dbg()
   end
 
   defp abi_name_to_encoded_type(abi_name) do
