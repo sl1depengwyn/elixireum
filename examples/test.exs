@@ -5,12 +5,12 @@ defmodule ETH.StorageA do
     env = :elixir_env.new()
 
     quote do
-        alias Blockchain.Types
+      alias Blockchain.Types
 
-        for x <- [1, 2, 3] do
-          @spec String.to_atom("store_#{x}")() :: Types.Int256.t()
-          def String.to_atom("get_#{x}")(), do: x
-        end
+      for x <- [1, 2, 3] do
+        @spec String.to_atom("store_#{x}")() :: Types.Int256.t()
+        def String.to_atom("get_#{x}")(), do: x
+      end
     end
     |> Macro.expand(env)
     |> Macro.to_string()

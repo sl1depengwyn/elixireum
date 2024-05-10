@@ -12,11 +12,11 @@ defmodule Elixireum.ABIGenerator do
       Enum.map(contract.events, &generate_abi_for_elementary/1)
   end
 
-  def generate_abi_for_elementary({name, %Event{} = event}) do
+  def generate_abi_for_elementary({_name, %Event{} = event}) do
     %{
       anonymous: false,
       type: :event,
-      name: name,
+      name: event.name,
       inputs:
         Enum.map(event.indexed_arguments, fn {arg, type} ->
           arg |> arg_to_abi(type) |> Map.put(:indexed, true)

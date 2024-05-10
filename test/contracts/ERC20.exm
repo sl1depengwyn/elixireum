@@ -49,7 +49,7 @@ defmodule Test.ERC20 do
     Storage.store(@decimals, decimals)
   end
 
-  @spec transfer(Types.Address.t(), Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  @spec transfer(Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
   def transfer(recipient, amount) do
     caller = Blockchain.caller()
     Storage.store(@balanceOf[caller], Storage.get(@balanceOf[caller]) - amount)

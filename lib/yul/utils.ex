@@ -56,7 +56,7 @@ defmodule Elixireum.Yul.Utils do
     }
   end
 
-  #todo replace bytes/string copy with mcopy
+  # todo replace bytes/string copy with mcopy
   def copy_var() do
     %StdFunction{
       yul: """
