@@ -1,160 +1,194 @@
-defmodule ETH.StorageA do
-  alias Enum
-  alias Blockchain.Storage
-  alias Blockchain.{Storage, EVM, Storage.A}
-  alias Blockchain.EVM, as: BlockchainEVM
+defmodule Test do
   alias Blockchain.Types
 
-  @event_simple name: :Event, indexed_arguments: [], data_arguments: []
-
-  # @event_name indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
-  # @event_simple indexed_arguments: [a: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [b: Types.Array.t(Types.Int256.t(), :dynamic)]
-  # @int_test [type: Types.Int256.t()]
-  # @address [type: Types.Address.t()]
-  # @owner [type: Types.Address.t()]
-  # @contract_symbol [type: Types.String.t()]
-  # @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
-
-  @spec test() :: nil
-  def test() do
-    Blockchain.Event.emit(@event_simple, [])
+  for x <- [1, 2, 3] do
+    @spec String.to_atom("store_#{x}")() :: Types.Int256.t()
+    def String.to_atom("get_#{x}")(), do: x
   end
-
-  # @spec constructor(Types.Int256.t(), Types.Address.t()) :: nil
-  # def constructor(a, addr) do
-  #   Storage.store(@owner, Blockchain.tx_origin())f
-  #   Storage.store(@int_test, a)
-  #   Storage.store(@address, addr)
-  # end
-
-  # @spec qwe() :: Types.Array.t(Types.Int256.t(), :dynamic)
-  # def qwe() do
-  #   [1,2,3]
-  # end
-
-  # @spec store_name(Types.String.t()) :: nil
-  # def store_name(contract_symbol) do
-  #   Storage.store(@contract_symbol, contract_symbol)
-  # end
-
-  # @spec retrieve_name() :: Types.String.t()
-  # def retrieve_name() do
-  #   Storage.get(@contract_symbol)
-  # end
-
-  # @spec test_bytes15(Types.Bytes15.t) :: Types.Bytes15.t()
-  # def test_bytes15(a) do
-  #   a
-  # end
-
-  # @spec test_string(Types.String.t) :: Types.String.t()
-  # def test_string(a) do
-  #   a
-  # end
-
-  # @spec test_address() :: Types.Address.t()
-  # def test_address() do
-  #   ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
-  # end
-
-  @spec simple_event() :: nil
-  def simple_event() do
-    Blockchain.Event.emit(@event_simple, a: [1,2,3], b: [1,2,3])
-  end
-
-  # @spec event() :: nil
-  # def event() do
-  #   Blockchain.Event.emit(@event_name, a: 1, b: [1,2,3], c: 2, d: [1,2,3])
-  # end
-
-  # @spec return_origin() :: Types.Address.t()
-  # def return_origin() do
-  #   Blockchain.tx_origin()
-  # end
-
-  # @spec get_int_test() :: Types.Int256.t()
-  # def get_int_test() do
-  #   Storage.get(@int_test)
-  # end
-
-  # @spec get_address() :: Types.Address.t()
-  # def get_address() do
-  #   Storage.get(@address)
-  # end
-
-  # @spec get_owner() :: Types.Address.t()
-  # def get_owner() do
-  #   Storage.get(@owner)
-  # end
-
-  # @spec test_address_storage() :: nil
-  # def test_address_storage() do
-  #   Storage.store(@owner, Blockchain.tx_origin())
-  # end
-
-  # Blockchain.emit_event(@event_name, hjj: 678, jk: 678)
-
-  # @spec increment_mapping(Types.Int256.t(), Types.Int256.t(), Types.Int256.t()) :: Types.Int256.t()
-  # def increment_mapping(a, b, c) do
-  #   Storage.store(@mapping_test[a][b], Storage.get(@mapping_test[a][b]) + c)
-
-  #   Storage.get(@mapping_test[a][b])
-  # end
-
-  # @spec increment_int(Types.Int256.t()) :: Types.Int256.t()
-  # def increment_int(a) do
-  #   # c = Storage.get(@int_test) + 1
-  #   Storage.store(@int_test, a)
-
-  #   Storage.get(@int_test)
-  # end
-
-  # @spec store(Types.Int256.t(), Types.Int256.t()) :: nil
-  # def store(num, fake_num) do
-  #   test = abc(num)
-  #   Blockchain.Storage.store(@var_name, test)
-  # end
-
-  # @spec simple_arr_test(Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)
-  # def simple_arr_test(_, arr) do
-  #   arr
-  # end
-
-  # @spec dyn_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)
-  # def dyn_dyn_arr_test(_, arr) do
-  #   arr
-  # end
-
-  # @spec dyn_st_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)
-  # def dyn_st_arr_test(_, arr) do
-  #   arr
-  # end
-
-  # @spec st_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)
-  # def st_dyn_arr_test(_, arr) do
-  #   arr
-  # end
-
-  # @spec simple_tuple(Types.Int256.t(), Types.Tuple.t(Types.Int256.t(), Types.Int256.t())) :: Types.Tuple.t(Types.Int256.t(), Types.Int256.t())
-  # def simple_tuple(_, tuple) do
-  #   tuple
-  # end
-
-  # @spec hard_tuple(Types.Tuple.t(Types.Int256.t(), Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), 2), Types.Array.t(Types.Int256.t(), :dynamic))) :: Types.Tuple.t(Types.Int256.t(), Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), 2), Types.Array.t(Types.Int256.t(), :dynamic))
-  # def hard_tuple(tuple) do
-  #   tuple
-  # end
-
-  # @spec retrieve() :: Blockchain.Types.Int256.t()
-  # def retrieve() do
-  #   Storage.get(@var_name)
-  # end
-
-  # defp abc(qwe) do
-  #   qwe + 1 + get_0()
-  # end
-
-  # defp get_0() do
-  #   100
-  # end
 end
+
+# defmodule ETH.StorageA do
+#   # alias Enum
+#   # alias Blockchain.Storage
+#   # alias Blockchain.{Storage, EVM, Storage.A}
+#   # alias Blockchain.EVM, as: BlockchainEVM
+#   alias Blockchain.Types
+
+#   def a() do
+#     __MODULE__
+#   end
+
+#   for x <- [1, 2, 3] do
+#     @spec unquote(String.to_atom("get_#{x}"))() :: Types.Int256.t()
+#     def unquote(String.to_atom("get_#{x}"))(), do: unquote(x)
+#   end
+
+#   # @spec store_1() :: Types.Int256.t()
+#   # def store_1(), do: 1
+#   # @spec store_2() :: Types.Int256.t()
+#   # def store_2(), do: 2
+#   # @spec store_3() :: Types.Int256.t()
+#   # def store_3(), do: 3
+
+#   # @name type: Types.String.t()
+#   # @symbol type: Types.String.t()
+#   # @decimals type: Types.UInt8.t()
+
+#   # @spec test(Types.String.t(), Types.String.t(), Types.UInt8.t()) :: nil
+#   # def test(name, symbol, decimals) do
+#   #   Storage.store(@name, name)
+#   #   Storage.store(@symbol, symbol)
+#   #   Storage.store(@decimals, decimals)
+#   # end
+
+#   # @event_name indexed_arguments: [a: Types.Int256.t(), b: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [c: Types.Int256.t(), d: Types.Array.t(Types.Int256.t(), :dynamic)]
+#   # @event_simple indexed_arguments: [a: Types.Array.t(Types.Int256.t(), :dynamic)], data_arguments: [b: Types.Array.t(Types.Int256.t(), :dynamic)]
+#   # @int_test [type: Types.Int256.t()]
+#   # @address [type: Types.Address.t()]
+#   # @owner [type: Types.Address.t()]
+#   # @contract_symbol [type: Types.String.t()]
+#   # @mapping_test [type: %{Types.Int256.t() => %{Types.Int256.t() => Types.Int256.t()}}]
+
+#   # @spec test() :: nil
+#   # def test() do
+#   #   Blockchain.Event.emit(@event_simple, [])
+#   # end
+
+#   # @spec constructor(Types.Int256.t(), Types.Address.t()) :: nil
+#   # def constructor(a, addr) do
+#   #   Storage.store(@owner, Blockchain.tx_origin())f
+#   #   Storage.store(@int_test, a)
+#   #   Storage.store(@address, addr)
+#   # end
+
+#   # @spec qwe() :: Types.Array.t(Types.Int256.t(), :dynamic)
+#   # def qwe() do
+#   #   [1,2,3]
+#   # end
+
+#   # @spec store_name(Types.String.t()) :: nil
+#   # def store_name(contract_symbol) do
+#   #   Storage.store(@contract_symbol, contract_symbol)
+#   # end
+
+#   # @spec retrieve_name() :: Types.String.t()
+#   # def retrieve_name() do
+#   #   Storage.get(@contract_symbol)
+#   # end
+
+#   # @spec test_bytes15(Types.Bytes15.t) :: Types.Bytes15.t()
+#   # def test_bytes15(a) do
+#   #   a
+#   # end
+
+#   # @spec test_string(Types.String.t) :: Types.String.t()
+#   # def test_string(a) do
+#   #   a
+#   # end
+
+#   # @spec test_address() :: Types.Address.t()
+#   # def test_address() do
+#   #   ~ADDRESS(0x8a258309B8177Df36c48de82885A56cCF576979C)
+#   # end
+
+#   # @spec simple_event() :: nil
+#   # def simple_event() do
+#   #   Blockchain.Event.emit(@event_simple, a: [1,2,3], b: [1,2,3])
+#   # end
+
+#   # @spec event() :: nil
+#   # def event() do
+#   #   Blockchain.Event.emit(@event_name, a: 1, b: [1,2,3], c: 2, d: [1,2,3])
+#   # end
+
+#   # @spec return_origin() :: Types.Address.t()
+#   # def return_origin() do
+#   #   Blockchain.tx_origin()
+#   # end
+
+#   # @spec get_int_test() :: Types.Int256.t()
+#   # def get_int_test() do
+#   #   Storage.get(@int_test)
+#   # end
+
+#   # @spec get_address() :: Types.Address.t()
+#   # def get_address() do
+#   #   Storage.get(@address)
+#   # end
+
+#   # @spec get_owner() :: Types.Address.t()
+#   # def get_owner() do
+#   #   Storage.get(@owner)
+#   # end
+
+#   # @spec test_address_storage() :: nil
+#   # def test_address_storage() do
+#   #   Storage.store(@owner, Blockchain.tx_origin())
+#   # end
+
+#   # Blockchain.emit_event(@event_name, hjj: 678, jk: 678)
+
+#   # @spec increment_mapping(Types.Int256.t(), Types.Int256.t(), Types.Int256.t()) :: Types.Int256.t()
+#   # def increment_mapping(a, b, c) do
+#   #   Storage.store(@mapping_test[a][b], Storage.get(@mapping_test[a][b]) + c)
+
+#   #   Storage.get(@mapping_test[a][b])
+#   # end
+
+#   # @spec increment_int(Types.Int256.t()) :: Types.Int256.t()
+#   # def increment_int(a) do
+#   #   # c = Storage.get(@int_test) + 1
+#   #   Storage.store(@int_test, a)
+
+#   #   Storage.get(@int_test)
+#   # end
+
+#   # @spec store(Types.Int256.t(), Types.Int256.t()) :: nil
+#   # def store(num, fake_num) do
+#   #   test = abc(num)
+#   #   Blockchain.Storage.store(@var_name, test)
+#   # end
+
+#   # @spec simple_arr_test(Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), :dynamic)) :: Types.Array.t(Types.Int256.t(), :dynamic)
+#   # def simple_arr_test(_, arr) do
+#   #   arr
+#   # end
+
+#   # @spec dyn_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), :dynamic)
+#   # def dyn_dyn_arr_test(_, arr) do
+#   #   arr
+#   # end
+
+#   # @spec dyn_st_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic), Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), 3), :dynamic)
+#   # def dyn_st_arr_test(_, arr) do
+#   #   arr
+#   # end
+
+#   # @spec st_dyn_arr_test(Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3), Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)) :: Types.Array.t(Types.Array.t(Types.Int256.t(), :dynamic), 3)
+#   # def st_dyn_arr_test(_, arr) do
+#   #   arr
+#   # end
+
+#   # @spec simple_tuple(Types.Int256.t(), Types.Tuple.t(Types.Int256.t(), Types.Int256.t())) :: Types.Tuple.t(Types.Int256.t(), Types.Int256.t())
+#   # def simple_tuple(_, tuple) do
+#   #   tuple
+#   # end
+
+#   # @spec hard_tuple(Types.Tuple.t(Types.Int256.t(), Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), 2), Types.Array.t(Types.Int256.t(), :dynamic))) :: Types.Tuple.t(Types.Int256.t(), Types.Array.t(Types.Int256.t(), :dynamic), Types.Array.t(Types.Int256.t(), 2), Types.Array.t(Types.Int256.t(), :dynamic))
+#   # def hard_tuple(tuple) do
+#   #   tuple
+#   # end
+
+#   # @spec retrieve() :: Blockchain.Types.Int256.t()
+#   # def retrieve() do
+#   #   Storage.get(@var_name)
+#   # end
+
+#   # defp abc(qwe) do
+#   #   qwe + 1 + get_0()
+#   # end
+
+#   # defp get_0() do
+#   #   100
+#   # end
+# end
