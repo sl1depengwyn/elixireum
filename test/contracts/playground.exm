@@ -1,0 +1,14 @@
+defmodule Test do
+  alias Blockchain.Types
+
+  @spec a(Types.UInt256.t()) :: nil
+  def a(a) do
+    if a == 1 do
+      2
+      0
+    else
+      1
+    end
+    nil
+  end
+end
