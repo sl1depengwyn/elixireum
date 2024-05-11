@@ -1,0 +1,163 @@
+defmodule Test.ERC20 do
+  alias Blockchain.{Event, Storage, Types}
+
+  @transfer name: "Transfer", indexed_arguments: [from: Types.Address.t(), to: Types.Address.t()], data_arguments: [value: Types.UInt256.t()]
+  @approval name: "Approval", indexed_arguments: [owner: Types.Address.t(), spender: Types.Address.t()], data_arguments: [value: Types.UInt256.t()]
+
+  @balances type: %{Types.Address.t() => Types.UInt256.t()}
+  @allowances type: %{Types.Address.t() => %{Types.Address.t() => Types.UInt256.t()}}
+
+  @totalSupply type: Types.UInt256.t()
+  @name type: Types.String.t()
+  @symbol type: Types.String.t()
+  @owner type: Types.Address.t()
+
+  @spec constructor(Types.String.t(), Types.String.t(), Types.UInt8.t()) :: nil
+  def constructor(name, symbol) do
+    Storage.store(@name, name)
+    Storage.store(@symbol, symbol)
+    Storage.store(@owner, Blockchain.caller())
+  end
+
+  @spec name() :: Types.String.t()
+  def name() do
+    Storage.get(@name)
+  end
+
+  @spec symbol() :: Types.String.t()
+  def symbol() do
+    Storage.get(@symbol)
+  end
+
+  @spec decimals() :: Types.UInt8.t()
+  def decimals() do
+    18
+  end
+
+  @spec totalSupply() :: Types.UInt256.t()
+  def totalSupply() do
+    Storage.get(@totalSupply)
+  end
+
+  @spec balanceOf(Types.Address.t()) :: Types.UInt256.t()
+  def balanceOf(account) do
+    Storage.get(@balances[account])
+  end
+
+  @spec transfer(Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  def transfer(to, value) do
+    owner = Blockchain.caller()
+    _transfer(owner, to, value)
+
+    true
+  end
+
+  @spec allowance(Types.Address.t(), Types.Address.t()) :: Types.UInt256.t()
+  def allowance(owner, spender) do
+    Storage.get(@balances[owner][spender])
+  end
+
+  @spec approve(Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  def approve(spender, amount) do
+    owner = Blockchain.caller()
+    _approve(owner, spender, value, true)
+
+    true
+  end
+
+  @spec transferFrom(Types.Address.t(), Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  def transferFrom(from, to, value) do
+    spender = Blockchain.caller()
+    _spendAllowance(from, spender, value)
+    _transfer(from, to, value)
+
+    true
+  end
+
+  @spec burn(Types.UInt256.t()) :: Types.Bool.t()
+  def burn(value) do
+    owner = Blockchain.caller()
+    _burn(owner, value)
+
+    true
+  end
+
+  @spec mint(Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
+  def mint(to, value) do
+    if Storage.get(@owner) == Blockchain.caller() do
+      _mint(to, value)
+      true
+    else
+      raise "ERC20InvalidMinter"
+    end
+  end
+
+  defp _burn(account, value) do
+    if account == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      raise "ERC20InvalidSender(address(0))"
+    end
+
+    _update(account, ~ADDRESS(0x0000000000000000000000000000000000000000), value)
+  end
+
+  defp _mint(account, value) do
+    if account == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      raise "ERC20InvalidReceiver(address(0))"
+    end
+
+    _update(~ADDRESS(0x0000000000000000000000000000000000000000), account, value)
+  end
+
+  defp _spendAllowance(owner, spender, value) do
+    current_allowance = allowance(owner, spender)
+    if current_allowance < value do
+      raise "ERC20InsufficientAllowance"
+    end
+    _approve(owner, spender, current_allowance - value, false)
+  end
+
+  defp _approve(owner, spender, value, emit_event) do
+    if owner == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      raise "ERC20InvalidApprover(address(0))"
+    end
+    if spender == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      raise "ERC20InvalidSpender(address(0))"
+    end
+    Storage.store(@allowances[owner][spender], value)
+    if emit_event do
+      Event.emit(@approval, [owner: owner, spender: spender, value: value])
+    end
+  end
+
+  defp _transfer(from, to, value) do
+    if from ==  ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      raise "ERC20InvalidSender(address(0))"
+    end
+
+    if to ==  ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      raise "ERC20InvalidReceiver(address(0))"
+    end
+
+  end
+
+  defp _update(from, to, value) do
+    if from == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      Storage.store(@totalSupply, Storage.get(@totalSupply) + value)
+    else
+      from_balance = Storage.get(@balances[from])
+      if from_balance < value do
+        raise "ERC20InsufficientBalance"
+      end
+
+      Storage.store(@balances[from], from_balance - value)
+    end
+
+    if to == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+      Storage.store(@totalSupply, Storage.get(@totalSupply) - value)
+    else
+      Storage.store(@balances[to], Storage.get(@balances[to]) + value)
+    end
+
+    Event.emit(@transfer, [from: from, to: to, value: value])
+  end
+end

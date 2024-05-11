@@ -3,7 +3,6 @@ defmodule Elixireum.Compiler do
   Elixireum Compiler
   """
 
-  alias Elixireum.Yul.Utils, as: YulUtils
   alias Blockchain.{Address, Event, Type}
 
   alias Elixireum.{
@@ -19,7 +18,9 @@ defmodule Elixireum.Compiler do
   }
 
   alias Elixireum.Compiler.{Calldata, Return}
+  alias Elixireum.Library.Utils
   alias Elixireum.Yul.StdFunction
+  alias Elixireum.Yul.Utils, as: YulUtils
 
   def compile(args) do
     :erlang.put(:elixir_parser_columns, true)
@@ -147,6 +148,7 @@ defmodule Elixireum.Compiler do
       {extraction, usage} = typed_function_to_arguments(function, 4, 0, :calldata)
       """
       case 0x#{method_id} {
+        let offset$ := 0
         #{extraction}
         let return_value$ := #{function.name}(#{usage})
 
@@ -572,25 +574,25 @@ defmodule Elixireum.Compiler do
 
   @disallowed_actions_inside_function ~w(defmodule def defp)a
 
-  defp expand_expression({action, _, _}, _acc)
-       when action in @disallowed_actions_inside_function do
+  def expand_expression({action, _, _}, _acc)
+      when action in @disallowed_actions_inside_function do
     raise "`#{action}` inside functions is not allowed!"
   end
 
-  defp expand_expression(
-         {:=, meta,
-          [
-            %Elixireum.YulNode{
-              elixir_initial: {var_name, _, _}
-            },
-            %YulNode{
-              yul_snippet_definition: yul_snippet_definition,
-              yul_snippet_usage: yul_snippet_right,
-              elixir_initial: _something
-            }
-          ]} = node,
-         %CompilerState{declared_variables: declared_variables, variables: _variables} = state
-       ) do
+  def expand_expression(
+        {:=, meta,
+         [
+           %Elixireum.YulNode{
+             elixir_initial: {var_name, _, _}
+           },
+           %YulNode{
+             yul_snippet_definition: yul_snippet_definition,
+             yul_snippet_usage: yul_snippet_right,
+             elixir_initial: _something
+           }
+         ]} = node,
+        %CompilerState{declared_variables: declared_variables, variables: _variables} = state
+      ) do
     yul_var_name = "_#{var_name}"
 
     {yul_snippet_left, declared_variables} =
@@ -611,22 +613,22 @@ defmodule Elixireum.Compiler do
      }, %CompilerState{state | declared_variables: declared_variables}}
   end
 
-  defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {[Access], :get}}, _meta,
-          [%AuxiliaryNode{type: :storage_variable} = storage_variable, index]},
-         acc
-       ) do
+  def expand_expression(
+        {%AuxiliaryNode{type: :function_call, value: {[Access], :get}}, _meta,
+         [%AuxiliaryNode{type: :storage_variable} = storage_variable, index]},
+        acc
+      ) do
     {%AuxiliaryNode{
        storage_variable
        | access_keys: [index | storage_variable.access_keys]
      }, acc}
   end
 
-  defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: value}, meta, args} = node,
-         %CompilerState{uniqueness_provider: uniqueness_provider} = acc
-       )
-       when is_list(args) do
+  def expand_expression(
+        {%AuxiliaryNode{type: :function_call, value: value}, meta, args} = node,
+        %CompilerState{uniqueness_provider: uniqueness_provider} = acc
+      )
+      when is_list(args) do
     case {value, Library.Utils.function_call_to_yul(value)} do
       {{modules, function_name}, :not_found} ->
         Module.concat(modules)
@@ -645,7 +647,7 @@ defmodule Elixireum.Compiler do
              args_definition <>
                """
                let #{result_var_name} := #{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})
-               offset$ = msize()
+               offset$ := msize()
                """,
            yul_snippet_usage: "#{result_var_name}",
            meta: meta,
@@ -664,45 +666,45 @@ defmodule Elixireum.Compiler do
     end
   end
 
-  defp expand_expression(
-         {%AuxiliaryNode{type: :function_call, value: {_module_list, _function_name}}, _meta,
-          _args_as_yul_nodes} = all,
-         _acc
-       ) do
+  def expand_expression(
+        {%AuxiliaryNode{type: :function_call, value: {_module_list, _function_name}}, _meta,
+         _args_as_yul_nodes} = all,
+        _acc
+      ) do
     dbg(all)
     raise "Something went wrong"
   end
 
-  defp expand_expression(
-         {:., _meta,
-          [
-            %AuxiliaryNode{type: :__aliases__, value: aliased_list},
-            %YulNode{elixir_initial: function_name}
-          ]},
-         acc
-       ) do
+  def expand_expression(
+        {:., _meta,
+         [
+           %AuxiliaryNode{type: :__aliases__, value: aliased_list},
+           %YulNode{elixir_initial: function_name}
+         ]},
+        acc
+      ) do
     {%AuxiliaryNode{
        type: :function_call,
        value: {aliased_list, function_name}
      }, acc}
   end
 
-  defp expand_expression(
-         {:., _meta, [module, function_name]},
-         acc
-       ) do
+  def expand_expression(
+        {:., _meta, [module, function_name]},
+        acc
+      ) do
     {%AuxiliaryNode{
        type: :function_call,
        value: {[module.elixir_initial], function_name.elixir_initial}
      }, acc}
   end
 
-  defp expand_expression({:__aliases__, _meta, yul_nodes}, %CompilerState{aliases: aliases} = acc) do
+  def expand_expression({:__aliases__, _meta, yul_nodes}, %CompilerState{aliases: aliases} = acc) do
     prepared = prepare_aliases(aliases, Enum.map(yul_nodes, & &1.elixir_initial))
     {%AuxiliaryNode{type: :__aliases__, value: prepared}, acc}
   end
 
-  defp expand_expression({:@, _meta, [%YulNode{elixir_initial: {var_name, _, nil}}]}, acc) do
+  def expand_expression({:@, _meta, [%YulNode{elixir_initial: {var_name, _, nil}}]}, acc) do
     case Map.fetch(acc.storage_variables, var_name) do
       {:ok, var} ->
         {%AuxiliaryNode{type: :storage_variable, value: var}, acc}
@@ -715,11 +717,11 @@ defmodule Elixireum.Compiler do
     end
   end
 
-  defp expand_expression({:__block__, _meta, children}, acc) do
+  def expand_expression({:__block__, _meta, children}, acc) do
     {children, acc}
   end
 
-  #   defp expand_expression(
+  #   def expand_expression(
   #     {:sigil_ADDRESS, meta,
   #  _} = node,
   #     acc
@@ -727,7 +729,7 @@ defmodule Elixireum.Compiler do
   # dbg()
   # end
 
-  defp expand_expression({:if, meta, children} = node, state) do
+  def expand_expression({:if, _meta, children} = node, state) do
     [condition, do_else] = children
 
     do_else =
@@ -737,6 +739,9 @@ defmodule Elixireum.Compiler do
 
     do_clause = Keyword.get(do_else, :do)
     else_clause = Keyword.get(do_else, :else)
+
+    do_clause = do_clause && List.wrap(do_clause)
+    else_clause = else_clause && List.wrap(else_clause)
 
     dbg(condition)
     dbg(do_clause)
@@ -767,14 +772,11 @@ defmodule Elixireum.Compiler do
     if_func = %StdFunction{
       yul: """
       function $if_#{state.uniqueness_provider}$(#{Enum.join(all_args, ",")}) -> return_value$ {
-        switch byte(0, mload(condition))
-        case 2 {}
-        default {
-          // wrong type for condition
-          revert(0, 0)
-        }
-
         let offset$ := msize()
+
+        #{Utils.generate_type_check("condition", 2, "Wrong type for if condition", state.uniqueness_provider)}
+
+
         switch byte(1, mload(condition))
         case 0 {
         #{else_clause && filler.(List.pop_at(else_clause, -1, nil))}
@@ -805,16 +807,16 @@ defmodule Elixireum.Compiler do
      }}
   end
 
-  defp expand_expression(
-         {:sigil_ADDRESS, _meta,
-          [
-            %YulNode{
-              elixir_initial: {%AuxiliaryNode{value: :<<>>}, _, [%YulNode{value: address}]}
-            } = _yul_node,
-            %YulNode{elixir_initial: []}
-          ]} = node,
-         %CompilerState{uniqueness_provider: uniqueness_provider} = state
-       ) do
+  def expand_expression(
+        {:sigil_ADDRESS, _meta,
+         [
+           %YulNode{
+             elixir_initial: {%AuxiliaryNode{value: :<<>>}, _, [%YulNode{value: address}]}
+           } = _yul_node,
+           %YulNode{elixir_initial: []}
+         ]} = node,
+        %CompilerState{uniqueness_provider: uniqueness_provider} = state
+      ) do
     case Address.load(address) do
       {:ok, hash} ->
         var_name = "address#{state.uniqueness_provider}$"
@@ -839,8 +841,8 @@ defmodule Elixireum.Compiler do
   end
 
   # variable
-  defp expand_expression({var, meta, nil} = other, %CompilerState{variables: _variables} = acc)
-       when is_atom(var) do
+  def expand_expression({var, meta, nil} = other, %CompilerState{variables: _variables} = acc)
+      when is_atom(var) do
     {%YulNode{
        yul_snippet_definition: "",
        yul_snippet_usage: "_#{var}",
@@ -851,19 +853,19 @@ defmodule Elixireum.Compiler do
      }, acc}
   end
 
-  defp expand_expression({function_name, meta, args}, acc)
-       when is_atom(function_name) and is_list(args) do
+  def expand_expression({function_name, meta, args}, acc)
+      when is_atom(function_name) and is_list(args) do
     expand_expression(
       {%AuxiliaryNode{type: :function_call, value: function_name}, meta, args},
       acc
     )
   end
 
-  defp expand_expression({_node, _meta, _} = other, _acc) do
+  def expand_expression({_node, _meta, _} = other, _acc) do
     raise "Not implemented: #{inspect(other)}"
   end
 
-  defp expand_expression(list, acc) when is_list(list) do
+  def expand_expression(list, acc) when is_list(list) do
     var_name = "list#{acc.uniqueness_provider}$"
 
     definition = """
@@ -898,7 +900,7 @@ defmodule Elixireum.Compiler do
      }}
   end
 
-  defp expand_expression(str, acc) when is_binary(str) do
+  def expand_expression(str, acc) when is_binary(str) do
     var_name = "str#{acc.uniqueness_provider}$"
 
     words =
@@ -929,7 +931,7 @@ defmodule Elixireum.Compiler do
      }, %CompilerState{acc | uniqueness_provider: acc.uniqueness_provider + 1}}
   end
 
-  defp expand_expression(atom, state) when is_boolean(atom) do
+  def expand_expression(atom, state) when is_boolean(atom) do
     var_name = "bool_var#{state.uniqueness_provider}$"
 
     definition = """
@@ -950,7 +952,7 @@ defmodule Elixireum.Compiler do
      }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
-  defp expand_expression(atom, state) when is_atom(atom) do
+  def expand_expression(atom, state) when is_atom(atom) do
     {%YulNode{
        yul_snippet_definition: "",
        yul_snippet_usage: "_#{atom}",
@@ -963,7 +965,7 @@ defmodule Elixireum.Compiler do
   # eng: elephant - слон [slon]
   # rus: slon - elephant (слон)
 
-  defp expand_expression(tuple, %CompilerState{} = state) when is_tuple(tuple) do
+  def expand_expression(tuple, %CompilerState{} = state) when is_tuple(tuple) do
     {%YulNode{
        yul_snippet_definition: "",
        yul_snippet_usage: "",
@@ -974,7 +976,7 @@ defmodule Elixireum.Compiler do
      }, state}
   end
 
-  defp expand_expression(other, %CompilerState{} = state) do
+  def expand_expression(other, %CompilerState{} = state) do
     var_name = "var#{state.uniqueness_provider}$"
 
     definition =

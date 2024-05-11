@@ -12,8 +12,6 @@ defmodule Elixireum.CompilerState do
           events: %{atom() => Keyword.t()}
         }
 
-  @enforce_keys [:aliases]
-
   defstruct [
     :aliases,
     last_return_count: nil,

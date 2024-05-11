@@ -3,14 +3,10 @@ defmodule Test do
 
   @spec a(Types.Int256.t()) :: Types.Int256.t()
   def a(a) do
-    c = 2
     if a == 3 do
-      c = 2000
-      3
-    else
-      c = 1000
-      2
-    end + c
+      raise "AsdQwe"
+    end
+  a
   end
 
   defp f(_1, _2) do

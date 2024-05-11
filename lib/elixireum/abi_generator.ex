@@ -12,6 +12,19 @@ defmodule Elixireum.ABIGenerator do
       Enum.map(contract.events, &generate_abi_for_elementary/1)
   end
 
+  # ++
+  # [
+  #   %{
+  #     anonymous: false,
+  #     type: :error,
+  #     name: "Err",
+  #     inputs: %{
+  #       internalType: "string",
+  #       name: "",
+  #       type: "string"
+  #     }
+  #   }
+  # ]
   def generate_abi_for_elementary({_name, %Event{} = event}) do
     %{
       anonymous: false,
@@ -50,7 +63,7 @@ defmodule Elixireum.ABIGenerator do
     %{
       name: name,
       type: arg.abi_name,
-      internal_type: arg.abi_name,
+      internalType: arg.abi_name,
       components: Enum.map(arg.components, &arg_to_abi("name_", &1))
     }
   end

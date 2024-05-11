@@ -1,5 +1,6 @@
 defmodule Elixireum.Compiler.Return do
   alias Blockchain.Type
+  alias Elixireum.Library.Utils
 
   def encode(
         %Type{encoded_type: 3 = encoded_type, components: components} = type,
@@ -14,20 +15,11 @@ defmodule Elixireum.Compiler.Return do
       "#{where_to_store_head_init_var_name}#{i_var_name}_$"
 
     """
-    switch byte(0, mload(return_value$))
-      case #{encoded_type} {}
-      default {
-        // Return type mismatch abi
-        revert(0, 0)
-      }
+    #{Utils.generate_type_check("return_value$", encoded_type, "Wrong type for return value, expected tuple", Enum.random(1_000_000..2_000_000))}
 
     return_value$ := add(return_value$, 1)
-    switch mload(return_value$)
-      case #{Enum.count(components)} {}
-      default {
-        // Return type mismatch length tuple
-        revert(0, 0)
-      }
+
+    #{Utils.generate_value_check("mload(return_value$)", Enum.count(components), "Wrong size of tuple for return value, expected #{Enum.count(components)}", Enum.random(1_000_000..2_000_000))}
 
     return_value$ := add(return_value$, 32)
 
@@ -66,12 +58,9 @@ defmodule Elixireum.Compiler.Return do
       "#{where_to_store_head_init_var_name}#{i_var_name}_$"
 
     """
-    switch byte(0, mload(return_value$))
-      case #{encoded_type} {}
-      default {
-        // Return type mismatch abi
-        revert(0, 0)
-      }
+
+    #{Utils.generate_type_check("return_value$", encoded_type, "Wrong type for return value, expected array", Enum.random(1_000_000..2_000_000))}
+
     return_value$ := add(return_value$, 1)
 
     let #{size_var_name} := mload(return_value$)
@@ -79,12 +68,7 @@ defmodule Elixireum.Compiler.Return do
 
     #{if items_count != :dynamic do
       """
-      switch #{size_var_name}
-        case #{items_count} {}
-        default {
-          // Array size mismatch
-          revert(0, 0)
-        }
+      #{Utils.generate_value_check(size_var_name, items_count, "Wrong length for static array, expected #{items_count}", Enum.random(1_000_000..2_000_000))}
       """
     end}
 
@@ -122,21 +106,12 @@ defmodule Elixireum.Compiler.Return do
       )
       when is_integer(size) do
     """
-    switch byte(0, mload(return_value$))
-      case #{encoded_type} {}
-      default {
-        // Return type mismatch abi
-        revert(0, 0)
-      }
+    #{Utils.generate_type_check("return_value$", encoded_type, "Wrong type for return value, expected array", Enum.random(1_000_000..2_000_000))}
+
     return_value$ := add(return_value$, 1)
     let #{size_var_name} := mload(return_value$)
 
-    switch #{size_var_name}
-      case #{size} {}
-      default {
-        // Array size mismatch
-        revert(0, 0)
-      }
+    #{Utils.generate_value_check(size_var_name, size, "Wrong length for static array, expected #{size}", Enum.random(1_000_000..2_000_000))}
 
     return_value$ := add(return_value$, 32)
 
@@ -156,12 +131,8 @@ defmodule Elixireum.Compiler.Return do
       )
       when encoded_type in [1, 102] do
     """
-    switch byte(0, mload(return_value$))
-      case #{encoded_type} {}
-      default {
-        // Return type mismatch abi
-        revert(0, 0)
-      }
+    #{Utils.generate_type_check("return_value$", encoded_type, "Wrong type for return value, expected bytes or string", Enum.random(1_000_000..2_000_000))}
+
     return_value$ := add(return_value$, 1)
 
     mstore(#{where_to_store_head_var_name}, sub(processed_return_value$, #{where_to_store_head_init_var_name}))
@@ -191,12 +162,8 @@ defmodule Elixireum.Compiler.Return do
     offset = 8 * (32 - byte_size)
 
     """
-    switch byte(0, mload(return_value$))
-      case #{encoded_type} {}
-      default {
-        // Return type mismatch abi
-        revert(0, 0)
-      }
+    #{Utils.generate_type_check("return_value$", encoded_type, "Wrong type for return value, expected BytesN", Enum.random(1_000_000..2_000_000))}
+
     return_value$ := add(return_value$, 1)
 
     mstore(#{where_to_store_head_var_name}, shl(#{offset}, shr(#{offset}, mload(return_value$))))
@@ -221,12 +188,7 @@ defmodule Elixireum.Compiler.Return do
       end
 
     """
-    switch byte(0, mload(return_value$))
-      case #{type.encoded_type} {}
-      default {
-        // Return type mismatch abi
-        revert(0, 0)
-      }
+    #{Utils.generate_type_check("return_value$", type.encoded_type, "Wrong type for return value", Enum.random(1_000_000..2_000_000))}
 
     return_value$ := add(return_value$, 1)
     mstore(#{where_to_store_head_var_name}, #{shift_func}(#{8 * (32 - type.size)}, mload(return_value$)))

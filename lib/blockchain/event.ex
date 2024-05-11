@@ -1,6 +1,7 @@
 defmodule Blockchain.Event do
   alias Elixireum.{AuxiliaryNode, Compiler, CompilerState, YulNode}
   alias Elixireum.Compiler.Return
+  alias Elixireum.Library.Utils
   alias Blockchain.Type
 
   @type t :: %__MODULE__{
@@ -34,7 +35,7 @@ defmodule Blockchain.Event do
     indexed_topics =
       for {key, type} <- indexed_arguments do
         value = Keyword.fetch!(values, key)
-        {definition, usage} = encode_indexed_argument(key, type, value)
+        {definition, usage} = encode_indexed_argument(key, type, value, state)
 
         {value.yul_snippet_definition <> definition, usage}
       end
@@ -114,7 +115,7 @@ defmodule Blockchain.Event do
        yul_snippet_definition: yul_snippet_definition,
        return_values_count: 0,
        elixir_initial: node
-     }, state}
+     }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
   def new(
@@ -145,7 +146,8 @@ defmodule Blockchain.Event do
   defp encode_indexed_argument(
          arg_name,
          %Type{encoded_type: encoded_type} = type,
-         %YulNode{yul_snippet_usage: yul_snippet_usage}
+         %YulNode{yul_snippet_usage: yul_snippet_usage},
+         compiler_state
        )
        when encoded_type not in [1, 3, 102, 103] do
     var_name = "indexed_#{arg_name}_keccak_var$"
@@ -153,11 +155,8 @@ defmodule Blockchain.Event do
 
     {"""
      let #{arg_name_pointer} := #{yul_snippet_usage}
-     switch byte(0, mload(#{arg_name_pointer}))
-       case #{encoded_type} {}
-       default {
-         revert(0, 0)
-       }
+
+     #{Utils.generate_type_check(arg_name_pointer, encoded_type, "Wrong type for indexed argument #{arg_name}", compiler_state.uniqueness_provider)}
 
      #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
      let #{var_name} := shr(#{8 * (32 - type.size)}, mload(#{arg_name_pointer}))
@@ -167,7 +166,8 @@ defmodule Blockchain.Event do
   defp encode_indexed_argument(
          arg_name,
          %Type{} = type,
-         %YulNode{yul_snippet_usage: yul_snippet_usage}
+         %YulNode{yul_snippet_usage: yul_snippet_usage},
+         _compiler_state
        ) do
     init_var_name = "indexed_#{arg_name}_keccak_init$"
     var_name = "indexed_#{arg_name}_keccak_var$"
@@ -191,9 +191,7 @@ defmodule Blockchain.Event do
     i = "i_#{arg_name_pointer}#{uniqueness_provider}$"
 
     """
-      switch byte(0, mload(#{arg_name_pointer}))
-        case #{type.encoded_type} {}
-        default {revert(0, 0)}
+    #{Utils.generate_type_check(arg_name_pointer, type.encoded_type, "Wrong type for indexed argument", uniqueness_provider)}
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
       let #{size} := mload(#{arg_name_pointer})
@@ -219,17 +217,14 @@ defmodule Blockchain.Event do
     size = "size_of_#{arg_name_pointer}#_#{uniqueness_provider}$"
 
     """
-      switch byte(0, mload(#{arg_name_pointer}))
-        case #{type.encoded_type} {}
-        default {revert(0, 0)}
+
+    #{Utils.generate_type_check(arg_name_pointer, type.encoded_type, "Wrong type for indexed argument", %CompilerState{uniqueness_provider: uniqueness_provider})}
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
       let #{size} := mload(#{arg_name_pointer})
       #{arg_name_pointer} := add(#{arg_name_pointer}, 32)
 
-      switch #{size}
-        case #{items_count} {}
-        default {revert(0, 0)}
+      #{Utils.generate_type_check(size, items_count, "Wrong size for indexed argument", uniqueness_provider)}
 
       #{for {j, type} <- Enum.with_index(components) do
       do_encode_indexed_argument(type, arg_name_pointer, init_var_name, uniqueness_provider + j + 1) <> """
@@ -249,9 +244,7 @@ defmodule Blockchain.Event do
     size = "size_of_#{arg_name_pointer}_#{uniqueness_provider}$"
 
     """
-      switch byte(0, mload(#{arg_name_pointer}))
-        case #{type.encoded_type} {}
-        default {revert(0, 0)}
+    #{Utils.generate_type_check(arg_name_pointer, encoded_type, "Wrong type for indexed argument", uniqueness_provider)}
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
       let #{size} := mload(#{arg_name_pointer})
@@ -268,15 +261,14 @@ defmodule Blockchain.Event do
          %Type{encoded_type: encoded_type} = type,
          arg_name_pointer,
          _init_var_name,
-         _uniqueness_provider
+         uniqueness_provider
        )
        when encoded_type > 69 and encoded_type < 102 do
     offset = 8 * (32 - type.size)
 
     """
-      switch byte(0, mload(#{arg_name_pointer}))
-        case #{type.encoded_type} {}
-        default {revert(0, 0)}
+    #{Utils.generate_type_check(arg_name_pointer, encoded_type, "Wrong type for indexed argument", uniqueness_provider)}
+
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
       mstore(offset$, shl(#{offset}, shr(#{offset}}, mload(#{arg_name_pointer}))))
@@ -289,12 +281,10 @@ defmodule Blockchain.Event do
          %Type{encoded_type: encoded_type} = type,
          arg_name_pointer,
          _init_var_name,
-         _uniqueness_provider
+         uniqueness_provider
        ) do
     """
-      switch byte(0, mload(#{arg_name_pointer}))
-        case #{encoded_type} {}
-        default {revert(0, 0)}
+    #{Utils.generate_type_check(arg_name_pointer, encoded_type, "Wrong type for indexed argument", uniqueness_provider)}
 
       #{arg_name_pointer} := add(#{arg_name_pointer}, 1)
       mstore(offset$, shr(#{8 * (32 - type.size)}, mload(#{arg_name_pointer})))

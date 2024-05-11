@@ -12,7 +12,7 @@ defmodule Blockchain.Storage do
         %CompilerState{uniqueness_provider: uniqueness_provider} = state,
         node
       ) do
-    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [])
+    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [], state)
 
     slot_end_var_name = "storage_i_#{state.uniqueness_provider}$end"
     size_var_name = "str_size$#{state.uniqueness_provider}$"
@@ -65,7 +65,7 @@ defmodule Blockchain.Storage do
     # somehow check that variable + access_keys points to a single word in storage, i.e. if variable is string[][] access keys must be [uint, uint]
 
     {definition, slot, keys_definition} =
-      keccak_from_var_and_access_keys(variable, Enum.reverse(access_keys))
+      keccak_from_var_and_access_keys(variable, Enum.reverse(access_keys), state)
 
     var_name = "$storage_get$#{uniqueness_provider}$"
 
@@ -99,7 +99,7 @@ defmodule Blockchain.Storage do
         %CompilerState{} = state,
         node
       ) do
-    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [])
+    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [], state)
 
     i_var_name = "storage_i_#{state.uniqueness_provider}$"
     i_end_var_name = "storage_i_#{state.uniqueness_provider}$end"
@@ -109,12 +109,9 @@ defmodule Blockchain.Storage do
     usage =
       """
       let #{i_var_name} := #{value.yul_snippet_usage}
-      switch byte(0, mload(#{i_var_name}))
-      case #{variable.type.encoded_type} {}
-      default {
-        // Return type mismatch
-        revert(0, 0)
-      }
+
+      #{Utils.generate_type_check(i_var_name, variable.type.encoded_type, "Wrong type for storage variable #{variable.name}", state.uniqueness_provider)}
+
       #{i_var_name} := add(#{i_var_name}, 1)
       let #{slot_var_name} := #{slot}
 
@@ -155,7 +152,7 @@ defmodule Blockchain.Storage do
         node
       ) do
     {definition, slot, keys_definition} =
-      keccak_from_var_and_access_keys(variable, Enum.reverse(access_keys))
+      keccak_from_var_and_access_keys(variable, Enum.reverse(access_keys), state)
 
     definition =
       """
@@ -170,10 +167,10 @@ defmodule Blockchain.Storage do
        yul_snippet_definition: definition,
        yul_snippet_usage: "sstore(#{slot}, mload(add(#{value.yul_snippet_usage}, 1)))",
        return_values_count: 0
-     }, state}
+     }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
-  defp keccak_from_var_and_access_keys(variable, access_keys) do
+  defp keccak_from_var_and_access_keys(variable, access_keys, state) do
     if Enum.all?(access_keys, &(not is_nil(&1.value))) do
       slot =
         "#{Utils.literal_to_bytes(variable.encoded_name)}#{Enum.reduce(access_keys, "", fn key, acc -> acc <> Utils.literal_to_bytes(key.value) end)}"
@@ -195,9 +192,7 @@ defmodule Blockchain.Storage do
             if is_nil(key.value) do
               {yul_acc <>
                  """
-                 switch byte(0, mload(#{key.yul_snippet_usage}))
-                   case #{type.encoded_type} {}
-                   default {revert(0, 0)}
+                 #{Utils.generate_type_check(key.yul_snippet_usage, type.encoded_type, "Wrong type for storage variable access key", state.uniqueness_provider)}
 
                  mstore(offset$, mload(add(1, #{key.yul_snippet_usage})))
                  offset$ := add(offset$, #{type.size})

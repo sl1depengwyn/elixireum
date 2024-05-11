@@ -1,0 +1,150 @@
+defmodule Test.ERC721 do
+
+  alias Blockchain.{Storage, Types}
+
+  @transfer name: "Transfer", indexed_arguments: [from: Types.Address.t(), to: Types.Address.t(), value: Types.UInt256.t()], data_arguments: []
+  @approval name: "Approval", indexed_arguments: [owner: Types.Address.t(), approved: Types.Address.t(), tokenId: Types.UInt256.t()], data_arguments: []
+  @approvalForAll name: "ApprovalForAll", indexed_arguments: [owner: Types.Address.t(), operator: Types.Address.t(), approved: Types.Bool.t()], data_arguments: []
+
+  @name type: Types.String.t()
+  @symbol type: Types.String.t()
+  @owners type: %{Types.Address.t() => Types.UInt256.t()}
+  @tokenApprovals type: %{Types.UInt256.t() => Types.Address.t()}
+  @operatorApprovals type: %{Types.Address.t() => %{Types.Address.t() => Types.Bool.t()}}
+  @tokenURIs type: %{Types.UInt256.t() => Types.String.t()}
+
+  @spec constructor(Types.String.t(), Types.String.t()) :: nil
+  def constructor(name, symbol) do
+    Storage.store(@name, name)
+    Storage.store(@symbol, symbol)
+  end
+
+  @spec balanceOf(Types.Address.t()) :: Types.UInt256.t()
+  def balanceOf(owner) do
+    if (owner == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
+      raise "ERC721InvalidOwner(address(0))"
+    end
+    Storage.get(@owners[owner])
+  end
+
+  @spec ownerOf(Types.UInt256.t()) :: Types.Address.t()
+  def ownerOf(tokenId) do
+    _requireOwned(tokenId)
+  end
+
+  @spec name() :: Types.String.t()
+  def name() do
+    Storage.get(@name)
+  end
+
+  @spec symbol() :: Types.String.t()
+  def symbol() do
+    Storage.get(@symbol)
+  end
+
+  @spec tokenURI(Types.UInt256.t()) :: Types.String.t()
+  def tokenURI(tokenId) do
+    _requireOwned(tokenId)
+    Storage.get(@tokenURIs[tokenId])
+  end
+
+  @spec approve(Types.Address.t(), Types.UInt256.t()) :: nil
+  def approve(to, tokenId) do
+    _approve(to, tokenId, Blockchain.caller(), true)
+  end
+
+  @spec getApproved(Types.UInt256.t()) :: Types.Address.t()
+  def getApproved(tokenId) do
+    _requireOwned(tokenId)
+    Storage.get(@tokenApprovals[tokenId])
+  end
+
+  @spec setApprovalForAll(Types.Address.t(), Types.Bool.t()) :: nil
+  def setApprovalForAll(operator, approved) do
+    _setApprovalForAll(Blockchain.caller(), operator, approved)
+  end
+
+  @spec isApprovedForAll(Types.Address.t(), Types.Address.t()) :: Types.Bool.t()
+  def isApprovedForAll(owner, operator) do
+    Storage.get(@operatorApprovals[owner][operator])
+  end
+
+
+
+  @spec mint(Types.Address.t(), Types.UInt256.t()) :: nil
+  def mint(to, amount) do
+    Storage.store(@balanceOf[to], Storage.get(@balanceOf[to]) + amount)
+    Storage.store(@totalSupply, Storage.get(@totalSupply) + amount)
+    Event.emit(@transfer, [from: ~ADDRESS(0x0000000000000000000000000000000000000000), to: to, value: amount])
+  end
+
+  @spec burn(Types.Address.t(), Types.UInt256.t()) :: nil
+  def burn(from, amount) do
+    Storage.store(@balanceOf[from], Storage.get(@balanceOf[from]) - amount)
+    Storage.store(@totalSupply, Storage.get(@totalSupply) - amount)
+    Event.emit(@transfer, [from: from, to: ~ADDRESS(0x0000000000000000000000000000000000000000), value: amount])
+  end
+
+  defp _requireOwned(tokenId) do
+    owner = _ownerOf(tokenId)
+    if (owner == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
+      raise "ERC721NonexistentToken(tokenId)"
+    end
+    owner
+  end
+
+  defp _ownerOf(tokenId) do
+    Storage.get(@tokenApprovals[tokenId])
+  end
+
+  defp _approve(to, token_id, auth, emitEvent) do
+    owner = _requireOwned(token_id)
+
+    if (auth == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
+    else
+      if (owner == auth) do
+      else
+        if isApprovedForAll(owner, auth) do
+        else
+          raise "ERC721InvalidApprover(auth)"
+        end
+      end
+    end
+
+    if (emitEvent) do
+      Event.emit(@approval, [owner: owner, approved: to, tokenId: token_id])
+    end
+  end
+
+  defp _setApprovalForAll(owner, operator, approved) do
+    if (operator == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
+      raise "ERC721InvalidApprover(operator)"
+    end
+    Storage.store(@operatorApprovals[owner][operator], approved)
+    Event.emit(@approvalForAll, [owner: owner, operator: operator, approved: approved])
+  end
+
+  defp _transfer(from, to, token_id) do
+    if (to == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
+      raise "ERC721InvalidReceiver(address(0))"
+    end
+
+  end
+
+  defp _checkAuthorized(owner, spender, token_id) do
+
+  end
+
+  defp _update(to, tokenID, auth) do
+    from = _ownerOf(tokenID)
+
+    if (auth == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
+    else
+
+    end
+  end
+
+  defp _isAuthorized(owner, spender, token_id) do
+
+  end
+end
