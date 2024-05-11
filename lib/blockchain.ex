@@ -37,4 +37,8 @@ defmodule Blockchain do
      },
      %CompilerState{compiler_state | uniqueness_provider: compiler_state.uniqueness_provider + 1}}
   end
+
+  def revert(%YulNode{}, _) do
+    :huh
+  end
 end

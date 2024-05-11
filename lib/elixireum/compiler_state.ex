@@ -1,4 +1,6 @@
 defmodule Elixireum.CompilerState do
+  alias Elixireum.Variable
+
   @type t :: %__MODULE__{
           last_return_count: non_neg_integer() | nil,
           declared_variables: MapSet.t(),

@@ -1,14 +1,19 @@
 defmodule Test do
   alias Blockchain.Types
 
-  @spec a(Types.UInt256.t()) :: nil
+  @spec a(Types.Int256.t()) :: Types.Int256.t()
   def a(a) do
-    if a == 1 do
-      2
-      0
+    c = 2
+    if a == 3 do
+      c = 2000
+      3
     else
-      1
-    end
-    nil
+      c = 1000
+      2
+    end + c
+  end
+
+  defp f(_1, _2) do
+    3
   end
 end
