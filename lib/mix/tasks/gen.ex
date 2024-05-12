@@ -2,8 +2,6 @@ defmodule Mix.Tasks.Gen do
   use Mix.Task
 
   def run(command_line_args) do
-    dbg(command_line_args)
-
     {parsed_args, mb_source_filename, _} =
       OptionParser.parse(command_line_args, strict: [out: :string, abi: :string])
 

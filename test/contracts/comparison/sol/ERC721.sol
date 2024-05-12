@@ -23,6 +23,8 @@ contract ERC721 {
 
     string private _symbol;
 
+    address private _owner;
+
     mapping(uint256 => address) private _owners;
 
     mapping(address => uint256) private _balances;
@@ -36,6 +38,7 @@ contract ERC721 {
     constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
+        _owner = msg.sender;
     }
 
     function balanceOf(address owner) public view virtual returns (uint256) {
@@ -119,6 +122,31 @@ contract ERC721 {
         }
     }
 
+    function mint(
+        address to,
+        uint256 tokenId
+    ) public returns (bool) {
+        if (msg.sender == _owner) {
+            _mint(to, tokenId);
+            return true;
+        } else {
+            revert("ERC721InvalidMinter");
+        }
+    }
+
+    function burn(
+        uint256 tokenId
+    ) public returns (bool) {
+        address owner = _requireOwned(tokenId);
+        if (msg.sender == owner) {
+            _burn(tokenId);
+            return true;
+        } else {
+            revert("ERC721InvalidSender(address(0))");
+        }
+    }
+    
+
     function _ownerOf(uint256 tokenId) internal view virtual returns (address) {
         return _owners[tokenId];
     }
@@ -158,12 +186,6 @@ contract ERC721 {
         }
     }
 
-    function _increaseBalance(address account, uint128 value) internal virtual {
-        unchecked {
-            _balances[account] += value;
-        }
-    }
-
     function _update(
         address to,
         uint256 tokenId,
@@ -177,16 +199,11 @@ contract ERC721 {
 
         if (from != address(0)) {
             _approve(address(0), tokenId, address(0), false);
-
-            unchecked {
-                _balances[from] -= 1;
-            }
+            _balances[from] -= 1;
         }
 
         if (to != address(0)) {
-            unchecked {
-                _balances[to] += 1;
-            }
+            _balances[to] += 1;   
         }
 
         _owners[tokenId] = to;
@@ -235,18 +252,16 @@ contract ERC721 {
         address auth,
         bool emitEvent
     ) internal virtual {
-        address owner = _requireOwned(tokenId);
+        if (emitEvent || auth != address(0)) {
+            address owner = _requireOwned(tokenId);
 
-        if (
-            auth != address(0) &&
-            owner != auth &&
-            !isApprovedForAll(owner, auth)
-        ) {
-            revert("ERC721InvalidApprover(auth)");
-        }
+            if (auth != address(0) && owner != auth && !isApprovedForAll(owner, auth)) {
+                revert("ERC721InvalidApprover(auth)");
+            }
 
-        if (emitEvent) {
-            emit Approval(owner, to, tokenId);
+            if (emitEvent) {
+                emit Approval(owner, to, tokenId);
+            }
         }
 
         _tokenApprovals[tokenId] = to;

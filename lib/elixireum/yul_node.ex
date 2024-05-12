@@ -6,7 +6,8 @@ defmodule Elixireum.YulNode do
           return_values_count: non_neg_integer(),
           elixir_initial: Macro.t(),
           value: any(),
-          var: boolean()
+          var: boolean(),
+          function_call?: boolean()
         }
 
   @enforce_keys [:return_values_count, :elixir_initial]
@@ -17,6 +18,7 @@ defmodule Elixireum.YulNode do
     :yul_snippet_usage,
     :value,
     var: false,
-    yul_snippet_definition: ""
+    yul_snippet_definition: "",
+    function_call?: false
   ]
 end

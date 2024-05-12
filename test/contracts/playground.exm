@@ -1,15 +1,15 @@
 defmodule Test do
-  alias Blockchain.Types
+  alias Blockchain.{Event, Storage, Types}
 
-  @spec a(Types.Int256.t()) :: Types.Int256.t()
-  def a(a) do
-    if a == 3 do
-      raise "AsdQwe"
+  @owner type: Types.Address.t()
+
+  @spec a() :: Types.Int256.t()
+  def a() do
+    Storage.store(@owner, Blockchain.caller())
+    if Storage.get(@owner) == Blockchain.caller() do
+      1
+    else
+      2
     end
-  a
-  end
-
-  defp f(_1, _2) do
-    3
   end
 end

@@ -1,17 +1,17 @@
 defmodule Elixireum.Yul.Utils do
   alias Elixireum.Yul.StdFunction
 
-  def load_integer do
+  def load_var do
     %StdFunction{
       yul: """
-        function load_integer$(ptr) -> return_value, type {
+        function load_var$(ptr) -> return_value, type {
           type := byte(0, mload(ptr))
           let value := mload(add(ptr, 1))
           let size := type_to_byte_size$(type)
           return_value := shr(mul(sub(32, size), 8), value)
         }
       """,
-      deps: %{type_to_byte_size: type_to_byte_size()}
+      deps: %{"type_to_byte_size$": type_to_byte_size()}
     }
   end
 
@@ -23,7 +23,7 @@ defmodule Elixireum.Yul.Utils do
         size := type_to_byte_size$(type)
       }
       """,
-      deps: %{type_to_byte_size: type_to_byte_size()}
+      deps: %{"type_to_byte_size$": type_to_byte_size()}
     }
   end
 
@@ -166,6 +166,24 @@ defmodule Elixireum.Yul.Utils do
         ptr_to_end := add(ptr_to, size)
       }
       """
+    }
+  end
+
+  def cast() do
+    %StdFunction{
+      yul: """
+        function cast$(ptr_to_var$, desired_type$) -> new_pointer$ {
+          new_pointer$ := msize()
+          mstore8(new_pointer$, desired_type$)
+
+          let byte_size_new$ := type_to_byte_size$(desired_type$)
+
+          let loaded_value$, _ := load_var$(ptr_to_var$)
+
+          mstore(add(new_pointer$,1), shl(mul(8, sub(32, byte_size_new$)), loaded_value$))
+        }
+      """,
+      deps: %{"type_to_byte_size$": type_to_byte_size(), "address_to_byte_size$": address_to_byte_size(), "load_var$": load_var()}
     }
   end
 end

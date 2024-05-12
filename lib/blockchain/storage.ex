@@ -7,12 +7,12 @@ defmodule Blockchain.Storage do
         %AuxiliaryNode{
           type: :storage_variable,
           value: %Variable{type: %Type{encoded_type: 1}} = variable,
-          access_keys: []
+          access_keys: access_keys
         },
         %CompilerState{uniqueness_provider: uniqueness_provider} = state,
         node
       ) do
-    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [], state)
+    {slot_definition, slot, keys_definition} = keccak_from_var_and_access_keys(variable, access_keys, state)
 
     slot_end_var_name = "storage_i_#{state.uniqueness_provider}$end"
     size_var_name = "str_size$#{state.uniqueness_provider}$"
@@ -23,6 +23,9 @@ defmodule Blockchain.Storage do
     definition =
       """
       let #{var_name} := offset$
+
+      #{keys_definition}
+      #{slot_definition}
 
       mstore8(offset$, #{variable.type.encoded_type})
       offset$ := add(offset$, 1)
@@ -63,7 +66,7 @@ defmodule Blockchain.Storage do
         node
       ) do
     # somehow check that variable + access_keys points to a single word in storage, i.e. if variable is string[][] access keys must be [uint, uint]
-
+        dbg(variable)
     {definition, slot, keys_definition} =
       keccak_from_var_and_access_keys(variable, Enum.reverse(access_keys), state)
 

@@ -1,8 +1,8 @@
-defmodule Elixireum.Library.Comparison do
+defmodule Elixireum.Library.Logic do
   alias Elixireum.{CompilerState, YulNode}
-  alias Elixireum.Yul.Comparison
+  alias Elixireum.Yul.Logic
 
-  def equal?(
+  def or_op(
         %YulNode{} = a,
         %YulNode{} = b,
         %CompilerState{
@@ -17,13 +17,13 @@ defmodule Elixireum.Library.Comparison do
         _ -> nil
       end
 
-    var_name = "equal#{uniqueness_provider}$"
+    var_name = "or#{uniqueness_provider}$"
 
     {%YulNode{
        yul_snippet_definition: """
        #{a.yul_snippet_definition}
        #{b.yul_snippet_definition}
-       let #{var_name} := equal$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})
+       let #{var_name} := or$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})
        offset$ := msize()
        """,
        yul_snippet_usage: var_name,
@@ -33,13 +33,12 @@ defmodule Elixireum.Library.Comparison do
      },
      %CompilerState{
        state
-       | used_standard_functions:
-           Map.put_new(used_standard_functions, :"equal$", Comparison.equal?()),
+       | used_standard_functions: Map.put_new(used_standard_functions, :"or$", Logic.or_def()),
          uniqueness_provider: uniqueness_provider + 1
      }}
   end
 
-  def greater?(
+  def and_op(
         %YulNode{} = a,
         %YulNode{} = b,
         %CompilerState{
@@ -54,13 +53,13 @@ defmodule Elixireum.Library.Comparison do
         _ -> nil
       end
 
-    var_name = "greater#{uniqueness_provider}$"
+    var_name = "or#{uniqueness_provider}$"
 
     {%YulNode{
        yul_snippet_definition: """
        #{a.yul_snippet_definition}
        #{b.yul_snippet_definition}
-       let #{var_name} := greater$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})
+       let #{var_name} := and$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})
        offset$ := msize()
        """,
        yul_snippet_usage: var_name,
@@ -70,15 +69,13 @@ defmodule Elixireum.Library.Comparison do
      },
      %CompilerState{
        state
-       | used_standard_functions:
-           Map.put_new(used_standard_functions, :"greater$", Comparison.greater?()),
+       | used_standard_functions: Map.put_new(used_standard_functions, :"and$", Logic.and_def()),
          uniqueness_provider: uniqueness_provider + 1
      }}
   end
 
-  def less?(
+  def not_op(
         %YulNode{} = a,
-        %YulNode{} = b,
         %CompilerState{
           used_standard_functions: used_standard_functions,
           uniqueness_provider: uniqueness_provider
@@ -91,13 +88,12 @@ defmodule Elixireum.Library.Comparison do
         _ -> nil
       end
 
-    var_name = "less#{uniqueness_provider}$"
+    var_name = "not#{uniqueness_provider}$"
 
     {%YulNode{
        yul_snippet_definition: """
        #{a.yul_snippet_definition}
-       #{b.yul_snippet_definition}
-       let #{var_name} := less$(#{a.yul_snippet_usage}, #{b.yul_snippet_usage})
+       let #{var_name} := not$(#{a.yul_snippet_usage})
        offset$ := msize()
        """,
        yul_snippet_usage: var_name,
@@ -107,8 +103,7 @@ defmodule Elixireum.Library.Comparison do
      },
      %CompilerState{
        state
-       | used_standard_functions:
-           Map.put_new(used_standard_functions, :"less$", Comparison.less?()),
+       | used_standard_functions: Map.put_new(used_standard_functions, :"not$", Logic.not_def()),
          uniqueness_provider: uniqueness_provider + 1
      }}
   end

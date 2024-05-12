@@ -12,7 +12,7 @@ defmodule Test.ERC20 do
   @symbol type: Types.String.t()
   @owner type: Types.Address.t()
 
-  @spec constructor(Types.String.t(), Types.String.t(), Types.UInt8.t()) :: nil
+  @spec constructor(Types.String.t(), Types.String.t()) :: nil
   def constructor(name, symbol) do
     Storage.store(@name, name)
     Storage.store(@symbol, symbol)
@@ -31,7 +31,7 @@ defmodule Test.ERC20 do
 
   @spec decimals() :: Types.UInt8.t()
   def decimals() do
-    18
+    Utils.cast(18, Types.UInt8)
   end
 
   @spec totalSupply() :: Types.UInt256.t()
@@ -58,7 +58,7 @@ defmodule Test.ERC20 do
   end
 
   @spec approve(Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
-  def approve(spender, amount) do
+  def approve(spender, value) do
     owner = Blockchain.caller()
     _approve(owner, spender, value, true)
 

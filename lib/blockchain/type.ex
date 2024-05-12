@@ -198,7 +198,6 @@ defmodule Blockchain.Type do
        encoded_type: 3,
        items_count: Enum.count(args)
      }}
-    |> dbg()
   end
 
   defp abi_name_to_encoded_type(abi_name) do

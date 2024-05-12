@@ -50,9 +50,9 @@ defmodule Elixireum.Compiler do
              code
              |> String.to_charlist()
              |> :elixir_tokenizer.tokenize(0, 0, []),
-           {_, ast} <-
-             :elixir_parser.parse(tokens) |> dbg(limit: :infinity, printable_limit: :infinity),
-           #  {_, ast} <- :elixir_parser.parse(tokens),
+           #  {_, ast} <-
+           #    :elixir_parser.parse(tokens) |> dbg(limit: :infinity, printable_limit: :infinity),
+           {_, ast} <- :elixir_parser.parse(tokens),
            {_ast, acc} <-
              Macro.prewalk(
                ast,
@@ -192,7 +192,6 @@ defmodule Elixireum.Compiler do
 
   defp function_to_keccak_bytes(function) do
     "#{function.name}(#{Enum.map_join(function.typespec.args, ",", &do_function_to_keccak_bytes/1)})"
-    |> dbg()
     |> ExKeccak.hash_256()
   end
 
@@ -460,7 +459,16 @@ defmodule Elixireum.Compiler do
       Enum.reduce(functions, {"", %CompilerState{aliases: contract.aliases}}, fn function,
                                                                                  {yul_acc,
                                                                                   compiler_state_acc} ->
-        {yul, updated_compiler_state} = generate_function(function, contract, compiler_state_acc)
+        compiler_state = %CompilerState{
+          aliases: contract.aliases,
+          storage_variables: contract.variables,
+          used_standard_functions: compiler_state_acc.used_standard_functions,
+          events: contract.events,
+          declared_variables: MapSet.new(function.args),
+          uniqueness_provider: compiler_state_acc.uniqueness_provider
+        }
+
+        {yul, updated_compiler_state} = generate_function(function, compiler_state)
         {yul_acc <> yul, updated_compiler_state}
       end)
 
@@ -469,58 +477,27 @@ defmodule Elixireum.Compiler do
     user_defined_functions <> Enum.join(Map.values(std_functions), "\n")
   end
 
-  defp generate_function(function, contract, compiler_state) do
+  defp generate_function(function, compiler_state) do
     {last, other} = prepare_children(function.body)
 
     {ast, acc} =
-      Macro.postwalk(
-        other,
-        %CompilerState{
-          aliases: contract.aliases,
-          storage_variables: contract.variables,
-          used_standard_functions: compiler_state.used_standard_functions,
-          events: contract.events,
-          declared_variables: MapSet.new(function.args)
-        },
-        &expand_expression/2
-      )
-
-    dbg(ast)
+      Macro.postwalk(other, compiler_state, &expand_expression/2)
 
     {ast_last, acc} =
       Macro.postwalk(last, acc, &expand_expression/2)
 
-    dbg(ast_last)
-
     user_defined_functions =
       cond do
         function.typespec &&
-            ((function.typespec.return && ast_last.return_values_count != 1) ||
-               (!function.typespec.return && ast_last.return_values_count != 0)) ->
+            ((function.typespec.return && ast_last.return_values_count != 1)) ->
           raise "Typespec mismatches for #{function.name}!"
 
         (function.typespec && function.typespec.return && ast_last.return_values_count == 1) ||
           (!function.typespec && ast_last.return_values_count == 1) || true ->
           """
-          function #{function.name}(#{Enum.map_join(function.args, ", ", &"_#{&1}")}) -> return_value_1$ {
+          function #{function.name}(#{Enum.map_join(function.args, ", ", &"$_#{&1}")}) -> return_value_1$ {
             let offset$ := msize()
-            #{Enum.map_join(ast, "\n", fn yul_node -> if yul_node.return_values_count > 0 do
-              """
-              #{yul_node.yul_snippet_definition}
-              let #{1..yul_node.return_values_count |> Enum.map_join(", ", fn _ -> "_" end)} := #{yul_node.yul_snippet_usage}
-              """
-            else
-              """
-              #{yul_node.yul_snippet_definition}
-              #{yul_node.yul_snippet_usage}
-              """
-            end end)}
-            #{ast_last.yul_snippet_definition}
-            #{if ast_last.return_values_count > 0 do
-            "return_value_1$ := #{ast_last.yul_snippet_usage}"
-          else
-            "#{ast_last.yul_snippet_usage}"
-          end}
+            #{body_generator(ast, ast_last)}
           }
           """
 
@@ -582,8 +559,9 @@ defmodule Elixireum.Compiler do
   def expand_expression(
         {:=, meta,
          [
-           %Elixireum.YulNode{
-             elixir_initial: {var_name, _, _}
+           %YulNode{
+             elixir_initial: {var_name, _, _},
+             yul_snippet_usage: yul_snippet_usage
            },
            %YulNode{
              yul_snippet_definition: yul_snippet_definition,
@@ -593,7 +571,7 @@ defmodule Elixireum.Compiler do
          ]} = node,
         %CompilerState{declared_variables: declared_variables, variables: _variables} = state
       ) do
-    yul_var_name = "_#{var_name}"
+    yul_var_name = yul_snippet_usage
 
     {yul_snippet_left, declared_variables} =
       if MapSet.member?(declared_variables, var_name) do
@@ -649,7 +627,8 @@ defmodule Elixireum.Compiler do
                let #{result_var_name} := #{function_name}(#{Enum.map_join(args, ", ", fn yul_node -> yul_node.yul_snippet_usage end)})
                offset$ := msize()
                """,
-           yul_snippet_usage: "#{result_var_name}",
+           yul_snippet_usage: result_var_name,
+           function_call?: true,
            meta: meta,
            elixir_initial: node,
            return_values_count: 1
@@ -743,46 +722,26 @@ defmodule Elixireum.Compiler do
     do_clause = do_clause && List.wrap(do_clause)
     else_clause = else_clause && List.wrap(else_clause)
 
-    dbg(condition)
-    dbg(do_clause)
-    dbg(else_clause)
-
-    vars = Map.merge(used_variables(do_clause, %{}), used_variables(else_clause, %{}))
+    vars = Map.merge(used_variables(do_clause), used_variables(else_clause))
     all_args = ["condition" | Map.keys(vars)]
     func_name = "$if_#{state.uniqueness_provider}$"
 
-    filler = fn {clause_last, clause} ->
-      """
-      #{for node <- clause do
-        """
-        #{node.yul_snippet_definition}
-        #{node.yul_snippet_usage}
-        """
-      end}
-
-      #{clause_last.yul_snippet_definition}
-      #{if clause_last.return_values_count > 0 do
-        "return_value$ := #{clause_last.yul_snippet_usage}"
-      else
-        "#{clause_last.yul_snippet_usage}"
-      end}
-      """
-    end
-
     if_func = %StdFunction{
       yul: """
-      function $if_#{state.uniqueness_provider}$(#{Enum.join(all_args, ",")}) -> return_value$ {
+      function #{func_name}(#{Enum.join(all_args, ",")}) -> return_value_1$ {
         let offset$ := msize()
 
         #{Utils.generate_type_check("condition", 2, "Wrong type for if condition", state.uniqueness_provider)}
 
-
         switch byte(1, mload(condition))
         case 0 {
-        #{else_clause && filler.(List.pop_at(else_clause, -1, nil))}
-        }
+        #{if else_clause do
+        {ast_last, ast} = List.pop_at(else_clause, -1, nil)
+        body_generator(ast, ast_last)
+      end}}
         default {
-        #{filler.(List.pop_at(do_clause, -1, nil))}
+        #{{ast_last, ast} = List.pop_at(do_clause, -1, nil)
+      body_generator(ast, ast_last)}
         }
       }
       """
@@ -845,7 +804,7 @@ defmodule Elixireum.Compiler do
       when is_atom(var) do
     {%YulNode{
        yul_snippet_definition: "",
-       yul_snippet_usage: "_#{var}",
+       yul_snippet_usage: "$_#{var}",
        meta: meta,
        elixir_initial: other,
        return_values_count: 1,
@@ -998,23 +957,40 @@ defmodule Elixireum.Compiler do
      }, %CompilerState{state | uniqueness_provider: state.uniqueness_provider + 1}}
   end
 
-  defp used_variables(%YulNode{var: true, yul_snippet_usage: yul_snippet_usage} = node, acc) do
-    Map.put(acc, yul_snippet_usage, node)
+  defp used_variables(node) do
+    {vars, to_exclude} = do_used_variables(node, {%{}, %{}})
+    Map.drop(vars, Map.keys(to_exclude))
   end
 
-  defp used_variables(%YulNode{elixir_initial: elixir_initial}, acc) do
-    used_variables(elixir_initial, acc)
+  defp do_used_variables(%YulNode{var: true, yul_snippet_usage: yul_snippet_usage} = node, {vars, to_exclude}) do
+    {Map.put(vars, yul_snippet_usage, node), to_exclude}
   end
 
-  defp used_variables({_, _, children}, acc) do
-    Enum.reduce(children, acc, &used_variables/2)
+  defp do_used_variables(%YulNode{elixir_initial: {:=, _, [%YulNode{var: true, yul_snippet_usage: yul_snippet_usage} = node, _]}}, {vars, to_exclude}) do
+    {vars, Map.put(to_exclude, yul_snippet_usage, node)}
   end
 
-  defp used_variables(nodes, acc) when is_list(nodes) do
-    Enum.reduce(nodes, acc, &used_variables/2)
+  defp do_used_variables(%AuxiliaryNode{access_keys: access_keys}, acc) do
+    Enum.reduce(access_keys, acc, &do_used_variables/2)
   end
 
-  defp used_variables(_, acc), do: acc
+  defp do_used_variables(%YulNode{elixir_initial: elixir_initial}, acc) do
+    do_used_variables(elixir_initial, acc)
+  end
+
+  defp do_used_variables({_, _, children}, acc) do
+    Enum.reduce(children, acc, &do_used_variables/2)
+  end
+
+  defp do_used_variables({key, value}, acc) do
+    Enum.reduce([key, value], acc, &do_used_variables/2)
+  end
+
+  defp do_used_variables(nodes, acc) when is_list(nodes) do
+    Enum.reduce(nodes, acc, &do_used_variables/2)
+  end
+
+  defp do_used_variables(_, acc), do: acc
 
   defp prepare_aliases(aliases, [head | tail]) do
     (aliases[head] || [head]) ++ tail
@@ -1026,5 +1002,36 @@ defmodule Elixireum.Compiler do
 
   defp slice_string(str) do
     [{"0x" <> String.pad_trailing(str, 64, "0"), div(String.length(str), 2)}]
+  end
+
+  defp body_generator(ast, ast_last) do
+    """
+      #{for {yul_node, index} <- Enum.with_index(ast) do
+      """
+      #{yul_node.yul_snippet_definition}
+      #{unless yul_node.function_call? do
+        if yul_node.return_values_count > 0 do
+          """
+          let #{index..(index + yul_node.return_values_count - 1) |> Enum.map_join(", ", fn i -> "_#{i}" end)} := #{yul_node.yul_snippet_usage}
+          """
+        else
+          """
+          #{yul_node.yul_snippet_usage}
+          """
+        end
+      end}
+      """
+    end}
+
+      #{ast_last.yul_snippet_definition}
+
+      #{unless ast_last.function_call? do
+      if ast_last.return_values_count > 0 do
+        "return_value_1$ := #{ast_last.yul_snippet_usage}"
+      else
+        "#{ast_last.yul_snippet_usage}"
+      end
+    end}
+    """
   end
 end
