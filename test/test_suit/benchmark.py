@@ -56,21 +56,25 @@ class ERC20Benchmark:
         bytecode_with_args = contract.constructor(
             self.name, self.symbol
         ).data_in_transaction
-        address = create_contract_elixireum(bytecode_with_args, w3, acc)
+        receipt = create_contract_elixireum(bytecode_with_args, w3, acc)
+        address = receipt['contractAddress']
         self.exm_contract = w3.eth.contract(address=address, abi=abi, bytecode=bytecode)
+        self.results_exm = {'deploy': receipt['gasUsed']}
         
         bytecode, abi = sol_compile(sol_source, "ERC20")
         contract = w3.eth.contract(abi=abi, bytecode=bytecode)
         bytecode_with_args = contract.constructor(
             self.name, self.symbol
         ).data_in_transaction
-        address = create_contract_elixireum(bytecode_with_args, w3, acc)
+        receipt = create_contract_elixireum(bytecode_with_args, w3, acc)
+        address = receipt['contractAddress']
         self.sol_contract = w3.eth.contract(address=address, abi=abi, bytecode=bytecode)
+        self.results_sol = {'deploy': receipt['gasUsed']}
 
     def run_all_measures(self):
         print('EXM:')
         self.contract = self.exm_contract
-        results = dict()
+        results = self.results_exm
         results = self.measure_transfer_and_mint(self.exm_contract) | results
         results = self.measure_transfer_and_mint(self.exm_contract) | results
         results = self.measure_approval_and_transfer_from(self.exm_contract) | results
@@ -82,7 +86,7 @@ class ERC20Benchmark:
         print('-'*30)
         print('SOL: ')
         self.contract = self.exm_contract
-        results = dict()
+        results = self.results_sol
         results = self.measure_transfer_and_mint(self.sol_contract) | results
         results = self.measure_transfer_and_mint(self.sol_contract) | results
         results = self.measure_approval_and_transfer_from(self.sol_contract) | results
@@ -96,7 +100,7 @@ class ERC20Benchmark:
         addr = web3.Account.create().address
         results = dict()
 
-        amount = random.randint(1, 2**256 - 1)
+        amount = random.randint(1, 2**254 - 1)
         tx = contract.functions.mint(self.acc.address, amount).build_transaction(
             tx_stub_new(self, self.acc)
         )
@@ -121,7 +125,7 @@ class ERC20Benchmark:
     def measure_mint_and_burn(self, contract):
         acc_1 = web3.Account.create()
         results = dict()
-        amount = random.randint(0, 2**256 - 1)
+        amount = random.randint(0, 2**254 - 1)
         tx = contract.functions.mint(acc_1.address, amount).build_transaction(
             tx_stub_new(self, self.acc)
         )

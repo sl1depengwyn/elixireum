@@ -88,8 +88,7 @@ def create_contract_elixireum(tx_input, w3, acc):
     tx_hash = w3.eth.send_raw_transaction(stx.rawTransaction)
     print(tx_hash.hex())
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
-    print(receipt)
-    return receipt['contractAddress']
+    return receipt
 
 
 def build_address():
