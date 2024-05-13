@@ -59,7 +59,7 @@ class ERC20Benchmark:
         address = create_contract_elixireum(bytecode_with_args, w3, acc)
         self.exm_contract = w3.eth.contract(address=address, abi=abi, bytecode=bytecode)
         
-        bytecode, abi = sol_compile(sol_source)
+        bytecode, abi = sol_compile(sol_source, "ERC20")
         contract = w3.eth.contract(abi=abi, bytecode=bytecode)
         bytecode_with_args = contract.constructor(
             self.name, self.symbol

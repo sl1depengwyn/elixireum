@@ -26,7 +26,7 @@ def compile(src_filename):
         # print(bytecode)
     return bytecode, abi
 
-def sol_compile(src_filename):
+def sol_compile(src_filename, contract_name):
     out_dir = "/Users/nikitosing/study/thesis/elixireum/"
     out_json = f"{out_dir}out.json"
 
@@ -36,8 +36,8 @@ def sol_compile(src_filename):
     abi = None
     with open(out_json, 'r') as f:
         js = json.load(f)
-        bytecode = js["contracts"]["contracts/in.sol"]["contract"]["evm"]["bytecode"]["object"]
-        abi = js["abi"]
+        bytecode = js["contracts"]["contracts/in.sol"][contract_name]["evm"]["bytecode"]["object"]
+        abi = js["contracts"]["contracts/in.sol"][contract_name]["abi"]
 
     return bytecode, abi
     
