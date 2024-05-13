@@ -9,7 +9,7 @@ source_file = './examples/storage.exm'
 
 
 def compile(src_filename):
-    out_dir = "/Users/nikitosing/study/thesis/elixireum"
+    out_dir = "/Users/nikitosing/study/thesis/elixireum/"
     out_json = f"{out_dir}out.json"
     out_abi = f"{out_dir}abi.json"
 
@@ -27,7 +27,7 @@ def compile(src_filename):
     return bytecode, abi
 
 def sol_compile(src_filename):
-    out_dir = "/Users/nikitosing/study/thesis/elixireum"
+    out_dir = "/Users/nikitosing/study/thesis/elixireum/"
     out_json = f"{out_dir}out.json"
 
     subprocess.check_output(f"source ~/.zshrc; mix gen {src_filename} --out {out_json} --sol",

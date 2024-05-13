@@ -71,9 +71,9 @@ class ERC20Benchmark:
         print('EXM:')
         self.contract = self.exm_contract
         results = dict()
-        results = self.measure_transfer_and_mint() | results
-        results = self.measure_transfer_and_mint() | results
-        results = self.measure_approval_and_transfer_from() | results
+        results = self.measure_transfer_and_mint(self.exm_contract) | results
+        results = self.measure_transfer_and_mint(self.exm_contract) | results
+        results = self.measure_approval_and_transfer_from(self.exm_contract) | results
         print(results)
         print("{:<15} | {:<30}".format('Method','GasUsed'))
         print('-'*30)
@@ -83,12 +83,15 @@ class ERC20Benchmark:
         print('SOL: ')
         self.contract = self.exm_contract
         results = dict()
-        results = self.measure_transfer_and_mint(self.exm_contract) | results
-        results = self.measure_transfer_and_mint(self.exm_contract) | results
-        results = self.measure_approval_and_transfer_from(self.exm_contract) | results
-        df = pd.DataFrame(results)
-        print(df)
-
+        results = self.measure_transfer_and_mint(self.sol_contract) | results
+        results = self.measure_transfer_and_mint(self.sol_contract) | results
+        results = self.measure_approval_and_transfer_from(self.sol_contract) | results
+        print("{:<15} | {:<30}".format('Method','GasUsed'))
+        print('-'*30)
+        for k, v in results.items():
+            print("{:<15} | {:<30}".format(k, v))
+        print('-'*30)
+        
     def measure_transfer_and_mint(self, contract):
         addr = web3.Account.create().address
         results = dict()
