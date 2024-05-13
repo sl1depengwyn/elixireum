@@ -17,50 +17,54 @@ defmodule Mix.Tasks.Gen do
   end
 
   defp do_run(source, out, _out_abi, true) do
-    std_json =
-      %{
-        language: "Solidity",
-        sources: %{"contracts/in.sol": %{content: source}},
-        settings: %{
-          optimizer: %{enabled: true, runs: 1},
-          outputSelection: %{
-            *: %{
-              "": ["ast"],
-              *: [
-                "abi",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.legacyAssembly",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "evm.gasEstimates",
-                "evm.assembly"
-              ]
-            }
-          },
-          remappings: []
+    with {:ok, source} <- File.read(source) do
+      std_json =
+        %{
+          language: "Solidity",
+          sources: %{"contracts/in.sol": %{content: source}},
+          settings: %{
+            optimizer: %{enabled: true, runs: 1},
+            outputSelection: %{
+              *: %{
+                "": ["ast"],
+                *: [
+                  "abi",
+                  "metadata",
+                  "devdoc",
+                  "userdoc",
+                  "storageLayout",
+                  "evm.legacyAssembly",
+                  "evm.bytecode",
+                  "evm.deployedBytecode",
+                  "evm.methodIdentifiers",
+                  "evm.gasEstimates",
+                  "evm.assembly"
+                ]
+              }
+            },
+            remappings: []
+          }
         }
-      }
-      |> Jason.encode_to_iodata!()
+        |> Jason.encode_to_iodata!()
 
-    File.open!("std.json", [:write], fn file ->
-      IO.write(file, std_json)
-    end)
-
-    result =
-      "std.json"
-      |> Elixireum.YulCompiler.compile()
-
-    if out do
-      File.open!(out, [:write], fn file ->
-        IO.write(file, result)
+      File.open!("std.json", [:write], fn file ->
+        IO.write(file, std_json)
       end)
-    end
 
-    IO.puts(%{creation_bytecode: result} |> Jason.encode_to_iodata!())
+      result =
+        "std.json"
+        |> Elixireum.YulCompiler.compile()
+
+      if out do
+        File.open!(out, [:write], fn file ->
+          IO.write(file, result)
+        end)
+      end
+
+      IO.puts(%{creation_bytecode: result} |> Jason.encode_to_iodata!())
+    else
+      _ -> raise "file not found: #{source}"
+    end
   end
 
   defp do_run(source, out, out_abi, _) do
