@@ -237,7 +237,7 @@ class ERC721Benchmark:
             address=address, abi=abi, bytecode=bytecode)
         self.results_exm = {'deploy': receipt['gasUsed']}
 
-        bytecode, abi = sol_compile(sol_source, "ERC20")
+        bytecode, abi = sol_compile(sol_source, "ERC721")
         contract = w3.eth.contract(abi=abi, bytecode=bytecode)
         bytecode_with_args = contract.constructor(
             self.name, self.symbol
@@ -249,35 +249,58 @@ class ERC721Benchmark:
         self.results_sol = {'deploy': receipt['gasUsed']}
 
     def run_all_measures(self):
+        results_global = dict()
+        runs_count = 20
+        for i in range(runs_count):
+            results = self.measure_mint_and_burn(self.exm_contract)
+            results = self.measure_transfer_and_mint(
+                self.exm_contract) | results
+            results = self.measure_mint_approve_transfer_from(
+                self.exm_contract) | results
+            results = self.measure_setApprovalForAll_transferFrom(
+            self.exm_contract) | results
+            if i > 0:
+                for k in results:
+                    results_global[k] += results[k]
+            else:
+                results_global = results
+        for k in results_global:
+            results_global[k] /= runs_count
+        results = results_global | self.results_exm
+
         print('EXM:')
-        self.contract = self.exm_contract
-        results = self.results_exm
-        results = self.measure_transfer_and_mint(self.exm_contract) | results
-        results = self.measure_mint_and_burn(self.exm_contract) | results
-        results = self.measure_mint_approve_transfer_from(
-            self.exm_contract) | results
-        results = self.measure_setApprovalForAll_transferFrom(
-            self.exm_contract) | results
-        print(results)
         print("{:<15} | {:<30}".format('Method', 'GasUsed'))
         print('-'*30)
         for k, v in results.items():
             print("{:<15} | {:<30}".format(k, v))
         print('-'*30)
+
+        results_global = dict()
+        for i in range(runs_count):
+            results = self.measure_mint_and_burn(self.sol_contract)
+            results = self.measure_transfer_and_mint(
+                self.sol_contract) | results
+            results = self.measure_mint_approve_transfer_from(
+                self.sol_contract) | results
+            results = self.measure_setApprovalForAll_transferFrom(
+                self.sol_contract) | results
+            
+            if i > 0:
+                for k in results:
+                    results_global[k] += results[k]
+            else:
+                results_global = results
+        for k in results_global:
+            results_global[k] /= runs_count
+        results = results_global | self.results_sol
+
         print('SOL: ')
-        self.contract = self.exm_contract
-        results = self.results_exm
-        results = self.measure_transfer_and_mint(self.sol_contract) | results
-        results = self.measure_mint_and_burn(self.sol_contract) | results
-        results = self.measure_mint_approve_transfer_from(
-            self.sol_contract) | results
-        results = self.measure_setApprovalForAll_transferFrom(
-            self.sol_contract) | results
         print("{:<15} | {:<30}".format('Method', 'GasUsed'))
         print('-'*30)
         for k, v in results.items():
             print("{:<15} | {:<30}".format(k, v))
         print('-'*30)
+
 
     def measure_transfer_and_mint(self, contract):
         addr = web3.Account.create().address
@@ -334,7 +357,7 @@ class ERC721Benchmark:
             acc_1.address, token_id, '').build_transaction(tx_stub_new(self, self.acc))
         stx = self.acc.sign_transaction(tx)
         tx_hash = self.w3.eth.send_raw_transaction(stx.rawTransaction)
-        self.w3.eth.wait_for_transaction_receipt(tx_hash)
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
         results['mint'] = receipt['gasUsed']
 
         tx = contract.functions.approve(
@@ -383,6 +406,8 @@ class ERC721Benchmark:
         tx_hash = self.w3.eth.send_raw_transaction(stx.rawTransaction)
         receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
         results['transferFrom'] = receipt['gasUsed']
+        return results
 
-benchmark = ERC20Benchmark()
+# benchmark = ERC20Benchmark()
+benchmark = ERC721Benchmark()
 benchmark.run_all_measures()
