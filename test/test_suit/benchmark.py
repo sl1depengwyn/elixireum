@@ -75,10 +75,9 @@ class ERC20Benchmark:
         print('EXM:')
         self.contract = self.exm_contract
         results = self.results_exm
-        results = self.measure_transfer_and_mint(self.exm_contract) | results
+        results = self.measure_mint_and_burn(self.exm_contract) | results
         results = self.measure_transfer_and_mint(self.exm_contract) | results
         results = self.measure_approval_and_transfer_from(self.exm_contract) | results
-        print(results)
         print("{:<15} | {:<30}".format('Method','GasUsed'))
         print('-'*30)
         for k, v in results.items():
@@ -87,7 +86,7 @@ class ERC20Benchmark:
         print('SOL: ')
         self.contract = self.exm_contract
         results = self.results_sol
-        results = self.measure_transfer_and_mint(self.sol_contract) | results
+        results = self.measure_mint_and_burn(self.sol_contract) | results
         results = self.measure_transfer_and_mint(self.sol_contract) | results
         results = self.measure_approval_and_transfer_from(self.sol_contract) | results
         print("{:<15} | {:<30}".format('Method','GasUsed'))
@@ -151,7 +150,7 @@ class ERC20Benchmark:
         acc_1 = web3.Account.create()
         send_funds(self, acc_1.address)
         results = dict()
-        amount = random.randint(1, 2**256 - 1)
+        amount = random.randint(1, 2**254 - 1)
 
         tx = contract.functions.mint(acc_1.address, amount).build_transaction(
             tx_stub_new(self, self.acc)
