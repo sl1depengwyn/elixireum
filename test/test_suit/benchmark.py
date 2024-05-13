@@ -74,26 +74,47 @@ class ERC20Benchmark:
         self.results_sol = {'deploy': receipt['gasUsed']}
 
     def run_all_measures(self):
+        results_global = dict()
+        runs_count = 20
+        for i in range(runs_count):
+            results = self.measure_mint_and_burn(self.exm_contract)
+            results = self.measure_transfer_and_mint(
+                self.exm_contract) | results
+            results = self.measure_approval_and_transfer_from(
+                self.exm_contract) | results
+            if i > 0:
+                for k in results:
+                    results_global[k] += results[k]
+            else:
+                results_global = results
+        for k in results_global:
+            results_global[k] /= runs_count
+        results = results_global | self.results_exm
+
         print('EXM:')
-        self.contract = self.exm_contract
-        results = self.results_exm
-        results = self.measure_mint_and_burn(self.exm_contract) | results
-        results = self.measure_transfer_and_mint(self.exm_contract) | results
-        results = self.measure_approval_and_transfer_from(
-            self.exm_contract) | results
-        print(results)
         print("{:<15} | {:<30}".format('Method', 'GasUsed'))
         print('-'*30)
         for k, v in results.items():
             print("{:<15} | {:<30}".format(k, v))
         print('-'*30)
+
+        results_global = dict()
+        for i in range(runs_count):
+            results = self.measure_mint_and_burn(self.sol_contract)
+            results = self.measure_transfer_and_mint(
+                self.sol_contract) | results
+            results = self.measure_approval_and_transfer_from(
+                self.sol_contract) | results
+            if i > 0:
+                for k in results:
+                    results_global[k] += results[k]
+            else:
+                results_global = results
+        for k in results_global:
+            results_global[k] /= runs_count
+        results = results_global | self.results_sol
+
         print('SOL: ')
-        self.contract = self.exm_contract
-        results = self.results_sol
-        results = self.measure_mint_and_burn(self.sol_contract) | results
-        results = self.measure_transfer_and_mint(self.sol_contract) | results
-        results = self.measure_approval_and_transfer_from(
-            self.sol_contract) | results
         print("{:<15} | {:<30}".format('Method', 'GasUsed'))
         print('-'*30)
         for k, v in results.items():
@@ -104,7 +125,7 @@ class ERC20Benchmark:
         addr = web3.Account.create().address
         results = dict()
 
-        amount = random.randint(1, 2**254 - 1)
+        amount = random.randint(1, 2**200 - 1)
         tx = contract.functions.mint(self.acc.address, amount).build_transaction(
             tx_stub_new(self, self.acc)
         )
@@ -129,7 +150,7 @@ class ERC20Benchmark:
     def measure_mint_and_burn(self, contract):
         acc_1 = web3.Account.create()
         results = dict()
-        amount = random.randint(0, 2**254 - 1)
+        amount = random.randint(0, 2**200 - 1)
         tx = contract.functions.mint(acc_1.address, amount).build_transaction(
             tx_stub_new(self, self.acc)
         )
@@ -155,7 +176,7 @@ class ERC20Benchmark:
         acc_1 = web3.Account.create()
         send_funds(self, acc_1.address)
         results = dict()
-        amount = random.randint(1, 2**254 - 1)
+        amount = random.randint(1, 2**200 - 1)
 
         tx = contract.functions.mint(acc_1.address, amount).build_transaction(
             tx_stub_new(self, self.acc)
@@ -362,7 +383,6 @@ class ERC721Benchmark:
         tx_hash = self.w3.eth.send_raw_transaction(stx.rawTransaction)
         receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
         results['transferFrom'] = receipt['gasUsed']
-
 
 benchmark = ERC20Benchmark()
 benchmark.run_all_measures()

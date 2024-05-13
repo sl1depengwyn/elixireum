@@ -1,0 +1,21 @@
+ERC20 (100 runs)
+EXM:
+Method          | GasUsed                       
+------------------------------
+mint            | 58197.4                       
+approve         | 47619.8                       
+transferFrom    | 54812.0                       
+transfer        | 55659.8                       
+burn            | 33061.6                       
+deploy          | 1939441                       
+------------------------------
+SOL: 
+Method          | GasUsed                       
+------------------------------
+mint            | 54799.6                       
+approve         | 46570.8                       
+transferFrom    | 48492.2                       
+transfer        | 51813.4                       
+burn            | 29433.25                      
+deploy          | 732543                        
+------------------------------
