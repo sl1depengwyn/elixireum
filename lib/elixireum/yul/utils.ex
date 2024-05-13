@@ -183,7 +183,11 @@ defmodule Elixireum.Yul.Utils do
           mstore(add(new_pointer$,1), shl(mul(8, sub(32, byte_size_new$)), loaded_value$))
         }
       """,
-      deps: %{"type_to_byte_size$": type_to_byte_size(), "address_to_byte_size$": address_to_byte_size(), "load_var$": load_var()}
+      deps: %{
+        "type_to_byte_size$": type_to_byte_size(),
+        "address_to_byte_size$": address_to_byte_size(),
+        "load_var$": load_var()
+      }
     }
   end
 end

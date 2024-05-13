@@ -54,7 +54,7 @@ class TestERC20:
         assert self.contract.functions.totalSupply().call() == 0
 
     def test_mint_and_burn(self):
-        acc_1 = web3.Account.create()  # self.acc.address
+        acc_1 = web3.Account.create()
         assert self.contract.functions.balanceOf(acc_1.address).call() == 0
 
         amount = random.randint(0, 2 ** 256 - 1)
@@ -82,7 +82,7 @@ class TestERC20:
         assert self.contract.functions.balanceOf(acc_1.address).call() == 0
 
     def test_transfer(self):
-        addr = web3.Account.create().address  # self.acc.address
+        addr = web3.Account.create().address
 
         amount = random.randint(1, 2 ** 256 - 1)
         tx = self.contract.functions.mint(self.acc.address, amount).build_transaction(tx_stub_new(self, self.acc))

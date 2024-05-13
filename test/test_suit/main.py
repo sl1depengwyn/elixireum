@@ -9,8 +9,8 @@ source_file = './examples/storage.exm'
 
 
 def compile(src_filename):
-    out_dir = "/Users/nikitosing/PycharmProjects/elixireum_tests/"
-    out_json = f"{out_dir}qwe.json"
+    out_dir = "/Users/nikitosing/study/thesis/elixireum"
+    out_json = f"{out_dir}out.json"
     out_abi = f"{out_dir}abi.json"
 
     subprocess.check_output(f"source ~/.zshrc; mix gen {src_filename} --out {out_json} --abi {out_abi}",
@@ -19,12 +19,28 @@ def compile(src_filename):
     abi = None
     with open(out_json, 'r') as f:
         js = json.load(f)
-        bytecode = js["contracts"]["contracts/test.yul"]["contract"]["evm"]["bytecode"]["object"]
+        bytecode = js["contracts"]["contracts/in.yul"]["contract"]["evm"]["bytecode"]["object"]
 
     with open(out_abi, 'r') as f:
         abi = f.read()
         # print(bytecode)
     return bytecode, abi
+
+def sol_compile(src_filename):
+    out_dir = "/Users/nikitosing/study/thesis/elixireum"
+    out_json = f"{out_dir}out.json"
+
+    subprocess.check_output(f"source ~/.zshrc; mix gen {src_filename} --out {out_json} --sol",
+                            cwd='/Users/nikitosing/study/thesis/elixireum', shell=True)
+    bytecode = None
+    abi = None
+    with open(out_json, 'r') as f:
+        js = json.load(f)
+        bytecode = js["contracts"]["contracts/in.sol"]["contract"]["evm"]["bytecode"]["object"]
+        abi = js["abi"]
+
+    return bytecode, abi
+    
 
 
 # w3 = Web3(HTTPProvider("https://rpc2.sepolia.org"))

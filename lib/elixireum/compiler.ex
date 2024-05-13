@@ -489,7 +489,7 @@ defmodule Elixireum.Compiler do
     user_defined_functions =
       cond do
         function.typespec &&
-            ((function.typespec.return && ast_last.return_values_count != 1)) ->
+            (function.typespec.return && ast_last.return_values_count != 1) ->
           raise "Typespec mismatches for #{function.name}!"
 
         (function.typespec && function.typespec.return && ast_last.return_values_count == 1) ||
@@ -962,11 +962,20 @@ defmodule Elixireum.Compiler do
     Map.drop(vars, Map.keys(to_exclude))
   end
 
-  defp do_used_variables(%YulNode{var: true, yul_snippet_usage: yul_snippet_usage} = node, {vars, to_exclude}) do
+  defp do_used_variables(
+         %YulNode{var: true, yul_snippet_usage: yul_snippet_usage} = node,
+         {vars, to_exclude}
+       ) do
     {Map.put(vars, yul_snippet_usage, node), to_exclude}
   end
 
-  defp do_used_variables(%YulNode{elixir_initial: {:=, _, [%YulNode{var: true, yul_snippet_usage: yul_snippet_usage} = node, _]}}, {vars, to_exclude}) do
+  defp do_used_variables(
+         %YulNode{
+           elixir_initial:
+             {:=, _, [%YulNode{var: true, yul_snippet_usage: yul_snippet_usage} = node, _]}
+         },
+         {vars, to_exclude}
+       ) do
     {vars, Map.put(to_exclude, yul_snippet_usage, node)}
   end
 
@@ -1025,13 +1034,11 @@ defmodule Elixireum.Compiler do
 
       #{ast_last.yul_snippet_definition}
 
-      #{
-              if ast_last.return_values_count > 0 do
-                "return_value_1$ := #{ast_last.yul_snippet_usage}"
-              else
-                "#{ast_last.yul_snippet_usage}"
-              end
-        }
+      #{if ast_last.return_values_count > 0 do
+      "return_value_1$ := #{ast_last.yul_snippet_usage}"
+    else
+      "#{ast_last.yul_snippet_usage}"
+    end}
     """
   end
 end

@@ -73,7 +73,7 @@ class TestStorage:
         assert self.contract.functions.get_mapping_test_int16(key_1, key_2).call() == value + 1
 
     def test_address(self):
-        addr = web3.Account.create().address  # self.acc.address
+        addr = web3.Account.create().address
 
         id = random.randint(1, 2 ** 256 - 1)
         tx = self.contract.functions.store_addresses(id, addr).build_transaction(tx_stub(self))
@@ -83,7 +83,7 @@ class TestStorage:
         assert self.contract.functions.get_addresses(id).call() == addr
 
     def test_tokenURIs(self):
-        addr = web3.Account.create().address  # self.acc.address
+        addr = web3.Account.create().address
         uri = "dfkjmnvk;advkdfmnvk;jadfvkadfn;kjvndf"
 
         id = random.randint(1, 2 ** 256 - 1)
