@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Gen do
         raise "usage: mix gen source_file"
       end
 
-    do_run(args.source, args.out, args.abi, args.sol)
+    do_run(args[:source], args[:out], args[:abi], args[:sol])
   end
 
   defp do_run(source, out, _out_abi, true) do
@@ -63,7 +63,7 @@ defmodule Mix.Tasks.Gen do
     IO.puts(%{creation_bytecode: result} |> Jason.encode_to_iodata!())
   end
 
-  defp do_run(source, out, out_abi, false) do
+  defp do_run(source, out, out_abi, _) do
     with %{yul: yul, abi: abi} <-
            [source: source]
            |> Elixireum.Compiler.compile() do
