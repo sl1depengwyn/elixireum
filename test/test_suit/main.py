@@ -95,6 +95,11 @@ def tx_stub(self):
     return tx
 
 
+def tx_stub_new(self, account):
+    nonce = self.w3.eth.get_transaction_count(account.address)
+    return {'from': account.address, 'nonce': nonce}
+
+
 def setup(cls, source):
     bytecode, abi = compile(source)
     cls.bytecode = bytecode

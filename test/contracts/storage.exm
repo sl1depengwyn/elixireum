@@ -4,9 +4,11 @@ defmodule Test.Storage do
 
   @int_test [type: Types.Int256.t()]
   @address [type: Types.Address.t()]
+  @addresses type: %{Types.UInt256.t() => Types.Address.t()}
   @contract_symbol [type: Types.String.t()]
   @mapping_test_int16 [type: %{Types.Bytes16.t() => %{Types.Int256.t() => Types.Int16.t()}}]
   @mapping_test_bytes16 [type: %{Types.Int16.t() => %{Types.Bytes16.t() => Types.Bytes16.t()}}]
+  @tokenURIs type: %{Types.UInt256.t() => Types.String.t()}
 
 
   @spec store_int_test(Types.Int256.t()) :: nil
@@ -18,7 +20,6 @@ defmodule Test.Storage do
   def get_int_test() do
     Storage.get(@int_test)
   end
-
 
   @spec store_address(Types.Address.t()) :: nil
   def store_address(address) do
@@ -59,5 +60,35 @@ defmodule Test.Storage do
   @spec get_mapping_test_bytes16(Types.Int16.t(), Types.Bytes16.t()) :: Types.Bytes16.t()
   def get_mapping_test_bytes16(key_a, key_b) do
     Storage.get(@mapping_test_bytes16[key_a][key_b])
+  end
+
+  @spec increment_mapping_test_int16(Types.Bytes16.t(), Types.Int256.t()) :: nil
+  def increment_mapping_test_int16(key_a, key_b) do
+    Storage.store(@mapping_test_int16[key_a][key_b], Storage.get(@mapping_test_int16[key_a][key_b]) +  Utils.cast(1, Types.Int16))
+  end
+
+  @spec decrement_mapping_test_int16(Types.Bytes16.t(), Types.Int256.t()) :: nil
+  def decrement_mapping_test_int16(key_a, key_b) do
+    Storage.store(@mapping_test_int16[key_a][key_b], Storage.get(@mapping_test_int16[key_a][key_b]) - 1)
+  end
+
+  @spec store_addresses(Types.UInt256.t(), Types.Address.t()) :: nil
+  def store_addresses(id, address) do
+    Storage.store(@addresses[id], address)
+  end
+
+  @spec get_addresses(Types.UInt256.t()) :: Types.Address.t()
+  def get_addresses(id) do
+    Storage.get(@addresses[id])
+  end
+
+  @spec set_tokenURIs(Types.UInt256.t(), Types.String.t()) :: nil
+  def set_tokenURIs(tokenId, tokenURI) do
+    Storage.store(@tokenURIs[tokenId], tokenURI)
+  end
+
+  @spec get_tokenURIs(Types.UInt256.t()) :: Types.String.t()
+  def get_tokenURIs(tokenId) do
+    Storage.get(@tokenURIs[tokenId])
   end
 end

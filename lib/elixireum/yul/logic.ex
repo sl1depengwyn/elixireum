@@ -12,10 +12,10 @@ defmodule Elixireum.Yul.Logic do
         offset$ := add(offset$, 1)
 
         let size_a$ := address_to_byte_size$(ptr_a$)
-        let a$ := shr(mul(sub(32, size_a$), 8), mload(ptr_a$))
+        let a$ := shr(mul(sub(32, size_a$), 8), mload(add(1, ptr_a$)))
 
         let size_b$ := address_to_byte_size$(ptr_a$)
-        let b$ := shr(mul(sub(32, size_b$), 8), mload(ptr_b$))
+        let b$ := shr(mul(sub(32, size_b$), 8), mload(add(1, ptr_b$)))
 
         mstore8(offset$, gt(or(a$, b$), 0))
       }
@@ -35,10 +35,10 @@ defmodule Elixireum.Yul.Logic do
         offset$ := add(offset$, 1)
 
         let size_a$ := address_to_byte_size$(ptr_a$)
-        let a$ := shr(mul(sub(32, size_a$), 8), mload(ptr_a$))
+        let a$ := shr(mul(sub(32, size_a$), 8), mload(add(1, ptr_a$)))
 
         let size_b$ := address_to_byte_size$(ptr_a$)
-        let b$ := shr(mul(sub(32, size_b$), 8), mload(ptr_b$))
+        let b$ := shr(mul(sub(32, size_b$), 8), mload(add(1, ptr_b$)))
 
         mstore8(offset$, gt(and(a$, b$), 0))
       }
@@ -58,7 +58,7 @@ defmodule Elixireum.Yul.Logic do
         offset$ := add(offset$, 1)
 
         let size_a$ := address_to_byte_size$(ptr_a$)
-        let a$ := shr(mul(sub(32, size_a$), 8), mload(ptr_a$))
+        let a$ := shr(mul(sub(32, size_a$), 8), mload(add(1, ptr_a$)))
 
         mstore8(offset$, iszero(a$))
       }

@@ -25,7 +25,7 @@ defmodule Mix.Tasks.Gen do
           language: "Yul",
           sources: %{"contracts/test.yul": %{content: yul}},
           settings: %{
-            optimizer: %{enabled: true, runs: 200},
+            optimizer: %{enabled: true, runs: 1},
             outputSelection: %{
               *: %{
                 "": ["ast"],

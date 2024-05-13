@@ -203,7 +203,7 @@ defmodule Blockchain.Event do
       }
       {
         #{do_encode_indexed_argument(component, arg_name_pointer, init_var_name, uniqueness_provider + 1)}
-        offset$ := add(#{init_var_name}, mul(32, add(1, div(sub(sub(offset$, #{init_var_name}), 1), 32))))
+        offset$ := add(#{init_var_name}, mul(32, add(1, sdiv(sub(sub(offset$, #{init_var_name}), 1), 32))))
       }
     """
   end
@@ -228,7 +228,7 @@ defmodule Blockchain.Event do
 
       #{for {j, type} <- Enum.with_index(components) do
       do_encode_indexed_argument(type, arg_name_pointer, init_var_name, uniqueness_provider + j + 1) <> """
-      offset$ := add(#{init_var_name}, mul(32, add(1, div(sub(sub(#{init_var_name}, offset$), 1), 32))))
+      offset$ := add(#{init_var_name}, mul(32, add(1, sdiv(sub(sub(#{init_var_name}, offset$), 1), 32))))
       """
     end}
     """

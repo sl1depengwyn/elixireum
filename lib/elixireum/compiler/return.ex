@@ -145,7 +145,7 @@ defmodule Elixireum.Compiler.Return do
     processed_return_value$ := add(processed_return_value$, 32)
 
     mcopy(processed_return_value$, return_value$, #{size_var_name})
-    processed_return_value$ := add(processed_return_value$, mul(32, add(1, div(sub(#{size_var_name}, 1), 32))))
+    processed_return_value$ := add(processed_return_value$, mul(32, add(1, sdiv(sub(#{size_var_name}, 1), 32))))
     return_value$ := add(return_value$, #{size_var_name})
     """
   end

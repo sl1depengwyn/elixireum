@@ -897,7 +897,7 @@ defmodule Elixireum.Compiler do
     let #{var_name} := offset$
     mstore8(offset$, #{Type.elixir_to_encoded_type(atom)})
     offset$ := add(offset$, 1)
-    mstore(offset$, #{atom})
+    mstore8(offset$, #{atom})
     offset$ := add(offset$, #{Type.elixir_to_size(atom)})
     """
 
@@ -1025,13 +1025,13 @@ defmodule Elixireum.Compiler do
 
       #{ast_last.yul_snippet_definition}
 
-      #{unless ast_last.function_call? do
-      if ast_last.return_values_count > 0 do
-        "return_value_1$ := #{ast_last.yul_snippet_usage}"
-      else
-        "#{ast_last.yul_snippet_usage}"
-      end
-    end}
+      #{
+              if ast_last.return_values_count > 0 do
+                "return_value_1$ := #{ast_last.yul_snippet_usage}"
+              else
+                "#{ast_last.yul_snippet_usage}"
+              end
+        }
     """
   end
 end

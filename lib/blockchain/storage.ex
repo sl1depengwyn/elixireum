@@ -22,18 +22,17 @@ defmodule Blockchain.Storage do
 
     definition =
       """
-      let #{var_name} := offset$
-
       #{keys_definition}
       #{slot_definition}
+      let #{var_name} := offset$
+      let #{slot_var_name} := #{slot}
 
       mstore8(offset$, #{variable.type.encoded_type})
       offset$ := add(offset$, 1)
 
-      let #{slot_var_name} := #{slot}
       let #{size_var_name} := sload(#{slot_var_name})
       #{slot_var_name} := add(#{slot_var_name}, 1)
-      let #{slot_end_var_name} := add(#{slot_var_name}, add(1, div(sub(#{size_var_name}, 1), 32)))
+      let #{slot_end_var_name} := add(#{slot_var_name}, add(1, sdiv(sub(#{size_var_name}, 1), 32)))
 
       mstore(offset$, #{size_var_name})
       offset$ := add(offset$, 32)
@@ -96,13 +95,13 @@ defmodule Blockchain.Storage do
         %AuxiliaryNode{
           type: :storage_variable,
           value: %Variable{type: %Type{encoded_type: 1}} = variable,
-          access_keys: []
+          access_keys: access_keys
         },
         %YulNode{} = value,
         %CompilerState{} = state,
         node
       ) do
-    {_definition, slot, _keys_definition} = keccak_from_var_and_access_keys(variable, [], state)
+    {slot_definition, slot, keys_definition} = keccak_from_var_and_access_keys(variable, access_keys, state)
 
     i_var_name = "storage_i_#{state.uniqueness_provider}$"
     i_end_var_name = "storage_i_#{state.uniqueness_provider}$end"
@@ -111,6 +110,8 @@ defmodule Blockchain.Storage do
 
     usage =
       """
+      #{keys_definition}
+      #{slot_definition}
       let #{i_var_name} := #{value.yul_snippet_usage}
 
       #{Utils.generate_type_check(i_var_name, variable.type.encoded_type, "Wrong type for storage variable #{variable.name}", state.uniqueness_provider)}

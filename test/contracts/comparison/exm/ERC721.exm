@@ -9,7 +9,7 @@ defmodule Test.ERC721 do
   @name type: Types.String.t()
   @symbol type: Types.String.t()
   @owner type: Types.Address.t()
-  @owners type: %{Types.Address.t() => Types.UInt256.t()}
+  @owners type: %{Types.UInt256.t() => Types.Address.t()}
   @balances type: %{Types.Address.t() => Types.UInt256.t()}
   @tokenApprovals type: %{Types.UInt256.t() => Types.Address.t()}
   @operatorApprovals type: %{Types.Address.t() => %{Types.Address.t() => Types.Bool.t()}}
@@ -85,15 +85,16 @@ defmodule Test.ERC721 do
 
     previousOwner = _update(to, tokenId, Blockchain.caller())
 
-    if not previousOwner == from do
+    if not (previousOwner == from) do
       raise "ERC721IncorrectOwner(from, tokenId, previousOwner)"
     end
   end
 
-  @spec mint(Types.Address.t(), Types.UInt256.t()) :: Types.Bool.t()
-  def mint(to, tokenId) do
+  @spec mint(Types.Address.t(), Types.UInt256.t(), Types.String.t()) :: Types.Bool.t()
+  def mint(to, tokenId, tokenURI) do
     if Storage.get(@owner) == Blockchain.caller() do
       _mint(to, tokenId)
+      Storage.store(@tokenURIs[tokenId], tokenURI)
       true
     else
       raise "ERC721InvalidMinter"
@@ -120,7 +121,7 @@ defmodule Test.ERC721 do
   end
 
   defp _isAuthorized(owner, spender, tokenId) do
-    not spender == ~ADDRESS(0x0000000000000000000000000000000000000000) and (owner == spender or isApprovedForAll(owner, spender) or _getApproved(tokenId) == spender)
+    not (spender == ~ADDRESS(0x0000000000000000000000000000000000000000)) and (owner == spender or isApprovedForAll(owner, spender) or _getApproved(tokenId) == spender)
   end
 
   defp _checkAuthorized(owner, spender, tokenId) do
@@ -136,18 +137,17 @@ defmodule Test.ERC721 do
   defp _update(to, tokenID, auth) do
     from = _ownerOf(tokenID)
 
-    if not auth == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+    if not (auth == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
       _checkAuthorized(from, auth, tokenID)
     end
 
-    if not from == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+    if not (from == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
       _approve(~ADDRESS(0x0000000000000000000000000000000000000000), tokenID, ~ADDRESS(0x0000000000000000000000000000000000000000), false)
-
-      Storage.store(@balances[from], Storage.get(@balances[from]) - 1)
+      Storage.store(@balances[from], Storage.get(@balances[from]) - Utils.cast(1, Types.UInt256))
     end
 
-    if not to == ~ADDRESS(0x0000000000000000000000000000000000000000) do
-      Storage.store(@balances[to], Storage.get(@balances[to]) + 1)
+    if not (to == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
+      Storage.store(@balances[to], Storage.get(@balances[to]) + Utils.cast(1, Types.UInt256))
     end
 
     Storage.store(@owners[tokenID], to)
@@ -164,7 +164,7 @@ defmodule Test.ERC721 do
 
     previousOwner = _update(to, tokenId, ~ADDRESS(0x0000000000000000000000000000000000000000))
 
-    if not previousOwner == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+    if not (previousOwner == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
       raise "ERC721InvalidSender(address(0))"
     end
   end
@@ -184,7 +184,7 @@ defmodule Test.ERC721 do
     previousOwner = _update(to, tokenId, ~ADDRESS(0x0000000000000000000000000000000000000000))
 
     if previousOwner == ~ADDRESS(0x0000000000000000000000000000000000000000) do
-      raise "ERC721InvalidSender(address(0))"
+      raise "ERC721NonexistentToken(tokenId)"
     else
       if not previousOwner == from do
         raise "ERC721IncorrectOwner(from, tokenId, previousOwner)"
@@ -193,10 +193,10 @@ defmodule Test.ERC721 do
   end
 
   defp _approve(to, tokenId, auth, emitEvent) do
-    if emitEvent or not auth == ~ADDRESS(0x0000000000000000000000000000000000000000) do
+    if emitEvent or not (auth == ~ADDRESS(0x0000000000000000000000000000000000000000)) do
       owner = _requireOwned(tokenId)
 
-      if not auth == ~ADDRESS(0x0000000000000000000000000000000000000000) and not owner == auth and not isApprovedForAll(owner, auth) do
+      if not (auth == ~ADDRESS(0x0000000000000000000000000000000000000000)) and not owner == auth and not isApprovedForAll(owner, auth) do
          raise "ERC721InvalidApprover(auth)";
       end
 

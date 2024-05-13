@@ -74,7 +74,7 @@ defmodule Elixireum.Yul.Utils do
           ptr_to := add(ptr_to, 32)
           ptr_from := add(ptr_from, 32)
 
-          let iterations_count := add(1, div(sub(size, 1), 32))
+          let iterations_count := add(1, sdiv(sub(size, 1), 32))
 
           for {let i := 0} lt(i, iterations_count) {i := add(i, 1)} {
             mstore(ptr_to, mload(ptr_from))
@@ -96,7 +96,7 @@ defmodule Elixireum.Yul.Utils do
           ptr_to := add(ptr_to, 32)
           ptr_from := add(ptr_from, 32)
 
-          let iterations_count := add(1, div(sub(size, 1), 32))
+          let iterations_count := add(1, sdiv(sub(size, 1), 32))
 
           for {let i := 0} lt(i, iterations_count) {i := add(i, 1)} {
             mstore(ptr_to, mload(ptr_from))

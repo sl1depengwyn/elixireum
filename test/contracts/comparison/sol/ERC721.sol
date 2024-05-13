@@ -124,10 +124,12 @@ contract ERC721 {
 
     function mint(
         address to,
-        uint256 tokenId
+        uint256 tokenId,
+        string memory _tokenURI
     ) public returns (bool) {
         if (msg.sender == _owner) {
             _mint(to, tokenId);
+            _tokenURIs[tokenId] = _tokenURI;
             return true;
         } else {
             revert("ERC721InvalidMinter");

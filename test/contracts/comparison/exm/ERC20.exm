@@ -130,14 +130,15 @@ defmodule Test.ERC20 do
   end
 
   defp _transfer(from, to, value) do
-    if from ==  ~ADDRESS(0x0000000000000000000000000000000000000000) do
+    if from == ~ADDRESS(0x0000000000000000000000000000000000000000) do
       raise "ERC20InvalidSender(address(0))"
     end
 
-    if to ==  ~ADDRESS(0x0000000000000000000000000000000000000000) do
+    if to == ~ADDRESS(0x0000000000000000000000000000000000000000) do
       raise "ERC20InvalidReceiver(address(0))"
     end
 
+    _update(from, to, value)
   end
 
   defp _update(from, to, value) do
