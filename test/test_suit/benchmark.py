@@ -68,6 +68,20 @@ class ERC20Benchmark:
         self.sol_contract = w3.eth.contract(address=address, abi=abi, bytecode=bytecode)
 
     def run_all_measures(self):
+        print('EXM:')
+        self.contract = self.exm_contract
+        results = dict()
+        results = self.measure_transfer_and_mint() | results
+        results = self.measure_transfer_and_mint() | results
+        results = self.measure_approval_and_transfer_from() | results
+        print(results)
+        print("{:<15} | {:<30}".format('Method','GasUsed'))
+        print('-'*30)
+        for k, v in results.items():
+            print("{:<15} | {:<30}".format(k, v))
+        print('-'*30)
+        print('SOL: ')
+        self.contract = self.exm_contract
         results = dict()
         results = self.measure_transfer_and_mint(self.exm_contract) | results
         results = self.measure_transfer_and_mint(self.exm_contract) | results
@@ -161,3 +175,6 @@ class ERC20Benchmark:
         results['transferFrom'] = receipt['gasUsed']
 
         return results
+    
+benchmark = ERC20Benchmark()
+benchmark.run_all_measures()
