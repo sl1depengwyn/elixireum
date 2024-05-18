@@ -1,5 +1,5 @@
 defmodule HaHaHa.Test do
   defp a() do
-    [1, 2, 3]
+    a = [1, true, "abc"]
   end
 end
