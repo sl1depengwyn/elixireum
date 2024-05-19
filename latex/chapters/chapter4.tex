@@ -1,6 +1,7 @@
 \chapter{Design and Implementation}
 \label{chap:impl}
 
+This chapter outlines the principal elements of the design of Elixireum compiler. It overviews the technology stack employed in the development process and underscores the pivotal decisions that shaped the architecture of the compiler.
 
 % preliminary structure:
 
@@ -30,59 +31,49 @@
 %     - reverts with utf-8 error string
 %   - standard functions declaration on demand (transitivity included) and mechanism itself (module responsible for )
 
-\section{Architecture overview}
+\section{Stack overview}
 \label{sec:architecture}
-
-This section outlines the principal elements of the design of Elixireum compiler. It overviews the technology stack employed in the development process and underscores the pivotal decisions that shaped the architecture of the compiler.
-
-
+This section rationalize the technology stack used in the project: Elixir, Yul, Solidity compiler.
 \subsection{Choice of Elixir}
-Here is the racialization behind the choice of Elixir:
+Here is the rationalization behind the choice of Elixir:
 \begin{itemize}
-    \item The most popular open source Web3 explorer, Blockscout\footnote{\href{https://www.blockscout.com/}{Official Blockscout website}}, is written in Elixir. From this we can say that Elixir is well heard of in Web3 community.
+    \item One of the most popular open source blockchain explorers, Blockscout\footnote{\href{https://www.blockscout.com/}{https://www.blockscout.com} -- Official Blockscout website}, is written in Elixir. From this we can say that Elixir is well heard of in Web3 community.
     \item Our team possesses substantial expertise in this programming language.
     \item Elixir is open source so we can easily reuse its machinery for tokenization and parsing Elixireum.
 \end{itemize}
 
 \subsection{Choice of Yul}
 \begin{itemize}
-    \item Initially, our strategy entailed compiling Elixireum directly into Ethereum Virtual Machine (EVM) bytecode. Subsequently, we pivoted towards an intermediate representation (IR), selecting Yul as IR aligned with our requirements. Advantages from this decision encompass:
+    \item Initially, our strategy was to compile Elixireum directly into Ethereum Virtual Machine (EVM) bytecode. Subsequently, we pivoted towards an intermediate representation (IR), selecting Yul as IR aligned with our requirements. Advantages from this decision are as follows:
         \begin{itemize}
-            \item Compatibility with all EVM versions, obviating the need for version-specific concerns.
+            \item Compatibility with all EVM versions, eliminating the need for version-specific concerns. 
             \item Avoidance of reimplementing primitives such as function calls, variable and stack management, thereby freeing up resources to enhance the feature set of the language.
-            \item Reduced gas consumption facilitated by the ability to optimize Yul code of Solidity compiler.
+            \item Reduced gas consumption facilitated by the optimizer of Solidity compiler.
         \end{itemize}
-    \item Despite these considerations, the choice comes with limitations, notably:
+      Despite these considerations, the choice comes with limitations, notably:
         \begin{itemize}
             \item Dependency on the Solidity compiler for Elixireum.
+            \item The unresolved bug\footnote{\href{https://github.com/ethereum/solidity/issues?q=is:issue+is:open+StackTooDeepError}{https://github.com/ethereum/solidity/issues?q=is:issue+is:open+StackTooDeepError}} in the Solidity compiler that appears for large smart contracts written in Elixireum when compiled with the optimizer disabled. The bug results in an inability to operate with a large number of variables or deep stack depths.
         \end{itemize}
+      No significant downsides compared to direct compilation to EVM bytecode, since bytecode can be used in Yul directly.
 
-        No significant downsides compared to direct compilation to EVM bytecode, as bytecode can be used in Yul directly.
-    \item We considered the mapping of BEAM (Erlang VM) bytecode to EVM bytecode as an option as well. This option was deemed challenging due to the fundamental architectural and philosophical differences between the two virtual machines. BEAM is specifically tailored for environments that demand high concurrency, distribution, and fault tolerance, boasting a set of opcodes optimized for these conditions. In contrast, the EVM is built to run smart contracts within blockchain ecosystems, prioritizing deterministic execution and gas metering to safeguard against spam and enhance the security of the network. Due to these distinct focuses, BEAM incorporates specialized instructions for concurrency and distributed processing, which do not directly translate to EVM.
+    \item We also considered mapping BEAM (Erlang VM) bytecode to EVM bytecode. However, this option presented significant challenges due to the fundamental architectural and philosophical differences between the two virtual machines. BEAM is specifically tailored for environments that demand high concurrency, distribution, and fault tolerance, and it includes a set of opcodes optimized for these conditions. In contrast, the EVM is designed to run smart contracts within blockchain ecosystems, prioritizing deterministic execution and gas metering to protect against spam and enhance network security. BEAM incorporates specialized instructions for concurrency and distributed processing that do not directly translate to the EVM, because of these distinct focuses.
 \end{itemize}
-
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.8\textwidth]{figs/arch.png}
-    \caption{Elixireum compiler architecture}
-    \label{fig:arch}
-\end{figure}
 
 \section{Technical details}
 
 \subsection{Memory organization}
 \label{sec:memory_organization}
 
-In our language implementation, we decided to store all runtime variables in the volatile memory of the Ethereum Virtual Machine (EVM). This decision is justified by the low gas cost associated with memory operations and the simplicity of implementation. We considered two alternatives: transient storage, which is more expensive than memory, and the stack, which involves more complex management.
+In our language implementation, we decided to store all runtime variables in the volatile memory of the Ethereum Virtual Machine. This decision is justified by the low gas cost associated with memory operations and the simplicity of implementation. We considered two alternatives: transient storage, which is more expensive than memory, and the stack, which involves more complex management.
 
 In the generated Yul code, a variable is defined as a pointer to the memory location where its value is stored. At this pointer, the first byte is reserved for the type number, and the subsequent bytes contain the value itself for simple cases. For more complex cases, such as lists and tuples, the first byte still indicates the type, followed by a word\footnote{in this context word is 32 bytes} that specifies the count of elements, and then the elements themselves, each stored as an inline variable (type + value). For strings or byte arrays, the first byte indicates the type (1 for strings, 102 for byte arrays), the next word specifies the byte count, followed by the actual bytes.
 
-Since we developed a functional language, one of its fundamental principles is immutability. This means that each assignment operation creates a new variable. In practice, we "forget" the previous pointer, assign a new pointer, and place the variable in a new location. Each new variable should be stored sequentially after the previous one. To achieve this, we define the offset\$ variable in the generated Yul code. This variable tracks the last allocated memory address plus one. As a workaround for corner cases, we update this variable using the msize() call, assigning the current memory size rounded to one word to the offset\$ variable.
+Since we developed a functional language, one of its fundamental principles is immutability. This means that each assignment operation creates a new variable. In practice, we "forget" the previous pointer, assign a new pointer, and place the variable in a new location. Each new variable should be stored sequentially after the previous one. To achieve this, we define the offset\$ variable in the generated Yul code. This variable holds the memory address where the next variable will be stored. As a workaround for corner cases, we update this variable using the msize() call, assigning the current memory size rounded to one word to the offset\$ variable.
 
 In Elixireum syntax, there are no type specifiers for variables. To handle dynamic types, we established several principles upon which our type system is built:
 \begin{itemize}
-  \item Return values of public functions must strictly match the specified types; otherwise, a revert operation will be triggered.
+  \item Return values of public functions must strictly match the specified types; otherwise, a revert\footnote{opcode which stops the current execution and throw an error. All the state changes are reverted} operation will be triggered.
   \item For literals, the type is defined at compile time.
   \item The type is stored in the first byte of the variable.
   \item We defined a standard cast function that developers can use in Elixireum code.
@@ -223,7 +214,7 @@ The following table illustrates a snippet of the EVM memory for this list case:
 \label{sec:key_features}
 
 \begin{enumerate}
-  \item \textbf{Events}
+  \item \textbf{Events\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/abi-spec.html\#events}}}
 
   Events are essential for highlighting storage changes or other significant events in the lifecycle of a smart contract. They can be easily retrieved from the blockchain after being emitted. Events can be defined and emitted in Elixireum as follows:
 
@@ -268,14 +259,36 @@ The following table illustrates a snippet of the EVM memory for this list case:
   
   The compiler enforces the specification of all public functions through compile-time errors. After compilation, all defined specifications are converted to the ABI (Application Binary Interface) JSON, which is necessary for correctly calling the smart contract after deployment.
 
-  \begin{lstlisting}[caption={ABI \& @spec}, language=elixir, label={lst:calldata_decoding_recursive}]
+  \begin{lstlisting}[caption={@spec}, language=elixir, label={lst:calldata_decoding_recursive}]
   @spec a(Types.Int256.t()) :: Types.String.t()
   def a(_int) do
     "return string"
   end
-  ...
-  Resulting JSON ABI
-  [{"name":"a","type":"function","outputs":[{"name":"output","type":"string","internal_type":"string"}],"inputs":[{"name":"_int","type":"int256","internal_type":"int256"}],"stateMutability":"view"}]
+  \end{lstlisting}
+  
+  Resulting JSON ABI:
+  \begin{lstlisting}[caption={ABI }, language=json, label={lst:calldata_decoding_recursive}]
+    [
+      {
+          "name": "a",
+          "type": "function",
+          "outputs": [
+              {
+                  "name": "output",
+                  "type": "string",
+                  "internal_type": "string"
+              }
+          ],
+          "inputs": [
+              {
+                  "name": "_int",
+                  "type": "int256",
+                  "internal_type": "int256"
+              }
+          ],
+          "stateMutability": "view"
+      }
+  ]
   \end{lstlisting}
   
   \item \textbf{Reverts with UTF-8 Error String}
@@ -290,9 +303,18 @@ The following table illustrates a snippet of the EVM memory for this list case:
 \section{Modules overview}
 This section provides a detailed overview of the main modules of the compiler. The modules are listed in the order corresponding to the contract life cycle i.e., deployment and then calls.
 \subsection{Yul compiler}
-The Yul compiler calls the compiler module \ref{ssec:compiler} to generate Yul code, given the path to the source file. Then, it looks for the Solidity compiler that is capable of compiling Yul to bytecode. If there is no Solidity compiler already downloaded, the Yul compiler module downloads platform specific Solidity compiler. Then, it runs the compiler, passing it the prepared standard JSON input\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/using-the-compiler.html\#input-description}}. Finally, it prints the bytecode with ABI to the terminal and writes the compiler standard JSON output\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/using-the-compiler.html\#output-description}} to the output file if specified, and ABI to the ABI file if specified.
+The Yul compiler calls the Solidity compiler to generate bytecode, given the path to the standard JSON input file\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/using-the-compiler.html\#input-description}}. For this purpose, it looks for the Solidity compiler that is capable of compiling Yul to bytecode. If there is no Solidity compiler already downloaded, the Yul compiler module downloads platform specific Solidity compiler. Then, it returns standard JSON output\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/using-the-compiler.html\#output-description}}.
 \subsection{Compiler}
 \label{ssec:compiler}
+
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{figs/arch.png}
+  \caption{Elixireum compiler architecture}
+  \label{fig:arch}
+\end{figure}
+
 Here is the pipeline of actions performed by the main Compiler module, each pipeline step is performed only if all the previous steps are successful.
 
 \begin{itemize}
@@ -301,7 +323,7 @@ Here is the pipeline of actions performed by the main Compiler module, each pipe
     \item Performing the first pass of the Elixir AST in pre-order to gather information about defined functions, storage variables, and events, and packing this data into the following structure:
     
     \begin{lstlisting}[caption={Contract structure}, language=elixir, label={lst:contract_structure}]
-      @type t :: %__MODULE__{
+      @type t :: %Contract{
           functions: Functions.t(),
           name: String.t(),
           private_functions: Functions.t(),
@@ -313,19 +335,16 @@ Here is the pipeline of actions performed by the main Compiler module, each pipe
     
     At this step, the compiler checks that public defined functions have corresponding typespecs\footnote{Typespec is the type specification of the function used in Elixir}, storage variables have types and events have all required fields.
 
-    \item Perform the second pass of the Elixir AST in post-order to generate Yul code.
+    \item Perform the second traversal of the Elixir AST in post-order to generate Yul code.
     
-    Specifically, this step generates a special function called a constructor. This function is executed at the deployment stage, and it takes its arguments not from calldata, but from the code. The code that decodes arguments is generated using the calldata decoding module \ref{ssec:calldata_decoding}.
+    Specifically, this step generates a special function called a constructor. This function is executed at the deployment stage, and it takes its arguments not from calldata, but from the code. The Yul code that decodes arguments is generated using the calldata decoding module.
 
-    Then, the compiler generates a function selector. The function selector is used to identify which function is being called based on the first four bytes of the call data. The first four bytes of the call data are the four bytes of the Keccak256 hash of the string in the following format:
-
-    $$function\_name(1st\_arg\_type\_name,2nd\_arg\_type\_name,...)$$
-    this is called method ID. For example, if the function has the following signature 
-    $$transfer(address\ to,\ uint256\ value)$$
+    Then, the compiler generates a function selector. The function selector is used to identify which function is being called based on the first four bytes of the call data. The first four bytes of the call data should be equal to the first four bytes of the Keccak256 hash of the string in the following format:
+    \lstinline|function_name(1st_arg_type_name,2nd_arg_type_name,...)|
+    constructed for the calling function, this is called method ID. For example, if the function has the following signature 
+    \lstinline|transfer(address to, uint256 value)|
     Keccak256 is performed on 
-    $$transfer(address,uint256)$$
-
-    The result is equal to 0xa9059cbb2ab0... The first four bytes of this hash are the method ID of the transfer function. The function selector is simply a switch case expression where each public defined function corresponds to a case with its method ID. In each case, function arguments decoding from call data generated using the call data decoding module, then the function call is generated as if it was a private function. Then, the compiler generates the code that encodes the value returned by the function into the return format using the return data encoding module \ref{ssec:return_data_encoding}.
+    \lstinline|transfer(address,uint256)| The result of Keccak 256 is equal to 0xa9059cbb2ab0\dots So, the method ID for the transfer function is 0xa9059cbb. The function selector is simply a switch case expression where each public defined function corresponds to a case with its method ID. For each case statement, the compiler generates Yul code, responsible for function arguments decoding from call data, using the call data decoding module. Then the function call is generated as if it was a private function. Then, the compiler generates the code that encodes the value returned by the function into the return format using the return data encoding module.
 
     Then, the compiler generates Yul code for all user-defined functions, both public and private, since the difference between public and private functions is factored out into the function selector.
 
@@ -366,7 +385,7 @@ The ABI generator takes the contract information collected by the compiler in th
 
 \subsection{Calldata decoding}
 \label{ssec:calldata_decoding}
-The call data decoding module recursively generates code for parsing arguments using information from the typespec of the function. The main function of this module is the decode function. It is generalized in terms of opcodes that perform loading and copying of data in order to reuse this function not only for argument decoding in calls, but also for argument decoding in the constructor where arguments are stored in memory, not in calldata. Here is an example of the base case of the decode function:
+The call data decoding module recursively generates code for parsing arguments using information from the typespec of the function. The main function of this module is the decode function. It is generalized in terms of functions that perform loading and copying of data in order to reuse this function not only for argument decoding in calls, but also for argument decoding in the constructor where arguments are stored in memory, not in calldata. Here is an example of the base case of the decode function:
 
 \begin{lstlisting}[caption={Calldata decoding base case}, language=elixir, label={lst:calldata_decoding_base}]
   def decode(
@@ -388,7 +407,7 @@ The call data decoding module recursively generates code for parsing arguments u
   end
 \end{lstlisting}
 
-This function clause generates code that performs copying and annotating the value from calldata to memory for the BytesN ABI type.
+This function clause generates code that copies the value from calldata to memory and store the type for the Bytes<N> ABI type.
 
 Here is an example of the recursive case of the decode function:
 
@@ -433,13 +452,11 @@ Here is an example of the recursive case of the decode function:
   end
 \end{lstlisting}
 
-This function clause recursively generates code that performs copying and annotating the value from calldata to memory for the tuple ABI type. However, it only concerns the tuple structure, i.e., the number of elements in it, and not the types of the elements, each element is decoded recursively.
+This function clause recursively generates code that copies the value from calldata to memory and stores type for the tuple ABI type. However, it only considers the tuple structure, i.e., the number of elements in it, and not the types of the elements, each element is decoded recursively.
   
 \subsection{Emitting event}
 
-\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/abi-spec.html\#errors}}
-
-The Event module is responsible for preparing and emitting events. Its main function, emit, takes the event itself in the following form:
+The Event module is responsible for preparing and emitting events. Function emit, which is the main function of the module, takes the event as argument in the following form:
 
 \begin{lstlisting}[language=elixir, caption={Event structure}, label={lst:event_structure}]
   @type t :: %__MODULE__{
@@ -453,7 +470,7 @@ The Event module is responsible for preparing and emitting events. Its main func
 An event has its signature, similar to a method ID for functions, but an event signature is the full Keccak256 hash of the following format:
 $$event\_name(1st\_arg\_type\_name,2nd\_arg\_type\_name,...)$$
 
-Events have indexed and data arguments. Indexed arguments are placed in the log topic, which allows filtering the events based on their arguments. However, a log can have only up to four topics, with the first one being the event signature, so an event can have up to three indexed arguments. The size of the topics is limited to 32 bytes. For values larger than 32 bytes, the Keccak256 hash of their value is used. Data arguments are placed in the data field of the log, with any value stored as is. The module generates code for encoding Elixireum values into indexed and data arguments. The function encode\_indexed\_argument is responsible for encoding indexed arguments. Here is the clause for types that are smaller than 32 bytes and are placed in topics as is:
+Events have indexed and data arguments. Indexed arguments are placed in the topics of the log. Topics are used to filter logs when fetching them from the blockchain. However, a log can have only up to four topics, with the first one being the event signature, so an event can have up to three indexed arguments. The size of the topics is limited to 32 bytes. For values larger than 32 bytes, its Keccak256 hash is used. The other data could be stored as data arguments that are placed in the data field of the log, with any value stored as is. The module generates code for encoding Elixireum values into indexed and data arguments. The function encode\_indexed\_argument is responsible for encoding indexed arguments. Here is the clause for types that are smaller than 32 bytes and are placed in topics as is:
 
 \begin{lstlisting}[language=elixir, caption={Encode word-size indexed argument}, label={lst:encode_indexed_argument}]
   defp encode_indexed_argument(
@@ -504,11 +521,28 @@ The function do\_encode\_indexed\_argument is used to convert and copy Elixireum
 
 The function encode\_data\_argument generates code that encodes data arguments, it uses the Return data encoding module \ref{ssec:return_data_encoding}. 
 
+\begin{lstlisting}[language=elixir, caption={Encode data argument}, label={lst:encode_data_argument}]
+  defp encode_data_argument(
+         arg_name,
+         %Type{} = type,
+         %YulNode{yul_snippet_usage: yul_snippet_usage},
+         index
+       ) do
+    """
+    let #{arg_name}_$ := processed_return_value$
+    let #{arg_name}_init$ := #{arg_name}_$
+    let #{arg_name}_where_to_store_head$ := add(processed_return_value_init$, #{index * 32})
+    return_value$ := #{yul_snippet_usage}
+    #{Return.encode(type, "i$", "size$", "#{arg_name}_where_to_store_head$", "where_to_store_head_init$")}
+    """
+  end
+\end{lstlisting}
+
 
 \subsection{Return data encoding}
 \label{ssec:return_data_encoding}
 
-The Return data encoding module is responsible for encoding the Elixireum value returned by a function to an ABI format according to the typespec. It uses a similar approach to the calldata decoding module. The main function of this module is encode. Here is the base case of this function for simple types:
+The Return data encoding module is responsible for encoding the value returned by an Elixireum function to an ABI format according to the typespec. It uses a similar approach to the calldata decoding module, but in the opposite way. The main function of this module is encode. Here is the base case of this function for simple types:
 
 \begin{lstlisting}[language=elixir, caption={Encode base case}, label={lst:encode_base_case}]
   def encode(
