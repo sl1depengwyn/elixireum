@@ -1,52 +1,26 @@
 \chapter{Conclusion}
-% \label{chap:conclusion}
-% \begin{longtable}{c|c}
-% \caption[This is the title I want to appear in the List of Tables]{Simulation Parameters} \label{table:sixsimulation_params} \\
-% \hline
-% A & B  \\
-% \hline
-% \endfirsthead
-% \multicolumn{2}{@{}l}{} \\
-% \hline
-% A & B \\
-% \hline
-% \endhead
-% \hline
-%  \textbf{Parameter} & \textbf{Value}\\
-%  \hline
-%  Number of vehicles & $|\mathcal{V}|$\\
-%  \hline
-%  Number of RSUs & $|\mathcal{U}|$\\
-%  \hline
-%  RSU coverage radius & 150 m\\
-%  \hline
-%  V2V communication radius & 30 m\\
-%  \hline
-%  Smart vehicle antenna height & 1.5 m\\
-%  \hline
-%  RSU antenna height & 25 m\\
-%  \hline
-%  Smart vehicle maximum speed & $v_{max}$ m/s\\
-%  \hline
-%  Smart vehicle minimum speed & $v_{min}$ m/s\\
-%  \hline
-%  Common smart vehicle cache capacities & $[50, 100, 150, 200, 250]$ mb\\
-%  \hline
-%  Common RSU cache capacities & $[5000,1000,1500,2000,2500]$ mb\\
-%  \hline
-%  Common backhaul rates & $[75, 100, 150]$ mb/s\\
-%  \hline
-% \end{longtable}
 
-% \begin{figure}[hbt]
-% \centering
-% \includegraphics[]{figs/inno.png}
-% \caption{One kernel at $x_s$ (\emph{dotted kernel}) or two kernels at
-% $x_i$ and $x_j$ (\textit{left and right}) lead to the same summed estimate
-% at $x_s$. This shows a figure consisting of different types of
-% lines. Elements of the figure described in the caption should be set in
-% italics, in parentheses, as shown in this sample caption.}
-% \label{fig:sixex}
-% \end{figure}
+We designed and implemented the Elixireum language along with its compiler. The Elixireum compiler and language are capable of supporting ERC-20 and ERC-721 standards, and we conducted measurements to compare our language with Solidity.
 
-% \ldots
+\section{Limitations}
+
+The scope of this study was limited to the functionality that we considered most important to demonstrate the feasibility of Elixireum. Consequently, several features were left out of scope:
+
+\begin{enumerate}
+\item \textbf{External libraries:} External libraries are not implemented. This limitation prevents the reuse of the same functionality across multiple smart contracts and complicates the development of complex smart contracts, requiring redeployment of the same functionality and consequently requires more gas.
+\item \textbf{External smart contract interaction:} Interaction with external smart contracts is not implemented. This limitation means that Elixireum cannot currently communicate with other contracts, making it impossible to implement popular patterns such as proxies or factories.
+\item \textbf{Multiple functions or modules:} Elixireum development is limited to a single file, making it impossible to reuse any Elixireum functionality from other smart contracts or to integrate additional functionalities from external sources.
+\item \textbf{High deployment gas consumption:} The deployment of Elixireum contracts results in high gas consumption.
+\item \textbf{Macros support:} We decided to exclude macros support from our initial scope due to the complexity of implementing this feature and time constraints.
+\item \textbf{Pattern matching:} This feature was also excluded from the scope due to the similar reasons.
+\end{enumerate}
+
+\section{Future Work}
+
+We propose the following directions for future work and development of Elixireum:
+
+\begin{enumerate}
+\item \textbf{Runtime mapping:} Implementing mapping runtime on top of the current storage module using EVM transient storage. Currently, Solidity does not support mappings in memory, only in storage, so this feature could be highly innovative and novel.
+\item \textbf{Reducing deployment gas consumption:} The high gas consumption of deployment is likely connected to the large amount of generated Yul code. We believe it is possible to reduce these costs by factoring out similar Yul code snippets into standard functions.
+\end{enumerate}
+

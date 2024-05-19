@@ -1,8 +1,6 @@
 \chapter{Design and Implementation}
 \label{chap:impl}
 
-This chapter outlines the principal elements of the design of Elixireum compiler. It overviews the technology stack employed in the development process and underscores the pivotal decisions that shaped the architecture of the compiler.
-
 % preliminary structure:
 
 % 1. architecture
@@ -30,6 +28,9 @@ This chapter outlines the principal elements of the design of Elixireum compiler
 %     - ABI for public functions
 %     - reverts with utf-8 error string
 %   - standard functions declaration on demand (transitivity included) and mechanism itself (module responsible for )
+
+This chapter outlines the principal elements of the design of Elixireum compiler. It overviews the technology stack employed in the development process and underscores the pivotal decisions that shaped the architecture of the compiler.
+
 
 \section{Stack overview}
 \label{sec:architecture}
@@ -308,14 +309,14 @@ The Yul compiler calls the Solidity compiler to generate bytecode, given the pat
 \label{ssec:compiler}
 
 
-\begin{figure}[h!]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{figs/arch.png}
   \caption{Elixireum compiler architecture}
   \label{fig:arch}
 \end{figure}
 
-Here is the pipeline of actions performed by the main Compiler module, each pipeline step is performed only if all the previous steps are successful.
+Here is the pipeline of actions performed by the main Compiler module, which can be seen visually in Fig. \ref{fig:arch}, each pipeline step is performed only if all the previous steps are successful.
 
 \begin{itemize}
     \item Reading the source code from the file system.
@@ -351,7 +352,7 @@ Here is the pipeline of actions performed by the main Compiler module, each pipe
     Then, the compiler generates Yul code for standard functions used in user-defined functions. Standard functions are represented by the following structure:
 
     \begin{lstlisting}[caption={Standard function structure}, language=elixir, label={lst:standard_function_structure}]
-      @type t :: %__MODULE__{
+      @type t :: %StdFunction{
           deps: %{atom() => t()},
           yul: String.t()
         }
@@ -459,7 +460,7 @@ This function clause recursively generates code that copies the value from calld
 The Event module is responsible for preparing and emitting events. Function emit, which is the main function of the module, takes the event as argument in the following form:
 
 \begin{lstlisting}[language=elixir, caption={Event structure}, label={lst:event_structure}]
-  @type t :: %__MODULE__{
+  @type t :: %Event{
           name: atom(),
           indexed_arguments: [keyword(Type.t())],
           data_arguments: [keyword(Type.t())],
@@ -600,55 +601,3 @@ Here is an example of a recursive case:
   end
 \end{lstlisting}
     
-
-
-% \begin{longtable}{c|c}
-% \caption[This is the title I want to appear in the List of Tables]{Simulation Parameters} \label{table:fousimulation_params} \\
-% \hline
-% A & B  \\
-% \hline
-% \endfirsthead
-% \multicolumn{2}{@{}l}{} \\
-% \hline
-% A & B \\
-% \hline
-% \endhead
-% \hline
-%  \textbf{Parameter} & \textbf{Value}\\
-%  \hline
-%  Number of vehicles & $|\mathcal{V}|$\\
-%  \hline
-%  Number of RSUs & $|\mathcal{U}|$\\
-%  \hline
-%  RSU coverage radius & 150 m\\
-%  \hline
-%  V2V communication radius & 30 m\\
-%  \hline
-%  Smart vehicle antenna height & 1.5 m\\
-%  \hline
-%  RSU antenna height & 25 m\\
-%  \hline
-%  Smart vehicle maximum speed & $v_{max}$ m/s\\
-%  \hline
-%  Smart vehicle minimum speed & $v_{min}$ m/s\\
-%  \hline
-%  Common smart vehicle cache capacities & $[50, 100, 150, 200, 250]$ mb\\
-%  \hline
-%  Common RSU cache capacities & $[5000,1000,1500,2000,2500]$ mb\\
-%  \hline
-%  Common backhaul rates & $[75, 100, 150]$ mb/s\\
-%  \hline
-% \end{longtable}
-
-% \begin{figure}[hbt]
-% \centering
-% \includegraphics[]{figs/inno.png}
-% \caption{One kernel at $x_s$ (\emph{dotted kernel}) or two kernels at
-% $x_i$ and $x_j$ (\textit{left and right}) lead to the same summed estimate
-% at $x_s$. This shows a figure consisting of different types of
-% lines. Elements of the figure described in the caption should be set in
-% italics, in parentheses, as shown in this sample caption.}
-% \label{fig:fouex}
-% \end{figure}
-
-% \ldots

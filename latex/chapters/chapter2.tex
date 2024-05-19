@@ -4,7 +4,7 @@
 
 This chapter serves as an introduction to the Ethereum ecosystem and offers an overview of the relevant literature.
 
-Section \ref{sec:evm} introduces the Ethereum Virtual Machine (EVM) and explores its gas consumption mechanism. Following that, Section \ref{sec:langs} examines of the existing languages compatible with the EVM. Section \ref{sec:cc} provides a concise overview of compiler construction, and Section \ref{sec:ex} presents an overview of the Elixir programming language. To conclude, Section \ref{sec:conc} concludes this chapter with key decisions and findings from the literature.
+Section \ref{sec:evm} introduces the Ethereum Virtual Machine (EVM) and explores its gas consumption mechanism. Following that, Section \ref{sec:langs} examines of the existing languages compatible with the EVM. Section \ref{sec:ex} presents an overview of the Elixir programming language. To conclude, Section \ref{sec:conc} concludes this chapter with key decisions and findings from the literature.
 
 \section{Ethereum Virtual Machine}
 \label{sec:evm}
@@ -28,41 +28,12 @@ Solidity is a high-level, object-oriented programming, statically typed language
 
 Vyper contrasts significantly with Solidity. It is based on Python and extends it to suit smart contract development. Vyper aims for security and simplicity in terms of compiler implementation itself and code readability to be auditable more easily. For instance, it lacks a list of features considered harmful for code readability, making the language more error-prone \cite{VyperDescription}.
 
-\section{Compiler construction}
-\label{sec:cc}
-
-The process of compiler construction is a crucial bridge between high-level programming languages and the machine code that EVM understands. This process can be divided into three or four main stages: tokenization, parsing, intermediate representation, and code generation. Each plays a pivotal role in transforming human-readable code into executable instructions that the EVM can process. Here is a general overview of these stages:
-
-\subsection{Tokenization}
-According to Waite and Goose \cite[135-148]{CompilerConstruction}, tokenization is the initial step in the compilation process. During this stage, the source code is broken down into smaller units called tokens. These tokens are fundamental building blocks, including keywords, identifiers, operators, and constants. Tokenization simplifies the process of analyzing and parsing the code by providing a structured representation of the code.
-
-Tokenization facilitates syntactical and lexical analysis, ensuring that the code adheres to the grammar of the language and can be properly understood.
-
-\subsection{Parsing}
-
-Parsing follows tokenization and focuses on the syntax of the source code. During parsing, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of a syntax tree or abstract syntax tree (AST). This representation helps ensure that the code conforms to the grammar of the language rules and can be further processed \cite[149-182]{CompilerConstruction}.
-
-\subsection{Intermediate Representation (Optional)}
-
-While not always a mandatory stage, the use of an intermediate representation can significantly enhance the efficiency and capabilities of a compiler. In the context of EVM, intermediate representations like Yul and Yul+ are used for optimizing code. These representations help enhance code quality, optimize performance, and prepare the code for final code generation.
-
-This stage is particularly important in scenarios where verification, security, and performance optimizations are key concerns.
-
-\subsection{Code Generation}
-
-The final stage of the compilation process involves code generation \cite[253-281]{CompilerConstruction}. During this stage, the compiler generates the actual machine code that the EVM can execute. The generated code is specific to the hardware architecture of the EVM and represents a translation of the original high-level code into instructions that the EVM can understand and execute.
-
-The code generation stage is crucial in ensuring that the compiled code is efficient and correctly reflects the intended behavior of the high-level source code.
-
-
-In conclusion, compiler construction is fundamental to implementing the new language, enabling the translation of high-level languages into machine code. The stages of tokenization, parsing, optional intermediate representation, and code generation are essential components of this process.
-
-\section{The Elixir language \cite{ElixirOfficialWebSite}}
+\section{The Elixir language}
 \label{sec:ex}
 
-Elixir is a modern programming language that operates on the Erlang Virtual Machine. With its support for immutable variables, Elixir dramatically enhances the clarity and simplicity of smart contract code. This immutability ensures that once data are defined, they cannot be altered, promoting predictability and security in the context of smart contract development.
+Elixir \cite{ElixirOfficialWebSite} is a modern programming language that operates on the Erlang Virtual Machine. With its support for immutable variables, Elixir dramatically enhances the clarity and simplicity of smart contract code. This immutability ensures that once data are defined, they cannot be altered, promoting predictability and security in the context of smart contract development.
 
-A standout feature of Elixir is its metaprogramming capabilities. This functionality empowers developers to create domain-specific languages that are tailor-made for the intricacies of smart contract logic. This capability is invaluable as it allows developers to express contract logic in both highly readable and closely aligned with the specific problem domain way. By employing metaprogramming, smart contract development becomes more straightforward and accessible to a broader spectrum of developers.
+A standout feature of Elixir is its metaprogramming capabilities. This functionality empowers developers to create domain-specific languages that are tailor-made for the intricacies of smart contract logic. This capability is invaluable as it allows developers to express contract logic in both highly readable and closely aligned with the specific problem domain way. By employing metaprogramming, smart contract development will become more straightforward and accessible to a broader spectrum of developers.
 
 As attested by O'Grady \cite{RedMonk}, Elixir stands strong among the top 50 programming languages. Remarkably, it surpasses even the popularity of Solidity, making it an attractive choice for Ethereum developers and thereby contributing to the expansion of the Ethereum community.
 

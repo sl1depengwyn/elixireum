@@ -38,45 +38,6 @@
 % 4. results and comparison with Solidity
 % 5. Discussion
 
-This chapter presents an overview of results. Section \ref{sec:test_suite} states metrics we used to evaluate the Elixireum language. Section \ref{sec:results_and_comparison} provides results we got during assessment of the Elixireum. Section \ref{sec:discussion} contains an interpretation of results. Section \ref{sec:conclusion} concludes the chapter.
-
-\section{Test Suite and Structure Description}
-\label{sec:test_suite}
-
-% The development and evaluation of Elixireum necessitated a comprehensive test suite, designed to rigorously assess its functionality and performance against the established metrics. This suite comprised several test contracts, reflecting common use cases in Ethereum smart contract development:
-
-This section describes the process of evaluation and metrics gathering for Elixireum.
-
-Firstly, we developed a set of classic Ethereum smart contracts written in Elixireum:
-
-\pagebreak
-
-\begin{lstlisting}[caption={ERC-20.exm}, language=elixir]
-    defmodule ERC20 do
-    ...
-    end
-    \end{lstlisting}
-    
-\begin{lstlisting}[caption={ERC-721.exm}, language=elixir]
-    defmodule ERC721 do
-    ... 
-    end
-    \end{lstlisting}
-
-This set of contract covers functionality required for blockchain development. Then, these contracts were applied to a comprehensive test suit that we designed to test and measure the performance of Elixireum against the established metrics. It is structured as follows:
-
-\subsection*{Stage 1: Compilation}
-First stage checks that provided contracts do not yield errors during compilation. It verifies that compiler support all syntactic and semantic rules of Elixireum. Fail on this stage means that the compiler does not support the provided contract. At this stage we also record compilation time using unix standard \verb|time| utility.
-
-\subsection*{Stage 2: Deployment}
-Second stage checks that bytecode generated during the previous step can be deployed on the blockchain. It verifies that part of bytecode responsible for deployment is correct i.e. it correctly detects constructor arguments and stores contract runtime bytecode. Fail on this stage means that there is an issue with deployment mechanism generation in the compiler. Also, we record how much gas was consumed during the deployment.
-
-\subsection*{Stage 3: Functional Validation}
-Third stage checks that deployed contract behaves as expected. It calls contract methods and compares results. Here we use existing unit tests for our set of contracts. An error here shows that the compiler fails to generate correct runtime bytecode for the contract. Gas consumption during contract interaction is recorder as well to be used in metrics.
-
-\subsection*{Stage 4: Metrics gathering}
-Artifacts from previous steps are collected and represented as a structured report.
-
 % \subsection{Performance Metrics}
 % Performance testing focuses on quantifying:
 % \begin{enumerate}
@@ -87,43 +48,54 @@ Artifacts from previous steps are collected and represented as a structured repo
 
 % This structured approach ensures a thorough evaluation of Elixireum, highlighting its capabilities and identifying areas for improvement. The subsequent section presents a detailed comparison of the test results, contrasting Elixireum's performance with Solidity to underscore its potential benefits and limitations.
 
+This chapter presents an overview of results. Section \ref{sec:results_and_comparison} provides results we got during assessment of the Elixireum. Section \ref{sec:discussion} contains an interpretation of results.
+
 \section{Results and Comparison}
 \label{sec:results_and_comparison}
-We conducted a series of tests, we applied test suite to each smart contract from a set we prepared. All tests concluded successfully. This outcome signifies achievement of the main project goal: Elixireum smart contracts are successfully compiles and deploys to Ethereum blockchain. Table~\ref{tab:metrics_results} contains detailed metrics that we obtained.
+We conducted a series of tests by applying the test suite to a set of prepared smart contracts. All tests concluded successfully, signifying the achievement of the main project goal: Elixireum smart contracts successfully compile and deploy to the Ethereum blockchain. We then proceeded to compare Elixireum with Solidity. We benchmarked all the public functions of the ERC-20 implementation in Elixireum and its full analogue in Solidity, and conducted the same benchmarking for the ERC-721 implementation. Tables~\ref{tab:erc20_comparison} and \ref{tab:erc721_comparison} present the detailed metrics that we obtained.
 
-\begin{table}[ht]
-  \label{tab:metrics_results}
-  \caption{Metrics Comparison between Elixireum and Solidity}
+
+\begin{table}[h!]
   \centering
-  \begin{tabular}{|l|c|c|}
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
   \hline
-  \textbf{Metric} & \textbf{Elixireum} & \textbf{Solidity} \\
-  \hline
-  Gas Consumption (Deploy) & 1,500,000 units & 2,000,000 units \\
-  \hline
-  Gas Consumption (Interaction) & 45,000 units & 50,000 units \\
-  \hline
-  Compilation Time & 5 seconds & 7 seconds \\
-  \hline
-  RAM Usage & 256 MB & 300 MB \\
-  \hline
-  CPU Usage & 15\% & 20\% \\
-  \hline
+  \textbf{Method} & \textbf{Elixireum GasUsed} & \textbf{Solidity GasUsed} \\ \hline
+  mint            & 58197.4              & 54799.6              \\ \hline
+  approve         & 47619.8              & 46570.8              \\ \hline
+  transferFrom    & 54812.0              & 48492.2              \\ \hline
+  transfer        & 55659.8              & 51813.4              \\ \hline
+  burn            & 33061.6              & 29433.25             \\ \hline
+  deploy of contract       & 1939441              & 732543               \\ \hline
   \end{tabular}
-  \label{table:metrics_comparison}
-\end{table}
+  \caption{Gas usage comparison between Elixireum and Solidity for ERC-20 contract (20 runs)}
+  \label{tab:erc20_comparison}
+  \end{table}
 
-The comparison elucidates several areas where Elixireum either matches or surpasses Solidity, particularly in terms of gas consumption for contract deployment and interactions, as well as in the efficiency of the compilation process, Table~\ref{tab:metrics_results} shows that Elixireum on 10-25\% more effective than Solidity.
+\begin{table}[h!]
+  \centering
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{|c|c|c|}
+  \hline
+  \textbf{Method}         & \textbf{Elixireum GasUsed} & \textbf{Solidity GasUsed} \\ \hline
+  setApprovalForAll       & 46596.0              & 46304.0              \\ \hline
+  mint                    & 166817.4             & 162675.4             \\ \hline
+  transferFrom            & 87123.0              & 55652.6              \\ \hline
+  approve                 & 54798.0              & 49007.8              \\ \hline
+  burn                    & 58539.6              & 29944.0              \\ \hline
+  deploy of contract                 & 3067454              & 1113786              \\ \hline
+  \end{tabular}
+  \caption{Gas usage comparison between Elixireum and Solidity for ERC-721 contract (20 runs)}
+  \label{tab:erc721_comparison}
+  \end{table}
+
+  The comparison reveals that while Elixireum successfully implements the functionalities of ERC-20 and ERC-721 contracts, it generally consumes more gas compared to Solidity for the same operations. Table~\ref{tab:erc20_comparison} shows that, on average, Elixireum is 8\% less efficient than Solidity for function calls of ERC-20 methods and approximately 164\% less efficient in terms of gas consumption during the deployment process. Table~\ref{tab:erc721_comparison} indicates even less favorable metrics: Elixireum is about 20.5\% less efficient for ERC-721 methods and consumes 175\% more gas during deployment. These findings indicate that while Elixireum is functional and compatible with the Ethereum blockchain, there is a need for optimization to reduce gas consumption and improve efficiency.
 
 \section{Discussion}
 \label{sec:discussion}
 
+The findings from this chapter contribute significantly to the broader thesis goal of assessing the feasibility and potential of Elixireum in the context of smart contract development. We confirmed our hypothesis that an Elixir-like language can be compiled to EVM.
 
-The findings from this chapter contribute significantly to the broader thesis goal of assessing the feasibility and potential of Elixireum and functional paradigm in context of smart contract development. We confirmed our hypothesis that Elixir like language is possible to compile to EVM. Additionally, we tested that Elixireum is effective in terms of gas compared to mainstream Solidity. Also, results of our test suite shows that functional paradigm suits EVM and blockchain well since it has no performance issues.
+Moreover, we conducted a comprehensive comparison of gas consumption between Elixireum and Solidity. While the results showed that Elixireum consumes 2.7 times more gas than Solidity for deployment, the gas usage for ERC-20 and ERC-721 methods is comparable. This demonstrates that it is possible to have a functional language with dynamic typing and types stored in memory that consumes approximately 14\% more gas than Solidity.
 
-Future work will entail a deeper dive into optimizing Elixireum compiler and runtime environment, expanding the capabilities of the language to support a broader range of smart contract patterns, and fostering a robust ecosystem around Elixireum.
-
-\section{Conclusion}
-\label{sec:conclusion}
-
-This chapter has outlined the comparative analysis of Elixireum against Solidity, highlighting its strengths and areas for improvement. The encouraging results suggest that Elixireum has the potential to enrich the blockchain development landscape by offering an alternative that combines the expressiveness and functional programming advantages of Elixir with the operational requirements of the Ethereum Virtual Machine. Moving forward, the focus will be on leveraging these insights to guide the ongoing development and optimization of Elixireum.
+With the rise of rollup chains mentioned in Chapter \ref{chap:intro}, the tradeoff between gas consumption and development ease should be considered. While a call of contract written with Elixireum may cost \$1.15 instead of \$1 with Solidity due to higher gas consumption, the ease and speed of development with Elixireum can lead to earlier deployment. This earlier deployment can attract more users, potentially outweighing the slight increase in gas costs.
