@@ -235,7 +235,7 @@ defmodule Blockchain.Event do
   end
 
   defp do_encode_indexed_argument(
-         %Type{encoded_type: encoded_type} = type,
+         %Type{encoded_type: encoded_type},
          arg_name_pointer,
          _init_var_name,
          uniqueness_provider

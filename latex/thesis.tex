@@ -2,7 +2,7 @@
 
 % set the compiler XeLatex to use fontspec package
 \usepackage{fontspec}
- 
+
 \setmainfont{Times New Roman}
 
 \usepackage{vmargin}
@@ -67,9 +67,9 @@
 \usepackage{fancyhdr}
 \usepackage{csquotes}
 \usepackage{color}
-% \usepackage{anyfontsize}
-% \usepackage{mathptmx}
-% \usepackage{t1enc}
+\usepackage{anyfontsize}
+\usepackage{mathptmx}
+\usepackage{t1enc}
 
 \usepackage{chngcntr}
 \usepackage{upgreek} 
@@ -103,7 +103,7 @@
 \counterwithout{figure}{chapter}
 
 \titleformat{\section}[hang]{\fontsize{20}{24}\selectfont\filcenter}{\arabic{chapter}.\arabic{section}}{1em}{}
-\titleformat{\subsection}[hang]{\itshape}{\Alph{subsection}.}{1em}{}[]
+\titleformat{\subsection}[hang]{\itshape}{\arabic{subsection}.}{1em}{}[]
 \titleformat{\subsubsection}[runin]{\itshape}{\arabic{subsubsection}}{1em}{}[$:$]
 \titlespacing{\subsubsection}{1em}{1em}{1em}
 \titleformat{\paragraph}[runin]{\itshape}{\alph{paragraph})}{1em}{}[$:$\quad]
@@ -157,9 +157,8 @@
   captionpos=b
 }
 
-\lstset{numbers=left,xleftmargin=2em,frame=single,framexleftmargin=0em,numberstyle=\footnotesize\ttfamily}
-
 \definecolor{verylightgray}{rgb}{.97,.97,.97}
+
 
 \lstdefinelanguage{solidity}{
 	keywords=[1]{anonymous, assembly, assert, balance, break, call, callcode, case, catch, class, constant, continue, constructor, contract, debugger, default, delegatecall, delete, do, else, emit, event, experimental, export, external, false, finally, for, function, gas, if, implements, import, in, indexed, instanceof, interface, internal, is, length, library, log0, log1, log2, log3, log4, memory, modifier, new, payable, pragma, private, protected, public, pure, push, require, return, returns, revert, selfdestruct, send, solidity, storage, struct, suicide, super, switch, then, this, throw, transfer, true, try, typeof, using, value, view, while, with, addmod, ecrecover, keccak256, mulmod, ripemd160, sha256, sha3}, % generic keywords including crypto operations
@@ -172,42 +171,25 @@
 	sensitive=true,
 	comment=[l]{//},
 	morecomment=[s]{/*}{*/},
-	commentstyle=\color{gray}\ttfamily,
-	stringstyle=\color{red}\ttfamily,
+	commentstyle=\color{gray},
+	stringstyle=\color{red},
 	morestring=[b]',
   captionpos=b,
 	morestring=[b]"
 }
 
-% \lstset{
-% 	language=Solidity,
-% 	backgroundcolor=\color{verylightgray},
-% 	extendedchars=true,
-% 	basicstyle=\footnotesize\ttfamily,
-% 	showstringspaces=false,
-% 	showspaces=false,
-% 	numbers=left,
-% 	numberstyle=\footnotesize,
-% 	numbersep=9pt,
-% 	tabsize=2,
-% 	breaklines=true,
-% 	showtabs=false,
-% 	captionpos=b
-% }
-
 \lstdefinelanguage{yul}{
-  keywords={let, function, if, else, switch, case, default, for, break, continue, return},
+  keywords={let, function, if, else, switch, case, default, for, break, continue, return, true, false},
   keywordstyle=\color{blue}\bfseries,
   ndkeywords={add, sub, mul, div, sdiv, mod, smod, addmod, mulmod, exp, signextend, lt, mstore8, mstore},
   ndkeywordstyle=\color{teal}\bfseries,
   comment=[l]{//},
   morecomment=[s]{/*}{*/},
-  commentstyle=\color{gray}\ttfamily,
-  stringstyle=\color{red}\ttfamily,
+  commentstyle=\color{gray},
+  stringstyle=\color{red},
   morestring=[b]",
   morestring=[b]',
   sensitive=true,
-  basicstyle=\ttfamily,
   numbers=left,
   % numberstyle=\tiny\color{gray},
   stepnumber=1,
@@ -223,6 +205,23 @@
   escapeinside={\%*}{*)}
 }
 
+\lstset{numbers=left,xleftmargin=2em,frame=single,framexleftmargin=0em,numberstyle=\footnotesize\ttfamily}
+
+\lstset{
+	language=yul,
+	backgroundcolor=\color{verylightgray},
+	extendedchars=true,
+	basicstyle=\footnotesize\ttfamily,
+	showstringspaces=false,
+	showspaces=false,
+	numbers=left,
+	numberstyle=\footnotesize,
+	numbersep=9pt,
+	tabsize=2,
+	breaklines=true,
+	showtabs=false,
+	captionpos=b
+}
 
 \begin{document}
 
