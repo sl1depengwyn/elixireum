@@ -9,7 +9,7 @@ The scope of this study was limited to the functionality that we considered most
 \begin{enumerate}
 \item \textbf{External libraries:} External libraries are not implemented. This limitation prevents the reuse of the same functionality across multiple smart contracts and complicates the development of complex smart contracts, requiring redeployment of the same functionality and consequently requires more gas.
 \item \textbf{External smart contract interaction:} Interaction with external smart contracts is not implemented. This limitation means that Elixireum cannot currently communicate with other contracts, making it impossible to implement popular patterns such as proxies or factories.
-\item \textbf{Multiple functions or modules:} Elixireum development is limited to a single file, making it impossible to reuse any Elixireum functionality from other smart contracts or to integrate additional functionalities from external sources.
+\item \textbf{Multiple files or modules:} Elixireum development is limited to a single file, making it impossible to reuse any Elixireum functionality from other smart contracts or to integrate additional functionalities from external sources.
 \item \textbf{High deployment gas consumption:} The deployment of Elixireum contracts results in high gas consumption.
 \item \textbf{Macros support:} We decided to exclude macros support from our initial scope due to the complexity of implementing this feature and time constraints.
 \item \textbf{Pattern matching:} This feature was also excluded from the scope due to the similar reasons.
