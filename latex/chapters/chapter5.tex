@@ -52,42 +52,42 @@ This chapter presents an overview of results. Section \ref{sec:results_and_compa
 
 \section{Results and Comparison}
 \label{sec:results_and_comparison}
-We conducted a series of tests by applying the test suite to a set of prepared smart contracts. All tests concluded successfully, signifying the achievement of the main project goal: Elixireum smart contracts successfully compile and deploy to the Ethereum blockchain. We then proceeded to compare Elixireum with Solidity. We benchmarked all the public functions of the ERC-20 implementation in Elixireum and its full analogue in Solidity, and conducted the same benchmarking for the ERC-721 implementation. Tables~\ref{tab:erc20_comparison} and \ref{tab:erc721_comparison} present the detailed metrics that we obtained.
+We conducted a series of tests by applying the test suite to a set of prepared smart contracts. All tests concluded successfully, signifying the achievement of the main project goal: a compiler capable of translating Elixireum language into EVM bytecode is developed. Moreover we deployed an ERC-20 token implemented in Elixireum to Sepolia testnet, the following hex bytes is the address of the deployed token 0x9DC699F6F8F3E42D4C6ae368C751325dC4106279\footnote{\url{https://eth-sepolia.blockscout.com/token/0x9dc699f6f8f3e42d4c6ae368c751325dc4106279}}. We then proceeded to compare Elixireum with Solidity. We benchmarked the public functions of the ERC-20 implementation in Elixireum and its full analogue in Solidity, and conducted the same benchmarking for the ERC-721 implementation. Tables~\ref{tab:erc20_comparison} and \ref{tab:erc721_comparison} present the detailed metrics that we obtained.
 
 
 \begin{table}[h!]
-  \centering
-  \renewcommand{\arraystretch}{1.2}
-  \begin{tabular}{|c|c|c|}
-  \hline
-  \textbf{Method} & \textbf{Elixireum Gas Used} & \textbf{Solidity Gas Used} \\ \hline
-  mint            & 58197.4              & 54799.6              \\ \hline
-  approve         & 47619.8              & 46570.8              \\ \hline
-  transferFrom    & 54812.0              & 48492.2              \\ \hline
-  transfer        & 55659.8              & 51813.4              \\ \hline
-  burn            & 33061.6              & 29433.25             \\ \hline
-  deploy of contract       & 1939441              & 732543               \\ \hline
-  \end{tabular}
-  \caption{Gas usage comparison between Elixireum and Solidity for ERC-20 contract (20 runs)}
-  \label{tab:erc20_comparison}
-  \end{table}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Method} & \textbf{Elixireum Gas Used} & \textbf{Solidity Gas Used} \\ \hline
+mint            & 58197.4              & 54799.6              \\ \hline
+approve         & 47619.8              & 46570.8              \\ \hline
+transferFrom    & 54812.0              & 48492.2              \\ \hline
+transfer        & 55659.8              & 51813.4              \\ \hline
+burn            & 33061.6              & 29433.25             \\ \hline
+deploy of contract       & 1939441              & 732543               \\ \hline
+\end{tabular}
+\caption{ERC-20 contract gas usage comparison (20 runs)}
+\label{tab:erc20_comparison}
+\end{table}
 
 \begin{table}[h!]
-  \centering
-  \renewcommand{\arraystretch}{1.2}
-  \begin{tabular}{|c|c|c|}
-  \hline
-  \textbf{Method}         & \textbf{Elixireum Gas Used} & \textbf{Solidity Gas Used} \\ \hline
-  setApprovalForAll       & 46596.0              & 46304.0              \\ \hline
-  mint                    & 166817.4             & 162675.4             \\ \hline
-  transferFrom            & 87123.0              & 55652.6              \\ \hline
-  approve                 & 54798.0              & 49007.8              \\ \hline
-  burn                    & 58539.6              & 29944.0              \\ \hline
-  deploy of contract                 & 3067454              & 1113786              \\ \hline
-  \end{tabular}
-  \caption{Gas usage comparison between Elixireum and Solidity for ERC-721 contract (20 runs)}
-  \label{tab:erc721_comparison}
-  \end{table}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Method}         & \textbf{Elixireum Gas Used} & \textbf{Solidity Gas Used} \\ \hline
+setApprovalForAll       & 46596.0              & 46304.0              \\ \hline
+mint                    & 166817.4             & 162675.4             \\ \hline
+transferFrom            & 87123.0              & 55652.6              \\ \hline
+approve                 & 54798.0              & 49007.8              \\ \hline
+burn                    & 58539.6              & 29944.0              \\ \hline
+deploy of contract                 & 3067454              & 1113786              \\ \hline
+\end{tabular}
+\caption{ERC-721 contract gas usage comparison (20 runs)}
+\label{tab:erc721_comparison}
+\end{table}
 
   The comparison reveals that while Elixireum successfully implements the functionalities of ERC-20 and ERC-721 contracts, it generally consumes more gas compared to Solidity for the same operations. Table~\ref{tab:erc20_comparison} shows that, on average, Elixireum is 8\% less efficient than Solidity for function calls of ERC-20 methods and approximately 164\% less efficient in terms of gas consumption during the deployment process. Table~\ref{tab:erc721_comparison} indicates even less favorable metrics: Elixireum is about 20.5\% less efficient for ERC-721 methods and consumes 175\% more gas during deployment. These findings indicate that while Elixireum is functional and compatible with the Ethereum blockchain, there is a need for optimization to reduce gas consumption and improve efficiency.
 

@@ -1,7 +1,7 @@
 \chapter{Conclusion}
 \label{chap:concl}
 
-We designed and implemented the Elixireum language along with its compiler. The Elixireum compiler and language are capable of supporting ERC-20 and ERC-721 standards, and we conducted measurements to compare our language with Solidity.
+We designed and implemented the Elixireum language along with its compiler. The Elixireum compiler and language are capable of supporting ERC-20 and ERC-721 standards, and we conducted measurements to compare our language with Solidity. Moreover, we deployed a working ERC-20 token standard implementation in Elixireum.
 
 \section{Limitations}
 
@@ -11,7 +11,7 @@ The scope of this study was limited to the functionality that we considered most
 \item \textbf{External libraries:} External libraries are not implemented. This limitation prevents the reuse of the same functionality across multiple smart contracts and complicates the development of complex smart contracts, requiring redeployment of the same functionality and consequently requires more gas.
 \item \textbf{External smart contract interaction:} Interaction with external smart contracts is not implemented. This limitation means that Elixireum cannot currently communicate with other contracts, making it impossible to implement popular patterns such as proxies or factories.
 \item \textbf{Multiple files or modules:} Elixireum development is limited to a single file, making it impossible to reuse any Elixireum functionality from other smart contracts or to integrate additional functionalities from external sources.
-\item \textbf{High deployment gas consumption:} The deployment of Elixireum contracts results in high gas consumption.
+\item \textbf{High deployment gas consumption:} The deployment of Elixireum contracts entails high gas consumption.
 \item \textbf{Macros support:} We decided to exclude macros support from our initial scope due to the complexity of implementing this feature and time constraints.
 \item \textbf{Pattern matching:} This feature was also excluded from the scope due to the similar reasons.
 \end{enumerate}

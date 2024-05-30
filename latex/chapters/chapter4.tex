@@ -29,7 +29,7 @@
 %     - reverts with utf-8 error string
 %   - standard functions declaration on demand (transitivity included) and mechanism itself (module responsible for )
 
-This chapter outlines the principal elements of the design of Elixireum compiler. It overviews the technology stack employed in the development process and underscores the pivotal decisions that shaped the architecture of the compiler.
+This chapter outlines the principal elements of the design of Elixireum compiler. Section \ref{sec:architecture} overviews the technology stack employed in the development process. Section \ref{sec:tech_details} underscores the pivotal decisions that shaped the architecture of the compiler. Section \ref{sec:modules_overview} provides the detailed overview of the main compiler modules.
 
 
 \section{Stack overview}
@@ -63,6 +63,7 @@ Here is the rationalization behind the choice of Elixir:
 \end{itemize}
 
 \section{Technical details}
+\label{sec:tech_details}
 
 \subsection{Memory organization}
 \label{sec:memory_organization}
@@ -264,11 +265,11 @@ The following table illustrates a snippet of the EVM memory for this list case:
   \begin{lstlisting}[caption={@spec}, language=elixir, label={lst:calldata_decoding_recursive}]
   @spec a(Types.Int256.t()) :: Types.String.t()
   def a(_int) do
-    "return string"
+    "foo"
   end
   \end{lstlisting}
   
-  Resulting JSON ABI:
+  Resulting ABI JSON:
   \begin{lstlisting}[caption={ABI }, language=json, label={lst:calldata_decoding_recursive}]
     [
       {
@@ -303,6 +304,7 @@ The following table illustrates a snippet of the EVM memory for this list case:
 \end{enumerate}
 
 \section{Modules overview}
+\label{sec:modules_overview}
 This section provides a detailed overview of the main modules of the compiler. The modules are listed in the order corresponding to the contract life cycle i.e., deployment and then calls.
 \subsection{Yul compiler}
 The Yul compiler calls the Solidity compiler to generate bytecode, given the path to the standard JSON input file\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/using-the-compiler.html\#input-description}}. For this purpose, it looks for the Solidity compiler that is capable of compiling Yul to bytecode. If there is no Solidity compiler already downloaded, the Yul compiler module downloads platform specific Solidity compiler. Then, it returns standard JSON output\footnote{\url{https://docs.soliditylang.org/en/v0.8.25/using-the-compiler.html\#output-description}}.
@@ -317,7 +319,7 @@ The Yul compiler calls the Solidity compiler to generate bytecode, given the pat
   \label{fig:arch}
 \end{figure}
 
-Here is the pipeline of actions performed by the main Compiler module, which can be seen visually in Fig. \ref{fig:arch}, each pipeline step is performed only if all the previous steps are successful.
+Here is the pipeline of actions performed by the main Compiler module, which can be seen visually in Fig. \ref{fig:arch}, each pipeline step is performed only if all the previous steps are successful:
 
 \begin{itemize}
     \item Reading the source code from the file system.
@@ -341,12 +343,9 @@ Here is the pipeline of actions performed by the main Compiler module, which can
     
     Specifically, this step generates a special function called a constructor. This function is executed at the deployment stage, and it takes its arguments not from calldata, but from the code. The Yul code that decodes arguments is generated using the calldata decoding module.
 
-    Then, the compiler generates a function selector. The function selector is used to identify which function is being called based on the first four bytes of the call data. The first four bytes of the call data should be equal to the first four bytes of the Keccak256 hash of the string in the following format:
-    \lstinline|function_name(1st_arg_type_name,2nd_arg_type_name,...)|
-    constructed for the calling function, this is called method ID. For example, if the function has the following signature 
-    \lstinline|transfer(address to, uint256 value)|
-    Keccak256 is performed on 
-    \lstinline|transfer(address,uint256)| The result of Keccak 256 is equal to 0xa9059cbb2ab0\dots So, the method ID for the transfer function is 0xa9059cbb. The function selector is simply a switch case expression where each public defined function corresponds to a case with its method ID. For each case statement, the compiler generates Yul code, responsible for function arguments decoding from call data, using the call data decoding module. Then the function call is generated as if it was a private function. Then, the compiler generates the code that encodes the value returned by the function into the return format using the return data encoding module.
+    Then, the compiler generates a function selector. The function selector is used to identify which function is being called based on the first four bytes of the calldata. The first four bytes of the calldata should be equal to the first four bytes of the Keccak256 hash of the string in the following format:
+    $$function\_name(1st\_arg\_type\_name,2nd\_arg\_type\_name,...)$$
+    constructed for the calling function, this four bytes is called method ID. For example, if the function has the following signature transfer(address to, uint256 value) Keccak256 is performed on transfer(address,uint256) The result of Keccak 256 is equal to 0xa9059cbb2ab0\dots So, the method ID for the transfer function is 0xa9059cbb. The function selector is simply a switch case expression where each public defined function corresponds to a case with its method ID. For each case statement, the compiler generates Yul code, responsible for function arguments decoding from calldata, using the calldata decoding module. Then the function call is generated as if it was a private function. Then, the compiler generates the code that encodes the value returned by the function into the return format using the return data encoding module.
 
     Then, the compiler generates Yul code for all user-defined functions, both public and private, since the difference between public and private functions is factored out into the function selector.
 
@@ -359,7 +358,7 @@ Here is the pipeline of actions performed by the main Compiler module, which can
         }
     \end{lstlisting}
 
-    The field deps represents other standard functions used by this standard function. This mechanism allows the definition of standard functions on demand, thus reducing the size of the Yul code and lowering the cost of deployment. Here is the mechanism that resolves dependencies:
+    The field deps represents other standard functions used by the standard function. This mechanism allows the definition of standard functions on demand, thus reducing the size of the Yul code and lowering the cost of deployment. Here is the mechanism that resolves dependencies:
 
 
     \begin{lstlisting}[caption={Standard function dependencies}, language=elixir, label={lst:standard_function_dependencies}]
@@ -382,12 +381,12 @@ Here is the pipeline of actions performed by the main Compiler module, which can
 
 \subsection{ABI generator}
 \label{ssec:abi_generator}
-The ABI generator takes the contract information collected by the compiler in the form of the contract structure \ref{lst:contract_structure} and generates a JSON ABI using the functions and events fields of the contract structure.
+The ABI generator takes the contract information collected by the compiler in the form of the contract structure \ref{lst:contract_structure} and generates an ABI JSON using the functions and events fields of the contract structure.
 
 
 \subsection{Calldata decoding}
 \label{ssec:calldata_decoding}
-The call data decoding module recursively generates code for parsing arguments using information from the typespec of the function. The main function of this module is the decode function. It is generalized in terms of functions that perform loading and copying of data in order to reuse this function not only for argument decoding in calls, but also for argument decoding in the constructor where arguments are stored in memory, not in calldata. Here is an example of the base case of the decode function:
+The calldata decoding module recursively generates code for parsing arguments using information from the typespec of the function. The main function of this module is the decode function. It is generalized in terms of functions that perform loading and copying of data in order to reuse this function not only for argument decoding in calls, but also for argument decoding in the constructor where arguments are stored in memory, not in calldata. Here is an example of the base case of the decode function:
 
 \begin{lstlisting}[caption={Calldata decoding base case}, language=elixir, label={lst:calldata_decoding_base}]
   def decode(
