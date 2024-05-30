@@ -20,20 +20,20 @@ Section \ref{sec:ethoverview} provides a brief overview of Ethereum history and 
 \label{sec:ethoverview}
 
 \subsection{Ethereum: An Innovative Blockchain Platform}
-Ethereum, launched by Vitalik Buterin in July of 2015, is a major blockchain platform. It is supported by a large community of developers and cryptocurrency enthusiasts. To evaluate the importance and current popularity we can refer to CoinMarketCap\footnote{\href{https://coinmarketcap.com/}{CoinMarketCap - resources which provides analytics and prices for cryptocurrencies.}}. Ethereum ranks 2nd after Bitcoin, having the market cap more than \$380B and more than \$10B daily trading value, indicating the significant role of ETH in the digital economy.
+Ethereum, launched by Vitalik Buterin in July of 2015, is a major blockchain platform. It is supported by a large community of developers and cryptocurrency enthusiasts. To evaluate the importance and current popularity refer to CoinMarketCap\footnote{\href{https://coinmarketcap.com/}{CoinMarketCap - resources which provides analytics and prices for cryptocurrencies.}}. Ethereum ranks 2nd after Bitcoin, having the market cap more than \$380B and more than \$10B daily trading value, indicating the significant role of ETH in the digital economy.
 
 \subsection{Blockchain Ecosystem and Core Features}
-Ethereum supports decentralized applications (dApps) and smart contracts. These contracts automatically manage transactions and agreements without needing a middleman. This system finds an application in various types of applications in areas like finance and supply chain management.
+Ethereum supports decentralized applications (dApps) and smart contracts. These contracts automatically manage transactions and agreements without a middleman. This system finds an application in various types of applications in areas like finance and supply chain management.
 
 \subsection{Programming Languages on Ethereum}
 
 Solidity is the most used programming language on Ethereum \cite{SolidityWidelyUsed}. Vyper is the most popular alternative, however it shares a tiny part of the market. So, the scope of programming languages that can be used to develop decentralized applications is limited.
 
 \subsection{Importance of Writing Effective Smart Contracts}
-Using smart contracts on Ethereum costs money, known as "gas fees", which user i.e. transaction sender pays for each action a contract performs. These costs make it important to write efficient smart contracts to reduce expenses and improve performance.
+Using smart contracts on Ethereum costs money, known as "gas fees", which a user i.e., transaction sender, pays for each action a contract performs. These costs necessitate efficient smart contracts to reduce expenses and improve performance.
 
 \subsection{The Rise of Layer 2 Rollups}
-With the increasing popularity and widespread adoption of Ethereum, the price of its native coin, ETH, has surged significantly. As the cost of ETH rises, even simple transactions like transferring coins can become too expensive, sometimes costing up to \$100 per transaction. Such high fees restrict the practical usability of the blockchain. Consequently, rollup blockchains have emerged to address these challenges. The concept behind rollup solutions can be described as a cheap blockchain (L2) on top of an expensive blockchain (L1). An L2 chain performs the execution of hundreds of transactions and then stores the resulting state changes within a single transaction on an L1. The fact that all the changes eventually are stored in an L1 blockchain enables an L2 chain to retain all L1 blockchain characteristics such as immutability and decentralization, while significantly reducing gas costs and increasing throughput. It allows developers to focus more on features and security, changing how dApps are made and used.
+With the increasing popularity and widespread adoption of Ethereum, the price of its native coin, ETH, has surged significantly. As the cost of ETH rises, even simple transactions like transferring coins can become excessively expensive, sometimes costing up to \$100 per transaction. Such high fees restrict the practical usability of the blockchain. Consequently, rollup blockchains have emerged to address these challenges. The concept behind rollup solutions can be described as a cheap blockchain (L2) on top of an expensive blockchain (L1). An L2 chain performs the execution of hundreds of transactions and then stores the resulting state changes within a single transaction on an L1. The fact that all the changes eventually are stored in an L1 blockchain enables an L2 chain to retain all L1 blockchain characteristics such as immutability and decentralization, while significantly reducing gas costs and increasing throughput. It allows developers to focus more on features and security, changing how dApps are made and used.
 
 
 \section{Demand for a New Language}
@@ -47,7 +47,7 @@ Given these constraints, there is a significant opportunity for a new language. 
 \label{sec:goal}
 
 \subsection{Research Aims and Hypotheses}
-Our goal is to create a smart contract language with Elixir syntax and dynamic types -- Elixireum. As a result, language should be expressive at least to be able to implement ERC-20\footnote{https://eips.ethereum.org/EIPS/eip-20} and ERC-721\footnote{https://eips.ethereum.org/EIPS/eip-721} tokens. We plan to add such features as immutability, macros support and pattern matching to make this language functional. Also, we expect that Elixireum will have the same or less gas consumption in comparison with Solidity.
+Our goal is to create a smart contract language with Elixir syntax and dynamic types -- Elixireum. As a result, language should be expressive at least to be able to implement ERC-20\footnote{https://eips.ethereum.org/EIPS/eip-20} and ERC-721\footnote{https://eips.ethereum.org/EIPS/eip-721} tokens. We planned to add such features as immutability, macros support and pattern matching to make this language functional. Also, we expected that Elixireum will have the same or less gas consumption in comparison with Solidity.
 
 \subsection{Expected Results}
 \begin{itemize}
@@ -61,5 +61,4 @@ Our goal is to create a smart contract language with Elixir syntax and dynamic t
 \section{Thesis overview}
 \label{sec:thesoverview}
 
-This section overviews the thesis. Chapter 2 Literature Review contains an introduction to Ethereum and a review of the existing related literature. Chapter 3 Methodology includes a theoretical description of approaches which was used during the implementation phase. Chapter 4 Implementation provides a detailed description of the Elixireum implementation. Chapter 5 Results and Discussion shows the result we achieved and compares the Elixireum with other languages. Chapter 6 Conclusion concludes the research, and states the limitations and future work scope.
-
+The rest of this thesis takes a form of five chapters. Chapter \ref{chap:lr}, Literature Review, contains an introduction to Ethereum and a review of the existing related literature. Chapter \ref{chap:met}, Methodology, includes a theoretical description of approaches which was used during the implementation phase. Chapter \ref{chap:impl}, Implementation, provides a detailed description of the Elixireum implementation. Chapter \ref{chap:res}, Results and Discussion, shows the result we achieved and compares the Elixireum with other languages. Chapter \ref{chap:concl}, Conclusion, concludes the research, and states the limitations and future work scope.
