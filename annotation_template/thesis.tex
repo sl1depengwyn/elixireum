@@ -1,0 +1,117 @@
+\documentclass[oneside,final,14pt,a4paper]{extreport}
+
+\usepackage{tempora}   
+
+\usepackage{vmargin}
+\setpapersize{A4}
+\setmarginsrb{2.5cm}{2.2cm}{2.2cm}{2.2cm}{0pt}{10mm}{0pt}{13mm}
+\usepackage{setspace}
+\sloppy
+\setstretch{1.5}
+\usepackage{indentfirst}
+\parindent=1.25cm
+
+%%%%% ADDED TO SUPPORT TT BOLD FACES %%%%
+\DeclareFontShape{OT1}{cmtt}{bx}{n}{<5><6><7><8><9><10><10.95><12><14.4><17.28><20.74><24.88>cmttb10}{}
+\renewcommand{\ttdefault}{pcr}
+%%%%% END %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\usepackage{atbegshi,picture}
+\usepackage[T1,T2A]{fontenc} 
+\usepackage[utf8]{inputenc}
+\usepackage[main=russian,english]{babel}
+\usepackage[backend=biber,style=ieee,autocite=inline]{biblatex}
+\bibliography{ref.bib}
+\usepackage{csquotes}
+\usepackage{blindtext}
+
+
+\usepackage{pdfpages}
+\newenvironment{bottompar}{\par\vspace*{\fill}}{\clearpage}
+
+% \usepackage{cite}
+\usepackage{amsmath,amsfonts}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\theoremstyle{remark}
+\newtheorem*{example}{Example}
+
+
+
+\usepackage{graphicx}
+\graphicspath{{figs/}} %path to images
+\usepackage{multirow,array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[unicode]{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black}
+\usepackage{paralist}
+\usepackage{listings}
+\usepackage{zed-csp}
+\usepackage{fancyhdr}
+\usepackage{color,colortbl}
+\usepackage{booktabs}
+\usepackage{epsfig} % for postscript graphics files
+
+\usepackage{upgreek} 
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage[font=singlespacing, labelfont=bf]{caption}
+\usepackage{floatrow}
+
+\pagestyle{fancyplain}
+
+% remember section title
+\renewcommand{\chaptermark}[1]%
+	{\markboth{\chaptername~\thechapter~--~#1}{}}
+
+% subsection number and title
+\renewcommand{\sectionmark}[1]%
+	{\markright{\thesection\ #1}}
+
+\rhead[\fancyplain{}{\bf\leftmark}]%
+      {\fancyplain{}{\bf\thepage}}
+\lhead[\fancyplain{}{\bf\thepage}]%
+      {\fancyplain{}{\bf\rightmark}}
+\cfoot{} %bfseries
+
+
+\newcommand{\dedication}[1]
+   {\thispagestyle{empty}
+     
+   \begin{flushleft}\raggedleft #1\end{flushleft}
+}
+
+\begin{document}
+
+\includepdf[pages=-]{title_annotation.pdf}
+
+\newpage
+\tableofcontents
+\include{chapters/abstract}
+\setcounter{page}{4}
+% set manually the number, from which Глава 1 starts!
+% Why do we put 4 in this case?
+% Title page - page 1
+% Оглавление - page 2
+% Аннотация - page 3
+% Глава 1 - page 4
+% In your annotation the counter number can be different, please count carefully and insert the corresponding number.
+
+\include{chapters/chapter1}
+\include{chapters/chapter2}
+\include{chapters/chapter3}
+\include{chapters/chapter4}
+\include{chapters/chapter5}
+
+
+\printbibliography[heading=bibintoc,title={Список использованной литературы}]
+\end{document}
+

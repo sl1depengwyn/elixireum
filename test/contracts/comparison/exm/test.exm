@@ -1,0 +1,12 @@
+defmodule Test do
+  alias Blockchain.{Event, Storage, Types}
+
+  @event_simple name: "event_simple", indexed_arguments: [a: Types.List.t(Types.String.t())], data_arguments: [b: Types.Int256.t()]
+
+  @spec example() :: nil
+  def example() do
+    a = ["1", "2", "3"]
+
+    Event.emit(@event_simple, [a: a, b: 123])
+  end
+end
