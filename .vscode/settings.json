@@ -1,5 +1,6 @@
 {
-    // "latex-workshop.latex.recipe.default": "latexmk (xelatex)",
+    // comment to compile annotation
+    "latex-workshop.latex.recipe.default": "latexmk (xelatex)",
     "editor.wordWrap": "on",
     "files.watcherExclude": {
         "**/target": true
