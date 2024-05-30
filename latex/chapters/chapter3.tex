@@ -2,13 +2,13 @@
 \label{chap:met}
 \chaptermark{Third Chapter Heading}
 
-Chapter overview. Section \ref{sec:test_suite} states metrics we used to evaluate the Elixireum language. 
+This chapter overviews employed methods. Section \ref{sec:cc} breaks down a compilation process. Section \ref{sec:evm_insight} provides a detailed description of the EVM. Section \ref{sec:test_suite} states the metrics we used to evaluate the Elixireum language. 
 
 
 \section{Compiler Construction}
 \label{sec:cc}
 
-Compiler construction is a sophisticated field in computer science that involves the creation of software that translates source code written in a high-level programming language into a lower-level language, often machine code. This process is crucial as it serves as a bridge between high-level programming languages and the machine code that the Ethereum Virtual Machine (EVM) understands. The process can be divided into several distinct phases, each with its specialized function:
+Compiler construction is a field in computer science that involves the creation of software that translates source code written in a high-level programming language into a lower-level language, often machine code. The process can be divided into several distinct phases, each with its specialized function:
 
 \subsection{Lexical Analysis}
 
@@ -16,11 +16,11 @@ According to Waite and Goos \cite[135-148]{CompilerConstruction}, the initial st
 
 \subsection{Syntax Analysis}
 
-Following tokenization, the next phase is syntax analysis, or parsing. During this phase, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of a syntax tree or abstract syntax tree (AST). This representation helps ensure that the code conforms to the grammar of the language rules and can be further processed \cite[149-182]{CompilerConstruction}.
+Following tokenization, the next phase is syntax analysis, or parsing. During this phase, the compiler checks the arrangement and structure of tokens to create a structured representation, often in the form of an abstract syntax tree (AST). This representation helps ensure that the code conforms to the grammar of the language rules and can be further processed \cite[149-182]{CompilerConstruction}.
 
 \subsection{Semantic Analysis}
 
-Semantic analysis involves ensuring that the parsed code makes logical sense according to the language's rules. This includes type checking, where the compiler verifies that each operation is compatible with its operands. The compiler also uses a symbol table to keep track of variable names, their types, and other relevant information to ensure correct interpretation and context.
+Semantic analysis ensures that the parsed code makes logical sense according to the language's rules. This includes type checking, where the compiler verifies that each operation is compatible with its operands. The compiler also uses a symbol table to keep track of variable names, their types, and other relevant information to ensure correct interpretation and context.
 
 \subsection{Intermediate Code Generation}
 
@@ -32,30 +32,30 @@ The optimization phase refines the intermediate code to improve efficiency and p
 
 \subsection{Code Generation}
 
-The final stage of the compilation process is code generation \cite[253-281]{CompilerConstruction}. During this phase, the compiler generates the actual machine code that the target platform can execute. The generated code is specific to the hardware architecture and represents a translation of the original high-level code into instructions that the target can understand and execute. Sometimes, the output is in the form of assembly language, which is then further translated into machine code by an assembler.
+The final stage of the compilation process is code generation \cite[253-281]{CompilerConstruction}. During this phase, the compiler generates the actual machine code that the target platform can execute. The generated code is specific to the hardware architecture and represents a translation of the original high-level code into instructions that the target can understand and execute. Sometimes, the output is in the form of assembly language, which is then further translated into machine code by an assembler.\\
 
-\subsection{Conclusion}
 
 In the context of Elixireum, these compiler construction principles must be adapted to suit the specific needs of the EVM. This includes considerations for smart contract compilation, optimization for gas efficiency, and adhering to the deterministic execution model of the EVM. Understanding these compiler construction phases is essential for Elixireum development, as each stage plays a critical role in transforming high-level Elixireum code into efficient, secure, and EVM-compatible bytecode.
 
 \section{Ethereum Virtual Machine - A Deeper Insight}
+\label{sec:evm_insight}
 
-EVM is a core component of the Ethereum blockchain, pivotal in maintaining its decentralized and secure nature. It serves as an execution environment for smart contracts, enabling the remarkable functionality that Ethereum offers. Understanding the EVM is crucial for developing Elixireum, as it provides the foundational framework within which this new language operates.
+EVM is a core component of the Ethereum blockchain, pivotal in maintaining its decentralized and secure nature. It is an execution environment for smart contracts. Understanding the EVM is crucial for developing Elixireum, as it provides the foundational framework within which this new language operates.
 
 \begin{enumerate}
     \item  Execution Environment
           \begin{itemize}
               \item Isolated System: The EVM operates as an isolated environment, completely sandboxed from the Ethereum network. This isolation ensures that code execution within the EVM does not directly affect the network or the filesystem of the host computer.
-              \item Deterministic Execution: The EVM is designed to be deterministic. This means that executing the same smart contract with the same input will always produce the same output across all nodes in the Ethereum network. This characteristic is essential for maintaining consistency and agreement (consensus) across the decentralized network.
+              \item Deterministic Execution: The EVM is designed to be deterministic. This means that executing the same smart contract with the same input and the same initial state will always produce the same output across all nodes in the Ethereum network. This characteristic is essential for maintaining consistency and agreement (consensus) across the decentralized network.
           \end{itemize}
     \item Role of EVM in Smart Contracts
           \begin{itemize}
-              \item Smart Contract Lifecycle: Developers write smart contracts in high-level languages like Solidity or Vyper. These contracts are then compiled into EVM bytecode. When a contract is deployed on the Ethereum blockchain, it's executed by the EVM to ensure it behaves as expected.
-              \item           Gas Mechanism: The EVM uses a gas mechanism to measure and limit the resources (computation and storage) a contract can use. Each operation in the EVM has a gas cost associated with it, preventing inefficient or malicious code from overloading the network.
+              \item Smart Contract Lifecycle: Developers write smart contracts in high-level languages like Solidity or Vyper. These contracts are then compiled into EVM bytecode. When a contract is deployed on the Ethereum blockchain, it could be executed by the EVM through contract calls.
+              \item           Gas Mechanism: The EVM uses a gas mechanism to measure and limit the computation and storage resources a contract can use. Each operation in the EVM has a gas cost associated with it, preventing inefficient or malicious code from overloading the network.
           \end{itemize}
     \item State Machine
           \begin{itemize}
-              \item           State Transitions: The EVM can be viewed as a state machine, where transactions transition the Ethereum blockchain from one state to another. Smart contracts, through their executions, modify the state stored in the Ethereum blockchain.
+              \item           State Transitions: The EVM can be viewed as a state machine, where transactions transfer the Ethereum blockchain from one state to another. Smart contracts, through their executions, modify the state stored in the Ethereum blockchain.
               \item           EVM Bytecode: The EVM interprets a series of bytes (bytecode) which instruct the machine on the operations to perform. This bytecode is the compiled version of high-level contract code.
           \end{itemize}
     \item Storage and Memory
@@ -66,7 +66,7 @@ EVM is a core component of the Ethereum blockchain, pivotal in maintaining its d
     \item Challenges and Considerations for Elixireum
           \begin{itemize}
               \item Gas Optimization: Given the cost implications of EVM operations, Elixireum must focus on gas optimization during the compilation process.
-              \item Security and Determinism: Security vulnerabilities in smart contracts can be costly. Hence, Elixireum needs to ensure robust security measures. Additionally, the deterministic nature of the EVM requires that Elixireum-generated bytecode behaves consistently across all executions.
+              \item Determinism: The deterministic nature of the EVM requires that Elixireum-generated bytecode behaves consistently across all executions.
           \end{itemize}
 
 
@@ -76,8 +76,8 @@ EVM is a core component of the Ethereum blockchain, pivotal in maintaining its d
 \section{Testing and Benchmarking}
 \label{sec:test_suite}
 
-To optimize Elixireum development, we decided to write a test suite to cover the implemented functionality. After each feature implementation or bug fix, we ran the test suite to ensure that no previous functionality was broken. The test suite includes a set of smart contracts that collectively utilize almost all the implemented features, as well as a set of corresponding test Python files.
+To optimize Elixireum development, we decided to create a test suite to cover the implemented functionality. After each feature implementation or a bug fix, we ran the test suite to ensure that no previous functionality was broken. The test suite includes a set of smart contracts that collectively utilize almost all the implemented features, as well as a set of corresponding test Python files.
 
-Within each Python test file, a test module is defined. Its constructor deploys the smart contracts, and unit tests are written within test functions to ensure that the smart contracts behave as expected. All smart contract interactions are implemented using the Web3.py library, and the utilized test framework is pytest. As the test EVM environment, we used Anvil\footnote{\url{https://github.com/foundry-rs/foundry/tree/master/crates/anvil\#anvil}}, a local JSON-RPC node.
+Within each Python test file, a test module is defined. Its constructor deploys the smart contracts, and the unit tests are written within the test functions to ensure that the smart contracts behave as expected. All the smart contract interactions are implemented using the Web3.py library, and the utilized test framework is pytest. As the test EVM environment, we used Anvil\footnote{\url{https://github.com/foundry-rs/foundry/tree/master/crates/anvil\#anvil}}, a local JSON-RPC node.
 
-For comparison purposes, we also wrote a similar test suite in Python, which deploys the Elixireum contract and its analogue in Solidity. We performed several runs of each function, measuring the gas consumption of each function and retrieving this information from the transaction receipts provided by the node. We created two modules for comparing ERC-20 and ERC-721 pairs of contracts.
+For comparison purposes, we also implemented a similar Python benchmark script, which deploys the Elixireum contract and its analogue in Solidity. We performed several runs of each function, measuring the gas consumption of each function and retrieving this information from the transaction receipts provided by the node. We created two modules for comparing ERC-20 and ERC-721 pairs of contracts.

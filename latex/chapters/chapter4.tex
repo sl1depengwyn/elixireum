@@ -46,20 +46,20 @@ Here is the rationalization behind the choice of Elixir:
 
 \subsection{Choice of Yul}
 \begin{itemize}
-    \item Initially, our strategy was to compile Elixireum directly into Ethereum Virtual Machine (EVM) bytecode. Subsequently, we pivoted towards an intermediate representation (IR), selecting Yul as IR aligned with our requirements. Advantages from this decision are as follows:
+    \item Initially, our strategy was to compile Elixireum directly into EVM bytecode. Subsequently, we pivoted towards an intermediate representation (IR), selecting Yul as IR aligned with our requirements. Advantages from this decision are as follows:
         \begin{itemize}
             \item Compatibility with all EVM versions, eliminating the need for version-specific concerns. 
             \item Avoidance of reimplementing primitives such as function calls, variable and stack management, thereby freeing up resources to enhance the feature set of the language.
             \item Reduced gas consumption facilitated by the optimizer of Solidity compiler.
         \end{itemize}
-      Despite these considerations, the choice comes with limitations, notably:
+      Despite these considerations, the choice comes with slight limitations, notably:
         \begin{itemize}
             \item Dependency on the Solidity compiler for Elixireum.
-            \item The unresolved bug\footnote{\href{https://github.com/ethereum/solidity/issues?q=is:issue+is:open+StackTooDeepError}{https://github.com/ethereum/solidity/issues?q=is:issue+is:open+StackTooDeepError}} in the Solidity compiler that appears for large smart contracts written in Elixireum when compiled with the optimizer disabled. The bug results in an inability to operate with a large number of variables or deep stack depths.
+            \item The unresolved bug\footnote{\href{https://github.com/ethereum/solidity/issues?q=is:issue+is:open+StackTooDeepError}{https://github.com/ethereum/solidity/issues?q=is:issue+is:open+StackTooDeepError}} in the Solidity compiler, in our case it appears for large Elixireum smart contracts when compiled with the optimizer disabled. The bug results in an inability to operate with a large number of variables and deep stack depths.
         \end{itemize}
-      No significant downsides compared to direct compilation to EVM bytecode, since bytecode can be used in Yul directly.
+      No significant downsides compared to direct compilation to EVM bytecode.
 
-    \item We also considered mapping BEAM (Erlang VM) bytecode to EVM bytecode. However, this option presented significant challenges due to the fundamental architectural and philosophical differences between the two virtual machines. BEAM is specifically tailored for environments that demand high concurrency, distribution, and fault tolerance, and it includes a set of opcodes optimized for these conditions. In contrast, the EVM is designed to run smart contracts within blockchain ecosystems, prioritizing deterministic execution and gas metering to protect against spam and enhance network security. BEAM incorporates specialized instructions for concurrency and distributed processing that do not directly translate to the EVM, because of these distinct focuses.
+    \item We also considered mapping BEAM (Erlang VM), target of Elixir, bytecode to EVM bytecode. However, this option presented significant challenges due to the fundamental architectural and philosophical differences between the two virtual machines. BEAM is specifically tailored for environments that demand high concurrency, distribution, and fault tolerance, and it includes a set of opcodes optimized for these conditions. In contrast, the EVM is designed to run smart contracts within blockchain ecosystems, prioritizing deterministic execution and gas metering to protect against spam and enhance network security. BEAM incorporates specialized instructions for concurrency and distributed processing that do not directly translate to the EVM, because of these distinct focuses.
 \end{itemize}
 
 \section{Technical details}
@@ -67,11 +67,11 @@ Here is the rationalization behind the choice of Elixir:
 \subsection{Memory organization}
 \label{sec:memory_organization}
 
-In our language implementation, we decided to store all runtime variables in the volatile memory of the Ethereum Virtual Machine. This decision is justified by the low gas cost associated with memory operations and the simplicity of implementation. We considered two alternatives: transient storage, which is more expensive than memory, and the stack, which involves more complex management.
+In our language implementation, we decided to store all the runtime variables in the volatile memory of the EVM. This decision is justified by the low gas cost associated with the memory operations and the simplicity of implementation. We considered two alternatives: the transient storage, which is more expensive than memory, and the stack, which involves more complex management.
 
 In the generated Yul code, a variable is defined as a pointer to the memory location where its value is stored. At this pointer, the first byte is reserved for the type number, and the subsequent bytes contain the value itself for simple cases. For more complex cases, such as lists and tuples, the first byte still indicates the type, followed by a word\footnote{in this context word is 32 bytes} that specifies the count of elements, and then the elements themselves, each stored as an inline variable (type + value). For strings or byte arrays, the first byte indicates the type (1 for strings, 102 for byte arrays), the next word specifies the byte count, followed by the actual bytes.
 
-Since we developed a functional language, one of its fundamental principles is immutability. This means that each assignment operation creates a new variable. In practice, we "forget" the previous pointer, assign a new pointer, and place the variable in a new location. Each new variable should be stored sequentially after the previous one. To achieve this, we define the offset\$ variable in the generated Yul code. This variable holds the memory address where the next variable will be stored. As a workaround for corner cases, we update this variable using the msize() call, assigning the current memory size rounded to one word to the offset\$ variable.
+Since we developed a functional language, we should follow one of its fundamental principles -- immutability. This means that each assignment operation creates a new variable. In practice, we "forget" the previous pointer, assign a new pointer, and place the variable in a new location. Each new variable should be stored sequentially after the previous one. To achieve this, we define the offset\$ variable in the generated Yul code. This variable holds the memory address where the next variable will be stored. As a workaround for corner cases, we update this variable using the msize Yul function, assigning the current memory size rounded to one word to the offset\$ variable.
 
 In Elixireum syntax, there are no type specifiers for variables. To handle dynamic types, we established several principles upon which our type system is built:
 \begin{itemize}
@@ -89,7 +89,7 @@ In Elixireum syntax, there are no type specifiers for variables. To handle dynam
   \end{lstlisting}
 \end{itemize}
 
-The following Elixireum code illustrates a simple case:
+The following Elixireum code illustrates a simple variable declaration:
 
 \begin{lstlisting}[caption={Elixireum code for simple case}, language=elixir]
   a = 1
@@ -113,7 +113,7 @@ This Elixireum code is translated into Yul code as follows:
   offset$ := add(offset$, 32) // int256 value takes 32 bytes
 \end{lstlisting}
 
-In this Yul code, offset\$ is initialized to the current memory size. Each variable (a\$ and b\$) is defined as a memory pointer. The type of each variable is stored using mstore8, and the actual value is stored using mstore. The offset is incremented appropriately to account for the type byte and the 32-byte value for each variable.
+In this Yul code, offset\$ is initialized to the current memory size. Each variable (a\$ and b\$) is defined as a memory pointer. The type of each variable is stored using mstore8 Yul function, and the actual value is stored using mstore Yul function. The offset is incremented appropriately to account for the type byte and the 32-byte value for each variable.
 
 The following table shows a snippet of the EVM memory for this simple case:
 
@@ -195,7 +195,7 @@ An example of handling lists in Elixireum is as follows:
   ignored_, offset$ := copy_from_pointer_to$(str2$, offset$) // copy string variable to the list & update offset$
 \end{lstlisting}
 
-In this Yul code the variables var0\$, bool\_var1\$, and str2\$ are defined for the integer, boolean, and string literals, respectively. Then list a\$ is defined. The length of the list is stored using mstore, and the actual values of the list elements are copied into memory using the copy\_from\_pointer\_to\$ function, which updates the offset accordingly.
+In this Yul code the variables var0\$, bool\_var1\$, and str2\$ are defined for the integer, boolean, and string literals, respectively. Then list a\$ is defined. The length of the list is stored using mstore, and the actual values of the list elements are copied into memory using the copy\_from\_pointer\_to\$, function from Elixireum internal standard library (refer to implementation in Appendix \ref{appex:copy_from_pointer_to}), which updates the offset accordingly.
 
 The following table illustrates a snippet of the EVM memory for this list case:
 \begin{table}[h!]
@@ -257,9 +257,9 @@ The following table illustrates a snippet of the EVM memory for this list case:
     end
   \end{lstlisting}
   
-  \item \textbf{ABI for Public Functions}
+  \item \textbf{Application Binary Interface (ABI) for Public Functions}
   
-  The compiler enforces the specification of all public functions through compile-time errors. After compilation, all defined specifications are converted to the ABI (Application Binary Interface) JSON, which is necessary for correctly calling the smart contract after deployment.
+  The compiler enforces the specification of all public functions through compile-time errors. After compilation, all defined specifications are converted to the ABI JSON, which is necessary for correctly calling the smart contract after deployment.
 
   \begin{lstlisting}[caption={@spec}, language=elixir, label={lst:calldata_decoding_recursive}]
   @spec a(Types.Int256.t()) :: Types.String.t()
