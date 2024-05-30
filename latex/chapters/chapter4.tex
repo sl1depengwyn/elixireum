@@ -39,7 +39,7 @@ This section rationalize the technology stack used in the project: Elixir, Yul, 
 \subsection{Choice of Elixir}
 Here is the rationalization behind the choice of Elixir:
 \begin{itemize}
-    \item One of the most popular open source blockchain explorers, Blockscout\footnote{\href{https://www.blockscout.com/}{https://www.blockscout.com} -- Official Blockscout website}, is written in Elixir. From this we can say that Elixir is well heard of in Web3 community.
+    \item One of the most popular open source blockchain explorers, Blockscout\footnote{\href{https://www.blockscout.com/}{https://www.blockscout.com} -- Official Blockscout website}, is written in Elixir. From this we can say that Web3 community has heard of Elixir.
     \item Our team possesses substantial expertise in this programming language.
     \item Elixir is open source so we can easily reuse its machinery for tokenization and parsing Elixireum.
 \end{itemize}
@@ -99,7 +99,7 @@ The following Elixireum code illustrates a simple variable declaration:
 
 This Elixireum code is translated into Yul code as follows:
 
-\begin{lstlisting}[caption={Generated yul code for simple case}, language=yul]
+\begin{lstlisting}[caption={Generated Yul code for simple case}, language=yul]
   let offset$ := msize()      // define offset$, set it to current memory size 
   let a$ := offset$           // define variable as the memory pointer
   mstore8(offset$, 67)        // 67 is int256 type, store it as one byte
@@ -114,7 +114,7 @@ This Elixireum code is translated into Yul code as follows:
   offset$ := add(offset$, 32) // int256 value takes 32 bytes
 \end{lstlisting}
 
-In this Yul code, offset\$ is initialized to the current memory size. Each variable (a\$ and b\$) is defined as a memory pointer. The type of each variable is stored using mstore8 Yul function, and the actual value is stored using mstore Yul function. The offset is incremented appropriately to account for the type byte and the 32-byte value for each variable.
+In this Yul code, offset\$ is initialized to the current memory size. Each variable (a\$ and b\$) is defined as a memory pointer. The type of each variable is stored using mstore8 Yul function, and the actual value is stored using mstore Yul function. The offset\$ is incremented appropriately to account for the type byte and the 32-byte value for each variable.
 
 The following table shows a snippet of the EVM memory for this simple case:
 
@@ -196,7 +196,7 @@ An example of handling lists in Elixireum is as follows:
   ignored_, offset$ := copy_from_pointer_to$(str2$, offset$) // copy string variable to the list & update offset$
 \end{lstlisting}
 
-In this Yul code the variables var0\$, bool\_var1\$, and str2\$ are defined for the integer, boolean, and string literals, respectively. Then list a\$ is defined. The length of the list is stored using mstore, and the actual values of the list elements are copied into memory using the copy\_from\_pointer\_to\$, function from Elixireum internal standard library (refer to implementation in Appendix \ref{appex:copy_from_pointer_to}), which updates the offset accordingly.
+In this Yul code the variables var0\$, bool\_var1\$, and str2\$ are defined for the integer, boolean, and string literals, respectively. Then list a\$ is defined. The length of the list is stored using mstore, and the actual values of the list elements are copied into memory using the copy\_from\_pointer\_to\$, function from Elixireum internal standard library (refer to implementation in Appendix \ref{appex:copy_from_pointer_to}), which updates the offset\$ accordingly.
 
 The following table illustrates a snippet of the EVM memory for this list case:
 \begin{table}[h!]

@@ -1,18 +1,36 @@
 \chapter{Обзор литературы}
-\label{chap:background}
+\label{chap:lr}
+\chaptermark{Второй заголовок главы}
 
-With the widespread of computing systems, information processing, and net working, the practice of replacing paper documentation to electronic documentation has become more and more common. Electronic documentation within the workplace has several advantages over the traditional one, such as being easy to share, copy and edit the document. However, these advantages also present a problem. A malefactor, having access to the system, can easily copy and leak the document, without leaving any trace. Such actions are virtually undetectable in most systems, so, the malefactor goes unpunished. In this thesis, we propose one solution to the problem: digital watermarking. 
+\section{Существующие языки EVM}
+\label{sec:langs}
+Официальная документация Ethereum \cite{OfficialEthereumLanguages} перечисляет только четыре языка, которые компилируются в EVM: Solidity, Vyper, Yul и Fe. Кроме того, другие попытки создать язык для EVM известны\footnote{\href{https://github.com/s-tikhomirov/smart-contract-languages}{https://github.com/s-tikhomirov/smart-contract-languages} -- Коллекция ресурсов по языкам программирования смарт-контрактов}, но в данной статье будут рассмотрены только официально задокументированные языки.
 
-Every electronic document within the protected system is marked with an invisible digital watermark, containing information about the user, accessing this particular document. Therefore, in case the protected company discovers the leaked document, they will be able to identify the machine of the malicious person and time when the document was leaked. This will allow inflicting punishment on the malefactor, recovering the costs of the leak, and potentially preventing future ones. 
 
-This description implies several essential properties of the task at hand:
-\begin{enumerate}
-    \item Watermark must contain all necessary information, but still, be placeable and recognizable even on smaller images. The produced watermark must be compact but have the possibility to store enough information. 
-    \item To prevent easy tampering, the watermark must be invisible to the naked eye (and, preferably, to basic image parsing tools). If malefactor does not know about the existence of watermark, they might not even try to remove it and disable it. 
-\end{enumerate}
 
-\section{Подглава}
-Some text
+Среди доступных языков для EVM, Solidity выделяется как наиболее широко принятый и используемый \cite{SolidityWidelyUsed, SolidityDevsChallenges}. Это доминирование еще больше подчеркивается данными, представленными в статье\footnote{\href{https://blockchain.oodles.io/blog/solidity-vyper-smart-contracts-programming/}{https://blockchain.oodles.io/blog/solidity-vyper-smart-contracts-programming/} -- Анализ Solidity и Vyper для программирования смарт-контрактов}, из которой следует, что на Github файлов Solidity примерно в 800 раз больше, чем файлов Vyper. Следовательно, большинство существующих смарт-контрактов на блокчейне Ethereum написаны на Solidity. С одной стороны, концентрация разработок и ресурсов вокруг одного языка, такого как Solidity, может рассматриваться положительно. Это способствует формированию сильного чувства сплоченности сообщества и гарантирует, что большинство разработчиков сосредоточены на доработке и улучшении одного языка, что потенциально повышает его надежность и расширяет набор функций. Однако такое доминирование порождает и серьезные проблемы. Широкая распространенность Solidity в экосистеме EVM означает, что если в языке Solidity возникает уязвимость или недостаток безопасности, то это затрагивает значительную часть смарт-контрактов в сети. Такая централизация может быть обоюдоострым мечом, поскольку одна точка сбоя в Solidity может иметь далеко идущие последствия для всего блокчейна Ethereum. Кроме того, сообщество Ethereum критикует Solidity. Члены сообщества высказывают свои опасения и проблемы, связанные с языком \cite{SolidityDevsChallenges}. Эти проблемы варьируются от сложности языка до отсутствия в нем определенных функций, что может препятствовать разработке надежных и безопасных смарт-контрактов. Таким образом, децентрализация и возможность выбора очень важны, особенно для такой децентрализованной экосистемы, как блокчейн. Вот краткое введение в самые популярные языки смарт-контрактов: Solidity и Vyper.
 
-\subsection{Подподглава}
-Some text
+\subsection{Solidity}
+
+Solidity - это высокоуровневый, объектно-ориентированный язык программирования, статически типизированный, специально разработанный для EVM. Его синтаксис похож на C++, Python и Javascript \cite{SolidityInspirasion}. Он поддерживает множественное наследование, сложные пользовательские типы, библиотеки и некоторые другие возможности \cite{SolidityFeatures}.
+
+\subsection{Vyper}
+
+Vyper значительно отличается от Solidity. Он основан на Python и расширяет его для разработки смарт-контрактов. Vyper стремится к безопасности и простоте в плане реализации самого компилятора и читаемости кода для более легкого аудита. Например, в нем отсутствует список функций, которые считаются вредными для читаемости кода, что делает язык более склонным к ошибкам \cite{VyperDescription}.
+
+\section{Язык Elixir}
+\label{sec:ex}
+
+Elixir \cite{ElixirOfficialWebSite} - это современный язык программирования, работающий на виртуальной машине Erlang. Благодаря поддержке неизменяемых переменных Elixir значительно повышает ясность и простоту кода смарт-контрактов. Эта неизменяемость гарантирует, что после определения данных они не могут быть изменены, что способствует предсказуемости и безопасности.
+
+Отличительной особенностью Elixir являются возможности метапрограммирования. Эта функциональность позволяет разработчикам создавать языки, специфичные для конкретной области. Эта возможность бесценна, так как позволяет разработчикам выражать логику программы в удобном для чтения виде и в тесной связи с конкретной проблемной областью. Благодаря использованию метапрограммирования разработка смарт-контрактов станет более простой и доступной для широкого круга разработчиков.
+
+Как утверждает О'Грейди \cite{RedMonk}, Elixir уверенно держится в списке 50 лучших языков программирования. Примечательно, что он превосходит по популярности даже Solidity, что делает его привлекательным выбором для разработчиков Ethereum и тем самым способствует расширению сообщества Ethereum.
+
+Подводя итог, можно сказать, что наше решение принять Elixir в качестве языка для нашего компилятора и основополагающего фреймворка для языка Elixireum подкреплено его неизменяемостью, возможностями метапрограммирования и известностью в сфере разработки программного обеспечения. Этот выбор обеспечивает простоту и безопасность разработки смарт-контрактов, а также рост и диверсификацию экосистемы Ethereum.
+
+
+\section{Заключение}
+\label{sec:conc}
+
+В заключение этой главы следует отметить два важных момента. Во-первых, доминирование Solidity создало проблемы для экосистемы Ethereum. Во-вторых, отсутствие функциональных языков для разработки смарт-контрактов ограничивает использование преимуществ функциональной парадигмы. Поэтому мы решили разработать Elixireum, функциональный язык программирования, построенный на основе Elixir и специально предназначенный для разработки смарт-контрактов.
